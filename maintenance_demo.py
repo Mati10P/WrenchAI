@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+from datetime import date
 
 # Datos personales guardados en una carpeta excluida de git
 database_path = Path(__file__).parent / "data" / "private" / "demo.db"
@@ -18,11 +19,22 @@ try:
         )
     """)
 
-    # Datos ficticios
+    # Datos
+    performed_on = input("Fecha del trabajo (YYYY-MM-DD): ").strip()
+    date.fromisoformat(performed_on)
+
+    odometer_km = int(input("Kilometraje: ").strip())
+    if odometer_km < 0:
+        raise ValueError("El kilometraje no puede ser negativo.")
+
+    description = input("Trabajo realizado: ").strip()
+    if not description:
+        raise ValueError("La descripción no puede estar vacía.")
+
     record = (
-        "2026-10-07",
-        150000,
-        "EJEMPLO: cambio de aceite y filtro",
+        performed_on,
+        odometer_km,
+        description,
     )
 
     connection.execute(

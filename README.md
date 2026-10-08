@@ -55,5 +55,12 @@ Ejecutar la demo de mantenimiento:
 .\.venv\Scripts\python.exe maintenance_demo.py
 ```
 
-El script guarda registros ficticios en data/private/demo.db.
-Cada ejecución agrega un registro. No representa el historial real del auto.
+El script te pide:
+- Fecha del trabajo en formato YYYY-MM-DD.
+- Kilometraje entero mayor o igual a cero.
+- Descripción del trabajo no vacía.
+
+Valida los datos y guarda el registro en SQLite.
+Si una entrada es inválida, muestra un ValueError y termina.
+Cada ejecución exitosa agrega un registro a data/private/demo.db.
+La base se usa para pruebas y está excluida de git.
