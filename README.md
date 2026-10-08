@@ -38,3 +38,22 @@ diagnósticos, medidas ni especificaciones.
 ## Estado
 
 Inicio del proyecto. Todavía no hay funcionalidades implementadas.
+
+## Desarrollo local
+
+Requiere Python 3.11.
+
+Crear el entorno:
+
+```powershell
+python -m venv .venv
+```
+
+Ejecutar la demo de mantenimiento:
+
+```powershell
+.\.venv\Scripts\python.exe maintenance_demo.py
+```
+
+El script guarda registros ficticios en data/private/demo.db.
+Cada ejecución agrega un registro. No representa el historial real del auto.
