@@ -1,0 +1,17 @@
+# Entorno y archivos de Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Claves y configuración privada
+.env
+.env.*
+!.env.example
+
+# Datos personales y documentación local
+data/private/
+*.db
+*.db-shm
+*.db-wal
