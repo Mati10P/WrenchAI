@@ -2,6 +2,8 @@
 
 ## Decisión de alcance
 
+Aquí, **corpus** significa el conjunto de documentos o fragmentos que WrenchAI podrá consultar como fuentes. Los manuales procesados son material candidato; el corpus habilitado para respuestas incluirá únicamente fragmentos revisados y compatibles, con sus referencias al original.
+
 La primera versión de WrenchAI usará un conjunto acotado de páginas bien revisadas de los dos manuales candidatos. No se requiere completar la revisión profunda de ambos manuales antes de construir el MVP. Esa revisión completa queda pendiente para una etapa posterior.
 
 El OCR y la separación por regiones cubren las 532 páginas, pero eso no equivale a una validación de su contenido. La selección inicial comprende 22 páginas: 19 de contenido y contexto técnico y 3 de identificación. Se inspeccionaron sus imágenes para seleccionar temas y contexto; no se completó el cotejo técnico de esas páginas. Ninguna está habilitada como evidencia técnica para RAG.
@@ -57,6 +59,8 @@ Antes de habilitar cada página o sección se debe registrar:
 El cotejo de una tabla no aprueba automáticamente toda la página. Una página con contexto pendiente tampoco se habilita por tener algunas celdas transcritas. La futura ingesta deberá incluir únicamente el material aprobado de forma explícita; no recorrer automáticamente todos los borradores OCR. Este control de ingesta todavía no está implementado.
 
 ## Estado y próximos pasos
+
+El primer lote cotejó cuatro secciones (temperatura, carga, presión de aceite y freno) en P 28–31, con diez tramos de texto y figuras vinculadas. El alcance es parcial por página; la aplicabilidad sigue pendiente y no hay fragmentos habilitados para RAG. Evidencia, procedimiento y límites: [MVP_REVIEW_LOG.md](MVP_REVIEW_LOG.md).
 
 La página PDF 10 del manual de reparación (impresa 12) tiene 69 celdas cotejadas y evidencia privada por celda. Sigue pendiente verificar su aplicabilidad y el contexto técnico. Es un trabajo de preparación, no una página aprobada para el MVP.
 

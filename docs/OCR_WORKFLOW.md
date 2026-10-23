@@ -85,3 +85,7 @@ Los ajustes visuales de regiones se registran en `docs/ocr-layout-overrides.json
 ## Celdas, cifras y unidades
 
 La siguiente capa se documenta en [OCR_TABLE_REVIEW.md](OCR_TABLE_REVIEW.md): propuestas espaciales para las regiones de tabla y transcripciones cotejadas separadas, con evidencia por celda. El cotejo está en curso; no asumir que todas las tablas estén validadas.
+
+## Pasajes cotejados del conjunto inicial
+
+El [registro de cotejo](MVP_REVIEW_LOG.md) describe las secciones revisadas del MVP. `build_reviewed_passages.py` construye una capa privada de transcripción, con orden explícito entre columnas/páginas y recortes de evidencia; no reemplaza el OCR original ni habilita RAG. El visor la muestra antes de los borradores automáticos, con sus límites y pendientes.
