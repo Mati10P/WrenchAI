@@ -3,10 +3,29 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from build_reviewed_passages import assemble_segments, pixel_box, validate_passage
+from build_reviewed_passages import (
+    assemble_segments,
+    pixel_box,
+    source_language,
+    validate_passage,
+)
 
 
 class PassageTests(unittest.TestCase):
+    def test_source_languages_are_distinct_and_unknown_manual_is_rejected(self):
+        self.assertEqual(source_language("gol-owner-candidate"), "pt")
+        self.assertEqual(source_language("gol-repair-candidate"), "es")
+        with self.assertRaises(ValueError):
+            source_language("unregistered-manual")
+
+    def test_wrong_language_is_rejected_before_evidence_is_used(self):
+        with self.assertRaisesRegex(ValueError, "language"):
+            validate_passage(
+                dict(rag_eligible=False, applicability_status="pending", language="pt"),
+                Path("gol-repair-candidate"),
+                Path("unused"),
+            )
+
     def test_columns_and_pages_join_without_losing_warning(self):
         parts = [
             dict(text="Verifique se o ven-", join_next="split_word"),

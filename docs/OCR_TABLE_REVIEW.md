@@ -37,6 +37,8 @@ El visor de la página PDF 10 muestra las celdas cotejadas. Cada valor enlaza a 
 
 ## Validación y trabajo pendiente
 
+El lote 3 del conjunto inicial agregó doce celdas cotejadas de R 75 (impresa 77): etiquetas y seis valores de la tabla del interruptor térmico. Se preservan los grupos con/sin aire acondicionado y conexión/desconexión; `grados` no se completa como Celsius. Acumulado de transcripción: 81 celdas, incluyendo las 69 de R 10 que quedaron fuera del conjunto inicial. No se habilitan por ello valores para el vehículo objetivo. Ver [MVP_REVIEW_LOG.md](MVP_REVIEW_LOG.md) para el estado posterior a la primera pasada.
+
 Pasaron 17 pruebas: etiquetas, unidades, orden de columnas y líneas, preservación de signos y comas, grupos vacíos, proporciones, abreviaturas y ausencia de unidades inferidas. La auditoría también comprueba hashes de fuentes, recortes, regiones y palabras.
 
 Falta revisar el resto de las tablas: límites y celdas combinadas, encabezados que abarcan columnas, notas, signos pequeños, rangos, unidades compartidas y compatibilidad por variante. Una transcripción cotejada contra el escaneo no certifica la vigencia ni la corrección técnica del manual.

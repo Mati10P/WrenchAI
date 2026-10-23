@@ -17,6 +17,13 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def source_language(manual):
+    languages = {"gol-owner-candidate": "pt", "gol-repair-candidate": "es"}
+    if manual not in languages:
+        raise ValueError("Unknown manual language; register it explicitly")
+    return languages[manual]
+
+
 def pixel_box(bounds, width, height):
     if len(bounds) != 4:
         raise ValueError("Expected four normalized bounds")
@@ -51,6 +58,8 @@ def assemble_segments(segments):
 def validate_passage(data, folder, originals):
     if data["rag_eligible"] is not False or data["applicability_status"] != "pending":
         raise ValueError("Transcription review cannot approve applicability or RAG")
+    if data["language"] != source_language(folder.name):
+        raise ValueError("Passage language does not match source manual")
     if not data["segments"] or not data["figures"]:
         raise ValueError("Missing passage text or figure evidence")
     for kind in ("segments", "figures"):
@@ -102,7 +111,7 @@ def build():
             transcription_status="visually_checked_by_assistant",
             applicability_status="pending",
             rag_eligible=False,
-            language="pt",
+            language=source_language(definition["manual"]),
             editorial_policy="Join printed line wraps and split words; preserve wording and numbers. Pictograms remain figure evidence, not guessed characters.",
         )
         for kind in ("segments", "figures"):

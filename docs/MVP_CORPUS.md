@@ -66,7 +66,9 @@ El segundo lote agregó diez pasajes de P 32–36, P 87 y P 89–92: los otros t
 
 La página PDF 10 del manual de reparación (impresa 12) tiene 69 celdas cotejadas y evidencia privada por celda. Sigue pendiente verificar su aplicabilidad y el contexto técnico. Es un trabajo de preparación, no una página aprobada para el MVP.
 
-El siguiente bloque será cotejar I1–I2 y R1–R3 con sus tablas/leyendas y resolver aplicabilidad de los pasajes. Los grupos P1–P9 ya tienen cotejo de las secciones seleccionadas, con los límites del registro. Registrar por sección transcripción, relaciones con figuras, aplicabilidad y exclusiones antes de preparar fragmentos para RAG. Las páginas de identificación se usan para procedencia y compatibilidad, no como citas de una hipótesis mecánica. Si una variante no puede establecerse, el caso correspondiente debe abstenerse; no se agregan páginas automáticamente para intentar justificar una respuesta.
+El tercer lote completó la pasada de transcripción de los contenidos delimitados de I1–I2 y R1–R3. Acumulado: 22 pasajes, 41 tramos de texto y 30 vínculos a recortes de figuras en las 22 páginas seleccionadas. Incluye un registro de presión expresamente excluido y doce celdas de la tabla del interruptor cotejadas, sin completar la escala de la unidad impresa. No equivale a aprobar páginas completas ni procedimientos. El detalle y las limitaciones bibliográficas están en el registro.
+
+El siguiente paso es resolver aplicabilidad y aceptación/exclusión de cada fragmento antes de preparar su ingesta para RAG. Todos siguen con `rag_eligible=false`. Las páginas de identificación se usan para procedencia y compatibilidad, no como citas de una hipótesis mecánica. Si una variante no puede establecerse, el caso correspondiente debe abstenerse; no se agregan páginas automáticamente para intentar justificar una respuesta.
 
 Los casos que queden sin documentación suficiente deberán expresar esa ausencia en lugar de inventar especificaciones. El conjunto permite avanzar con el modelo de datos y la API mientras continúa la revisión. El diagnóstico respaldado por documentos depende de la aprobación explícita de sus fragmentos.
 

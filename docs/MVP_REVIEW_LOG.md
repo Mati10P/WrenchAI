@@ -82,3 +82,36 @@ Se reconstruyeron los pasajes y el visor con comprobación de hashes, límites, 
 Quedan sin cotejo de este conjunto las tres páginas de identificación (P 1, P 12 y R 3) y las cinco técnicas de reparación (R 69, R 72–75). También falta resolver la correspondencia con motor, combustible, mercado y tablero del vehículo objetivo y decidir qué fragmentos pueden aprobarse, cuáles deben recortarse y cuáles excluirse. Ninguna página se habilita por haber completado una transcripción.
 
 El trabajo puede continuar por identificación y refrigeración del manual de reparación; la API y la persistencia pueden implementarse independientemente. La revisión profunda de ambos manuales completos sigue pendiente para una etapa posterior.
+
+## Lote 3 - 2026-10-23
+
+Se cotejaron los contenidos delimitados de las ocho páginas que faltaban: identificación en P 1, P 12 y R 3; refrigeración en R 69 y R 72–75. Se agregaron ocho pasajes privados con dieciséis tramos de texto y once recortes de figuras. La presión se registra como pasaje excluido, no como procedimiento aprobado. El idioma de los artefactos se distingue ahora por fuente (portugués/español), con rechazo de manuales no registrados o idioma inconsistente.
+
+| Pasaje privado | Páginas | Alcance cotejado |
+| --- | --- | --- |
+| `owner-source-cover` | P 1 | Título y portada. No contiene fecha de edición que permita confirmar la atribuida por el portal. |
+| `owner-engine-identification` | P 12 | Rótulos de fabricante, número de motor y fecha de batería, cada uno vinculado a su propia figura. Son ubicaciones ilustradas; no identifican el vehículo real. |
+| `repair-source-title` | R 3 | Título, cobertura general declarada, cantidad declarada de ilustraciones y tercera edición. No se presenta como manual original de taller VW ni se deduce compatibilidad de la mención a multipunto. |
+| `repair-cooling-overview` | R 69 | Título del sistema y leyenda 1–9 vinculada a II.75. Se distinguen sensor e interruptor; torques y asteriscos quedan como contexto no habilitado. |
+| `repair-cooling-fan-a` | R 72 | Rótulo de II.78 y leyenda 1–7 vinculados al despiece. No se deduce aire acondicionado a partir del dibujo. |
+| `repair-cooling-fan-b` | R 73 | Rótulo de II.79 y leyenda 1–9 vinculados al segundo despiece. Su numeración no se mezcla con II.78. |
+| `repair-thermal-switch-context` | R 74–75 | Sección de interruptor, continuación y tabla de la página siguiente, asociadas a II.81. Radiador y prueba de presión se mantienen separados. El tamaño de herramienta es contexto privado, no una instrucción del MVP. |
+| `repair-pressure-ambiguity` | R 74 | Literal ambiguo y figura II.80 conservados para el caso de abstención X04. Excluido de instrucciones y de evidencia técnica aprobada. |
+
+La tabla de R 75 se cotejó también en la capa de celdas: seis valores y sus seis etiquetas, doce celdas distribuidas en tres estructuras (sin aire acondicionado, con aire/conexión, con aire/desconexión). Los encabezados de grupo permanecen en el recorte completo y en el título de cada estructura; no se inventan como valores dentro de una celda. Se conserva `grados` como unidad literal, sin agregar escala Celsius ni convertir unidades.
+
+La unidad del pasaje de presión carece de superficie en el texto impreso. No se completa por inferencia ni se convierte. La frase sobre el estado del sistema tampoco se adopta como diagnóstico confirmado. Los montajes de las figuras y las condiciones de la tabla aún requieren aplicabilidad explícita.
+
+Las celdas cotejadas acumuladas son 81: 69 de R 10 (trabajo anterior fuera del conjunto inicial) y 12 de R 75. Las otras regiones de tabla del corpus completo siguen siendo borradores. Las 95 regiones y sus 6.025 palabras OCR permanecen conservadas.
+
+### Estado acumulado al cerrar esta pasada
+
+Hay 22 pasajes privados, 41 tramos de texto y 30 vínculos a recortes de figuras, con contenidos delimitados cotejados en las 22 páginas seleccionadas. Los pasajes incluyen identificación, contexto técnico y un registro de exclusión; el número no representa 22 fragmentos aprobados para responder. No se revisó todo el contenido de cada página ni los dos manuales completos. Todos mantienen aplicabilidad pendiente y `rag_eligible=false`.
+
+Se inspeccionaron los nuevos recortes de texto, la tabla completa y las doce celdas; se ampliaron los recortes de los rótulos de P 12 para conservar su línea completa. Se regeneró el visor con validación de evidencia. Pasaron 24 pruebas (dos nuevas de idioma), Ruff, auditoría de tablas, comprobaciones de enlaces locales y `git diff --check`. No se ejecutó Gemini ni se verificó renderizado en navegador automatizado.
+
+### Próxima decisión
+
+La pasada de transcripción de los contenidos seleccionados está realizada; falta decidir aplicabilidad y aceptación por fragmento. Confirmar mercado, combustible, código/familia de motor, tablero y montaje de refrigeración del vehículo objetivo. Lo que no se pueda establecer debe seguir fuera de evidencia habilitada o resolverse mediante abstención. No aprobar automáticamente toda una página porque sus rótulos son legibles.
+
+Las páginas de identificación no resuelven por sí solas la fecha de edición del propietario ni la autoría/editorial del libro de reparación. Esas comprobaciones bibliográficas siguen abiertas. La construcción del modelo de datos, API y persistencia puede avanzar mientras se resuelven estos puntos; la revisión profunda del resto de los manuales queda para una etapa posterior.
