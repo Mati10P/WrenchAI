@@ -4,11 +4,11 @@ La entrada principal es http://localhost:5173. La interfaz guarda mensajes reale
 
 ## Recorrido
 
-1. Abrir **Mi auto → Datos** y completar nombre, kilometraje y modificaciones conocidas. Los datos técnicos son opcionales y se despliegan solo al editar. Se recuerda el auto seleccionado en este navegador.
+1. Abrir **Mi auto → Datos** y completar marca, modelo, año, kilometraje y modificaciones conocidas. Marca, modelo, año y kilometraje están visibles en Datos y al editar. Los demás datos técnicos son opcionales y se despliegan al editar. Se recuerda el auto seleccionado en este navegador.
 2. Escribir un problema y enviar. El primer mensaje crea una conversación y un pendiente por detrás, sin pedir título, síntomas ni estado en formularios.
 3. Agregar observaciones en el mismo chat. Se conservan en el mismo caso; no se crea una avería por cada mensaje. Enter envía y Shift + Enter agrega una línea.
-4. Consultar **Mi auto → Pendientes** o **Conversaciones** para retomar un caso. Al recargar permanecen los mensajes.
-5. Si se resolvió, usar **Ya lo resolví** y describir qué se hizo. También se puede registrar mantenimiento independiente desde **Mi auto → Trabajos → Anotar un trabajo realizado**.
+4. Consultar **Mi auto → Tareas** o **Conversaciones** para retomar un caso. Al recargar permanecen los mensajes.
+5. Si se resolvió, usar **Ya lo resolví** y describir qué se hizo. También se puede registrar mantenimiento independiente desde **Mi auto → Tareas → Agregar tarea**.
 6. Usar **Nuevo chat** para otro problema. El borrador no enviado se descarta al cambiar de conversación o vehículo.
 
 Los registros anteriores, sus mediciones y resoluciones siguen disponibles. Se retiró la acción Agregar medición del chat a pedido del propietario. Los estados internos OPEN/IN_PROGRESS se agrupan como pendientes en el menú. El kilometraje se carga explícitamente: no se deduce del texto, del historial ni de los manuales.
@@ -60,3 +60,17 @@ La revisión profunda de ambos manuales completos continúa pendiente. Solo podr
 Pasaron 17 pruebas de integración del backend contra PostgreSQL real, incluyendo migraciones, persistencia de contexto y mensajes, reintentos sin duplicar pendientes, aislamiento de IDs por contexto y registro de trabajos. Se conserva la advertencia conocida de deprecación de httpx en el cliente de pruebas. También pasaron el build TypeScript/Vite y la construcción Docker.
 
 En el navegador se guardaron kilometraje y modificaciones del vehículo sintético; se envió un problema, un seguimiento y se recargó para comprobar ambos mensajes. El menú mostró un único pendiente y permitió anotar un trabajo independiente, conservando también la reparación anterior. Se comprobó a 390 px que el documento no desborda horizontalmente y que el cuadro de escritura queda dentro del alto disponible. Son verificaciones manuales asistidas, no una suite automática ni una auditoría completa de accesibilidad. No se ejecutaron diagnósticos, búsqueda web ni llamadas a Gemini.
+
+## Lista unificada de tareas
+
+Pendientes y trabajos se reúnen en Tareas, con los pendientes primero y los completados debajo. Cada fila tiene check, título, fecha de alta, fecha del trabajo, kilometraje al realizarlo y notas. Se puede agregar una tarea manualmente o desde un chat. El primer check solicita los detalles del trabajo; desmarcarlo vuelve la tarea a pendiente conservando notas, fecha y kilómetros. Editar detalles permite corregir esos datos.
+
+La fecha del trabajo es una fecha de calendario indicada por el usuario, separada del momento de registro. Los kilómetros del trabajo tampoco reemplazan el kilometraje original del problema ni el actual del auto. Datos desconocidos permanecen vacíos. La migración conserva las resoluciones anteriores como notas y no inventa fechas ni kilometrajes.
+
+Validación de tareas: 19 pruebas de integración contra PostgreSQL, build TypeScript/Vite, Ruff y construcción Docker correctos. En navegador se verificaron los datos principales, el check de un caso sintético y la persistencia de fecha, kilómetros y notas tras recargar, con pendientes primero.
+
+## To-do en tabla
+
+Se renombra Tareas a To-do y se presenta como tabla con check, fecha del trabajo, descripción, kilómetros y costo. Pendientes primero; tocar una celda abre la edición de sus detalles. El costo es dinero ya pagado, en una misma moneda elegida por el usuario, y el total suma todos los importes cargados del auto, también los pendientes. Un costo vacío no significa cero y se indica cuántos faltan. PostgreSQL usa Numeric(14,2) y la suma visual usa centavos enteros. La migración 0004 conserva los registros anteriores con costo desconocido.
+
+Verificación: 25 pruebas de integración y build TypeScript/Vite correctos. En navegador se guardó un costo sintético de 1234,56, se recargó la página y se comprobó el total 1.234,56. La tabla permite desplazamiento horizontal en pantallas estrechas.

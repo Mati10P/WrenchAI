@@ -6,7 +6,9 @@ export function Modal({
   title,
   children,
   close,
+  wide = false,
 }: {
+  wide?: boolean;
   title: string;
   children: ReactNode;
   close: () => void;
@@ -22,6 +24,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
+      className={wide ? "wide-modal" : undefined}
       onCancel={(event) => {
         event.preventDefault();
         close();

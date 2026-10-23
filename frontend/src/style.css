@@ -558,3 +558,150 @@ dialog::backdrop {
     font-size: 12px;
   }
 }
+
+.task-row {
+  display: flex;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.task-row > input {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  margin: 3px 0;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+.task-content {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.task-content > strong {
+  display: block;
+}
+.task-content > span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.task-content > p {
+  white-space: pre-wrap;
+  margin: 10px 0;
+  font-size: 14px;
+}
+.done .task-content > strong {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.check-label input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--green);
+}
+
+.wide-modal {
+  width: min(1050px, calc(100% - 24px));
+}
+.todo-sheet {
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-top: 20px;
+}
+.todo-sheet table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 670px;
+  background: white;
+  font-size: 13px;
+}
+.todo-sheet th,
+.todo-sheet td {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 10px;
+  vertical-align: top;
+}
+.todo-sheet th {
+  background: #edf2ea;
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.todo-sheet th:first-child {
+  width: 42px;
+}
+.todo-sheet td:first-child input {
+  width: 19px;
+  height: 19px;
+  margin: 8px 0;
+  accent-color: var(--green);
+}
+.todo-sheet tbody tr:hover {
+  background: #f6f8f3;
+}
+.todo-sheet .sheet-cell {
+  border: 0;
+  background: transparent;
+  border-radius: 4px;
+  text-align: inherit;
+  padding: 6px 3px;
+  min-height: 34px;
+  width: 100%;
+  font-size: 13px;
+}
+.todo-sheet .sheet-cell:hover {
+  background: #eaf1e5;
+  outline: 1px solid #a7bca8;
+}
+.todo-sheet .description-cell {
+  width: 45%;
+  min-width: 240px;
+}
+.todo-sheet .description-cell p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 5px 3px;
+}
+.todo-sheet .quiet {
+  padding: 3px;
+  min-height: 28px;
+  font-size: 11px;
+}
+.todo-sheet .numeric {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.todo-sheet tfoot td,
+.todo-sheet tfoot th {
+  background: #e5eee0;
+  font-weight: 700;
+  padding: 16px 12px;
+  border-bottom: 0;
+}
+.todo-sheet .is-done .todo-title {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.sheet-help {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 12px 0 0;
+}

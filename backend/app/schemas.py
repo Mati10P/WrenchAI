@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
 from typing import Annotated
@@ -113,6 +113,10 @@ class IncidentOut(IncidentInput):
     resolution: str | None
     created_at: datetime
     resolved_at: datetime | None
+    work_notes: str | None
+    performed_on: date | None
+    cost: Decimal | None
+    work_mileage: int | None
 
 
 class IncidentDetail(IncidentOut):
@@ -131,3 +135,30 @@ class MessageOut(MessageInput):
 
 class WorkInput(Schema):
     description: Description
+
+
+class TaskInput(Schema):
+    title: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=160)
+    ]
+    description: Description
+    cost: (
+        Annotated[
+            Decimal, Field(ge=0, max_digits=14, decimal_places=2, allow_inf_nan=False)
+        ]
+        | None
+    ) = None
+    completed: bool = False
+    work_notes: Description | None = None
+    performed_on: date | None = None
+    work_mileage: Annotated[int, Field(strict=True, ge=0, le=10000000)] | None = None
+
+    @model_validator(mode="after")
+    def completed_requires_details(self):
+        if self.completed and not self.work_notes:
+            raise ValueError("Completed tasks require work notes")
+        return self
+
+
+class TaskState(Schema):
+    completed: bool

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
@@ -49,6 +49,11 @@ class Incident(Base):
     __table_args__ = (
         CheckConstraint("status IN ('OPEN', 'IN_PROGRESS', 'RESOLVED')"),
         CheckConstraint("mileage IS NULL OR mileage >= 0"),
+        CheckConstraint("cost IS NULL OR cost >= 0", name="task_cost_nonnegative"),
+        CheckConstraint(
+            "work_mileage IS NULL OR work_mileage BETWEEN 0 AND 10000000",
+            name="work_mileage_range",
+        ),
         CheckConstraint(
             "(status = 'RESOLVED' AND resolution IS NOT NULL AND length(trim(resolution)) > 0 AND resolved_at IS NOT NULL) OR (status != 'RESOLVED' AND resolution IS NULL AND resolved_at IS NULL)"
         ),
@@ -63,6 +68,10 @@ class Incident(Base):
     mileage: Mapped[int | None]
     status: Mapped[str] = mapped_column(String(20), default="OPEN", index=True)
     resolution: Mapped[str | None] = mapped_column(Text)
+    work_notes: Mapped[str | None] = mapped_column(Text)
+    performed_on: Mapped[date | None]
+    cost: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    work_mileage: Mapped[int | None]
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

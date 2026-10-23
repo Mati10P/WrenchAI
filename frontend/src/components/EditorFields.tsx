@@ -31,6 +31,35 @@ export function EditorFields({
               autoFocus
             />
           </label>
+          <div className="form-grid">
+            <label>
+              Marca <small>Opcional</small>
+              <input
+                name="make"
+                maxLength={60}
+                defaultValue={editor.vehicle?.make || ""}
+              />
+            </label>
+            <label>
+              Modelo <small>Opcional</small>
+              <input
+                name="model"
+                maxLength={80}
+                defaultValue={editor.vehicle?.model || ""}
+              />
+            </label>
+            <label>
+              Año <small>Opcional</small>
+              <input
+                name="year"
+                type="number"
+                min={1886}
+                max={2100}
+                step={1}
+                defaultValue={editor.vehicle?.year || ""}
+              />
+            </label>
+          </div>
           <label>
             Kilometraje actual
             <input
@@ -56,33 +85,6 @@ export function EditorFields({
           <details>
             <summary>Datos técnicos opcionales</summary>
             <div className="form-grid">
-              <label>
-                Marca <small>Opcional</small>
-                <input
-                  name="make"
-                  maxLength={60}
-                  defaultValue={editor.vehicle?.make || ""}
-                />
-              </label>
-              <label>
-                Modelo <small>Opcional</small>
-                <input
-                  name="model"
-                  maxLength={80}
-                  defaultValue={editor.vehicle?.model || ""}
-                />
-              </label>
-              <label>
-                Año <small>Opcional</small>
-                <input
-                  name="year"
-                  type="number"
-                  min={1886}
-                  max={2100}
-                  step={1}
-                  defaultValue={editor.vehicle?.year || ""}
-                />
-              </label>
               <label>
                 Combustible <small>Opcional</small>
                 <input

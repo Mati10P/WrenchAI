@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { request, listAll, json, incidentInput } from "./api";
+import { request, listAll, json } from "./api";
 import type { Vehicle, VehicleInput, Incident, Detail, Message } from "./api";
 import { date, km, route } from "./presentation";
+import { TodoTable } from "./components/TodoTable";
 import { Icon } from "./components/Icon";
 import { Modal } from "./components/Modal";
 import { EditorFields } from "./components/EditorFields";
 import type { Editor } from "./components/EditorFields";
 
-type Panel = "auto" | "pending" | "history" | "chats";
-type Form = Editor | { type: "work" };
+type Panel = "auto" | "tasks" | "chats";
+type Form = Editor | { type: "task"; item?: Incident; complete?: boolean };
 
 export default function App() {
   const [hash, setHash] = useState(window.location.hash);
@@ -205,20 +206,23 @@ export default function App() {
           json(editor.vehicle ? "PUT" : "POST", payload),
         );
         if (!editor.vehicle) window.location.hash = route(vehicle.id);
-      } else if (editor.type === "work" && active) {
+      } else if (editor.type === "task" && active) {
+        const payload = {
+          title: str("title"),
+          description: str("description"),
+          completed: data.get("completed") === "on",
+          work_notes: str("work_notes") || null,
+          performed_on: str("performed_on") || null,
+          cost: str("cost") ? str("cost").replace(",", ".") : null,
+          work_mileage: str("work_mileage")
+            ? Number(str("work_mileage"))
+            : null,
+        };
         await request(
-          `/vehicles/${active.id}/work`,
-          json("POST", { description: str("description") }),
-        );
-        setPanel("history");
-      } else if (editor.type === "resolution" && detail) {
-        await request(
-          `/incidents/${detail.id}`,
-          json("PUT", {
-            ...incidentInput(detail),
-            status: "RESOLVED",
-            resolution: str("resolution"),
-          }),
+          editor.item
+            ? `/incidents/${editor.item.id}/task`
+            : `/vehicles/${active.id}/tasks`,
+          json(editor.item ? "PUT" : "POST", payload),
         );
       }
       setEditor(null);
@@ -231,10 +235,38 @@ export default function App() {
       setBusy(false);
     }
   }
-  const pending = incidents.filter((i) => i.status !== "RESOLVED");
-  const history = incidents.filter((i) => i.status === "RESOLVED");
+  async function toggle(item: Incident) {
+    if (busy) return;
+    if (item.status !== "RESOLVED" && !item.work_notes) {
+      open({ type: "task", item, complete: true });
+      return;
+    }
+    setBusy(true);
+    setNotice("");
+    try {
+      await request(
+        `/incidents/${item.id}/task-state`,
+        json("PATCH", { completed: item.status !== "RESOLVED" }),
+      );
+      setRevision((v) => v + 1);
+    } catch (e) {
+      setNotice(
+        e instanceof Error ? e.message : "No se pudo cambiar la tarea.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   const list =
-    panel === "pending" ? pending : panel === "history" ? history : incidents;
+    panel === "tasks"
+      ? [...incidents].sort(
+          (a, b) =>
+            Number(a.status === "RESOLVED") - Number(b.status === "RESOLVED") ||
+            (b.performed_on || b.created_at).localeCompare(
+              a.performed_on || a.created_at,
+            ),
+        )
+      : incidents;
 
   return (
     <div className="chat-app">
@@ -387,7 +419,9 @@ export default function App() {
                 <button
                   className="quiet"
                   disabled={busy}
-                  onClick={() => open({ type: "resolution" })}
+                  onClick={() =>
+                    open({ type: "task", item: detail, complete: true })
+                  }
                 >
                   {detail.status === "RESOLVED"
                     ? "Editar trabajo realizado"
@@ -458,6 +492,7 @@ export default function App() {
       {panel && (
         <Modal
           title="Mi auto"
+          wide={panel === "tasks"}
           close={() => {
             if (!busy) setPanel(null);
           }}
@@ -466,8 +501,7 @@ export default function App() {
             {(
               [
                 ["auto", "Datos"],
-                ["pending", "Pendientes"],
-                ["history", "Trabajos"],
+                ["tasks", "To-do"],
                 ["chats", "Chats"],
               ] as const
             ).map(([key, label]) => (
@@ -510,6 +544,12 @@ export default function App() {
                       .join(" · ")}
                   </p>
                   <dl>
+                    <dt>Marca</dt>
+                    <dd>{active.make || "Sin completar"}</dd>
+                    <dt>Modelo</dt>
+                    <dd>{active.model || "Sin completar"}</dd>
+                    <dt>Año</dt>
+                    <dd>{active.year ?? "Sin completar"}</dd>
                     <dt>Kilometraje</dt>
                     <dd>{km(active.mileage)}</dd>
                     <dt>Modificaciones</dt>
@@ -537,19 +577,25 @@ export default function App() {
             </>
           ) : (
             <>
-              {panel === "pending" && (
-                <p className="muted">
-                  Los problemas que describís al iniciar un chat aparecen acá.
-                </p>
+              {panel === "tasks" && (
+                <>
+                  <p className="muted">
+                    Pendientes arriba, trabajos completados abajo. Marcá el
+                    check cuando termines.
+                  </p>
+                  <button
+                    className="primary"
+                    disabled={!active || busy}
+                    onClick={() => open({ type: "task" })}
+                  >
+                    Agregar to-do
+                  </button>
+                </>
               )}
-              {panel === "history" && (
-                <button
-                  className="primary"
-                  disabled={!active || busy}
-                  onClick={() => open({ type: "work" })}
-                >
-                  Anotar un trabajo realizado
-                </button>
+              {notice && (
+                <p role="alert" className="form-error">
+                  {notice}
+                </p>
               )}
               {loadingChat ? (
                 <p role="status">Cargando…</p>
@@ -557,12 +603,18 @@ export default function App() {
                 <p role="alert">{error}</p>
               ) : !list.length ? (
                 <p className="empty-list">
-                  {panel === "pending"
-                    ? "No hay problemas pendientes."
-                    : panel === "history"
-                      ? "Todavía no registraste trabajos."
-                      : "Tu primera conversación empieza escribiendo en el chat."}
+                  {panel === "tasks"
+                    ? "Todavía no hay to-dos. Agregá uno o describí el problema en el chat."
+                    : "Tu primera conversación empieza escribiendo en el chat."}
                 </p>
+              ) : panel === "tasks" ? (
+                <TodoTable
+                  items={list}
+                  busy={busy}
+                  toggle={toggle}
+                  edit={(item) => open({ type: "task", item })}
+                  chat={(item) => navigate(active?.id, item.id)}
+                />
               ) : (
                 <div className="record-list">
                   {list.map((item) => (
@@ -572,11 +624,7 @@ export default function App() {
                       onClick={() => navigate(active?.id, item.id)}
                     >
                       <strong>{item.title}</strong>
-                      <span>
-                        {date(item.created_at)} ·{" "}
-                        {item.status === "RESOLVED" ? "Resuelto" : "Pendiente"}
-                      </span>
-                      {panel === "history" && <p>{item.resolution}</p>}
+                      <span>{date(item.created_at)}</span>
                     </button>
                   ))}
                 </div>
@@ -590,8 +638,8 @@ export default function App() {
           title={
             editor.type === "vehicle"
               ? "Datos del auto"
-              : editor.type === "work"
-                ? "¿Qué le hiciste al auto?"
+              : editor.type === "task"
+                ? "Detalles del to-do"
                 : "¿Cómo lo resolviste?"
           }
           close={() => {
@@ -599,17 +647,86 @@ export default function App() {
           }}
         >
           <form onSubmit={save}>
-            {editor.type === "work" ? (
-              <label>
-                Trabajo realizado
-                <textarea
-                  name="description"
-                  required
-                  maxLength={10000}
-                  rows={5}
-                  placeholder="Qué hiciste y cómo quedó"
-                />
-              </label>
+            {editor.type === "task" ? (
+              <>
+                <label>
+                  Descripción del to-do
+                  <input
+                    name="title"
+                    required
+                    maxLength={160}
+                    defaultValue={editor.item?.title}
+                    placeholder="Por ejemplo, cambiar filtro de aire"
+                  />
+                </label>
+                <label>
+                  Detalles
+                  <textarea
+                    name="description"
+                    required
+                    rows={3}
+                    maxLength={10000}
+                    defaultValue={editor.item?.description}
+                    placeholder="Qué querés hacer o qué problema hay"
+                  />
+                </label>
+                <label className="check-label">
+                  <input
+                    type="checkbox"
+                    name="completed"
+                    defaultChecked={
+                      editor.complete ?? editor.item?.status === "RESOLVED"
+                    }
+                  />
+                  Trabajo completado
+                </label>
+                <label>
+                  Qué se hizo y cómo quedó
+                  <textarea
+                    name="work_notes"
+                    rows={3}
+                    maxLength={10000}
+                    defaultValue={
+                      editor.item?.work_notes || editor.item?.resolution || ""
+                    }
+                    placeholder="Completá este detalle al marcar la tarea como hecha"
+                  />
+                </label>
+                <div className="form-grid">
+                  <label>
+                    Fecha del trabajo
+                    <input
+                      name="performed_on"
+                      type="date"
+                      defaultValue={editor.item?.performed_on || ""}
+                    />
+                  </label>
+                  <label>
+                    Kilómetros al realizarlo
+                    <input
+                      name="work_mileage"
+                      type="number"
+                      min={0}
+                      max={10000000}
+                      step={1}
+                      defaultValue={editor.item?.work_mileage ?? ""}
+                    />
+                  </label>
+                  <label>
+                    Costo pagado
+                    <input
+                      name="cost"
+                      inputMode="decimal"
+                      defaultValue={editor.item?.cost ?? ""}
+                      placeholder="0,00"
+                      pattern="[0-9]+([.,][0-9]{1,2})?"
+                    />
+                    <small>
+                      Hasta 2 decimales. Usá la misma moneda en todos los ítems.
+                    </small>
+                  </label>
+                </div>
+              </>
             ) : (
               <EditorFields editor={editor} detail={detail} />
             )}

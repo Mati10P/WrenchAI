@@ -94,3 +94,9 @@ Pasaron 14 pruebas de integración contra PostgreSQL 17, usando migraciones y un
 También se construyó la imagen de la API, se creó un ejemplo sintético por HTTP y se reiniciaron API y PostgreSQL con Compose. La resolución y la medición permanecieron disponibles, incluido el decimal exacto. Queda un vehículo/caso sintético en la base local como demostración; no representa una avería real. El identificador de la comprobación se guarda fuera de Git en `data/private/backend/persistence-smoke.json`.
 
 La suite emite una advertencia de deprecación del cliente HTTP de Starlette respecto de `httpx`; las pruebas pasan y no se ocultó la advertencia. Se resolverá al actualizar el cliente de pruebas y sus dependencias. No se ejecutaron pruebas de Gemini ni se implementó autenticación, frontend o búsqueda documental en este bloque.
+
+## Tareas con detalles del trabajo
+
+`POST /vehicles/{id}/tasks` crea una tarea; `PUT /incidents/{id}/task` edita título, descripción, completed, work_notes, performed_on (fecha de calendario) y work_mileage. `PATCH /incidents/{id}/task-state` recibe completed y permite marcar/desmarcar sin perder notas ni fecha/kilómetros. Completar exige notas del trabajo. La reapertura está habilitada por este contrato de tareas; el PUT anterior de incidencias conserva su restricción. No se modifican kilometraje original, síntomas, mensajes ni mediciones al editar la tarea. La migración 0003 copia resoluciones previas a work_notes y deja fecha/kilómetros desconocidos en null.
+
+El contrato de tareas incluye `cost`, decimal no negativo con hasta dos decimales (Numeric(14,2)), enviado como cadena. Null significa desconocido; 0 es un costo registrado de cero. Se conserva al cambiar el check. El total visual suma todos los costos pagados cargados del vehículo, sin excluir tareas pendientes. Todos se expresan en una misma moneda; no hay conversión monetaria.

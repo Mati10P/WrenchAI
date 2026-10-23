@@ -25,6 +25,10 @@ export type Incident = IncidentInput & {
   resolution: string | null;
   created_at: string;
   resolved_at: string | null;
+  work_notes: string | null;
+  performed_on: string | null;
+  work_mileage: number | null;
+  cost: string | null;
 };
 export type Measurement = {
   id: string;

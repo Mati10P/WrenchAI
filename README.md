@@ -4,7 +4,7 @@ Proyecto de portfolio para conseguir una primera experiencia laboral: una aplica
 
 ## Estado actual
 
-La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. El menú **Mi auto** reúne kilometraje, modificaciones, pendientes y trabajos realizados. La conversación todavía no genera respuestas: Gemini, consulta de manuales y búsqueda web están pendientes de integración.
+La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. El menú **Mi auto** reúne marca, modelo, año, kilometraje, modificaciones y una lista de tareas con pendientes y trabajos realizados. La conversación todavía no genera respuestas: Gemini, consulta de manuales y búsqueda web están pendientes de integración.
 
 El prototipo de consola `maintenance_demo.py` se conserva como antecedente educativo con SQLite. Sus datos no se migran automáticamente a la API.
 

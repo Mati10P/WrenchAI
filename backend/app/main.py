@@ -20,6 +20,8 @@ from .schemas import (
     MessageInput,
     MessageOut,
     Status,
+    TaskInput,
+    TaskState,
     VehicleInput,
     VehicleOut,
     WorkInput,
@@ -150,6 +152,8 @@ def create_app(url=None):
             )
         for key, value in payload.model_dump(mode="python").items():
             setattr(obj, key, value.value if isinstance(value, Status) else value)
+        if payload.status == Status.RESOLVED:
+            obj.work_notes = payload.resolution
         if payload.status == Status.RESOLVED and obj.resolved_at is None:
             obj.resolved_at = datetime.now(UTC)
         save(db)
@@ -253,11 +257,57 @@ def create_app(url=None):
             mileage=vehicle.mileage,
             status="RESOLVED",
             resolution=payload.description,
+            work_notes=payload.description,
             resolved_at=datetime.now(UTC),
         )
         db.add(incident)
         save(db)
         return incident
+
+    def apply_task_state(obj, completed):
+        if completed:
+            if not obj.work_notes:
+                raise HTTPException(422, "Add work notes before completing this task")
+            obj.status = "RESOLVED"
+            obj.resolution = obj.work_notes
+            obj.resolved_at = obj.resolved_at or datetime.now(UTC)
+        else:
+            # Keep previous work details when putting a task back on the list.
+            obj.work_notes = obj.work_notes or obj.resolution
+            obj.status = "OPEN"
+            obj.resolution = None
+            obj.resolved_at = None
+
+    @app.post(
+        "/vehicles/{vehicle_id}/tasks", response_model=IncidentOut, status_code=201
+    )
+    def create_task(vehicle_id: UUID, payload: TaskInput, db: DB):
+        vehicle = get(db, Vehicle, vehicle_id)
+        obj = Incident(
+            vehicle_id=vehicle_id,
+            mileage=vehicle.mileage,
+            **payload.model_dump(exclude={"completed"}),
+        )
+        apply_task_state(obj, payload.completed)
+        db.add(obj)
+        save(db)
+        return obj
+
+    @app.put("/incidents/{incident_id}/task", response_model=IncidentOut)
+    def edit_task(incident_id: UUID, payload: TaskInput, db: DB):
+        obj = get(db, Incident, incident_id)
+        for key, value in payload.model_dump(exclude={"completed"}).items():
+            setattr(obj, key, value)
+        apply_task_state(obj, payload.completed)
+        save(db)
+        return obj
+
+    @app.patch("/incidents/{incident_id}/task-state", response_model=IncidentOut)
+    def toggle_task(incident_id: UUID, payload: TaskState, db: DB):
+        obj = get(db, Incident, incident_id)
+        apply_task_state(obj, payload.completed)
+        save(db)
+        return obj
 
     return app
 

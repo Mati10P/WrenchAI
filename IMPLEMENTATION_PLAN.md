@@ -112,3 +112,15 @@ Validación: 17 pruebas de integración de backend, compilación del frontend y 
 ## Simplificación del chat: mediciones
 
 Se retiraron el botón Agregar medición, su formulario y su envío desde la interfaz a pedido del propietario. La conversación conserva la acción para registrar cómo se resolvió el problema. Los datos históricos de mediciones y su contrato de API se conservan.
+
+## Datos principales y tareas unificadas
+
+Marca, modelo, año y kilometraje quedan visibles en Datos del auto y en su edición. Pendientes y trabajos se unifican en Tareas, con checks reversibles, pendientes primero y fecha, kilómetros y notas del trabajo. La migración 0003 separa estos metadatos del registro original de la avería; los datos antiguos se conservan sin inferir valores desconocidos.
+
+Validación de tareas: 19 pruebas de integración contra PostgreSQL, build TypeScript/Vite, Ruff y construcción Docker correctos. En navegador se verificaron los datos principales, el check de un caso sintético y la persistencia de fecha, kilómetros y notas tras recargar, con pendientes primero.
+
+## To-do en tabla
+
+Se renombra Tareas a To-do y se presenta como tabla con check, fecha del trabajo, descripción, kilómetros y costo. Pendientes primero; tocar una celda abre la edición de sus detalles. El costo es dinero ya pagado, en una misma moneda elegida por el usuario, y el total suma todos los importes cargados del auto, también los pendientes. Un costo vacío no significa cero y se indica cuántos faltan. PostgreSQL usa Numeric(14,2) y la suma visual usa centavos enteros. La migración 0004 conserva los registros anteriores con costo desconocido.
+
+Verificación: 25 pruebas de integración y build TypeScript/Vite correctos. En navegador se guardó un costo sintético de 1234,56, se recargó la página y se comprobó el total 1.234,56. La tabla permite desplazamiento horizontal en pantallas estrechas.
