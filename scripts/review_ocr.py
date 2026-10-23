@@ -59,8 +59,9 @@ def page_job(job):
     candidates = []
     with tempfile.TemporaryDirectory() as folder:
         temporary = Path(folder)
-        previous = json.loads((PRIVATE / "ocr" / name / (stem + ".json")).read_text(encoding="utf-8"))
-        rotations = (0, 90, 180, 270) if (name == "gol-repair-candidate" and previous["rotation_clockwise"] in (90,270)) else (base_rotation, (base_rotation + 180) % 360)
+        previous_path = PRIVATE / "ocr" / name / (stem + ".json")
+        previous = json.loads(previous_path.read_text(encoding="utf-8")) if previous_path.exists() else None
+        rotations = (0, 90, 180, 270) if (name == "gol-repair-candidate" and (previous is None or previous["rotation_clockwise"] in (90,270))) else (base_rotation, (base_rotation + 180) % 360)
         override = expected_override
         if override is not None:
             rotations = (override["rotation_clockwise"],)

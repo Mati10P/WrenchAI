@@ -1,0 +1,132 @@
+{
+  "gol-owner-candidate": {
+    "126": {
+      "add_regions": [
+        {
+          "id": "manual-table-adjustments",
+          "type": "table",
+          "bbox_normalized": [
+            0.035,
+            0.12,
+            0.955,
+            0.82
+          ],
+          "reason": "Visual review: left labels and right values form a borderless table."
+        }
+      ]
+    },
+    "133": {
+      "suppress_region_ids": [
+        "region-001"
+      ],
+      "add_regions": [
+        {
+          "id": "manual-table-volumes",
+          "type": "table",
+          "bbox_normalized": [
+            0.055,
+            0.17,
+            0.965,
+            0.36
+          ],
+          "reason": "Visual review: include left row labels with the volume values."
+        }
+      ]
+    },
+    "14": {
+      "add_regions": [
+        {
+          "id": "manual-chapter-heading",
+          "type": "section_header",
+          "bbox_normalized": [
+            0.14,
+            0.64,
+            0.94,
+            0.84
+          ],
+          "reason": "Visual review: include the chapter number with the heading."
+        },
+        {
+          "id": "manual-binding-artifacts",
+          "type": "scan_artifact",
+          "bbox_normalized": [
+            0,
+            0,
+            0.045,
+            0.65
+          ],
+          "reason": "Visual review: OCR from binder holes, not printed content."
+        },
+        {
+          "id": "manual-top-edge-artifacts",
+          "type": "scan_artifact",
+          "bbox_normalized": [
+            0,
+            0,
+            1,
+            0.035
+          ],
+          "reason": "Visual review: top edge scan noise."
+        },
+        {
+          "id": "manual-corner-artifacts",
+          "type": "scan_artifact",
+          "bbox_normalized": [
+            0,
+            0,
+            0.145,
+            0.1
+          ],
+          "reason": "Visual review: scan artifacts in the upper left corner."
+        }
+      ]
+    },
+    "56": {
+      "add_regions": [
+        {
+          "id": "manual-binding-artifacts",
+          "type": "scan_artifact",
+          "bbox_normalized": [
+            0.965,
+            0,
+            1,
+            1
+          ],
+          "reason": "Visual review: OCR from right binder holes, not printed content."
+        }
+      ]
+    }
+  },
+  "gol-repair-candidate": {
+    "63": {
+      "add_regions": [
+        {
+          "id": "manual-exhaust-legend",
+          "type": "text",
+          "bbox_normalized": [
+            0.05,
+            0.52,
+            0.395,
+            0.735
+          ],
+          "reason": "Visual review: include the complete text legend beside the lower illustration."
+        }
+      ]
+    },
+    "319": {
+      "add_regions": [
+        {
+          "id": "manual-table-diesel-specifications",
+          "type": "table",
+          "bbox_normalized": [
+            0.08,
+            0.075,
+            0.96,
+            0.92
+          ],
+          "reason": "Visual review: technical labels and right-hand values form one borderless specifications table."
+        }
+      ]
+    }
+  }
+}
