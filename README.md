@@ -30,6 +30,8 @@ Se descargaron dos manuales candidatos y se procesaron sus 532 páginas con OCR 
 
 Cada página seleccionada deberá tener texto, cifras, unidades, tablas, ilustraciones y aplicabilidad cotejados, con trazabilidad al original y dudas registradas. Todavía no hay páginas habilitadas como evidencia para RAG. El contenido pendiente o dudoso no respaldará respuestas técnicas. Los manuales privados permanecerán fuera de Git; las pruebas públicas usarán un corpus didáctico redistribuible. Ver [criterios del corpus inicial](docs/MVP_CORPUS.md).
 
+La selección inicial comprende 22 páginas y [20 escenarios concretos](docs/MVP_CASES.md) de lubricación, refrigeración, frenos, carga y límites de evidencia. Son alcance y criterios de aceptación documentados; su revisión técnica y evaluación real siguen pendientes.
+
 Las respuestas son hipótesis, no diagnósticos confirmados. La ausencia de evidencia se mostrará explícitamente. Las reglas no certifican la seguridad mecánica del vehículo.
 
 ## Fuera de alcance
