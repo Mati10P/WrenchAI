@@ -81,3 +81,7 @@ El visor muestra primero el borrador narrativo y los recortes, con la capa origi
 Todos los resultados mantienen `review_status=automatic_layout_draft` y `rag_eligible=false`. Falta cotejar los límites de regiones, la asignación de palabras, las asociaciones entre figuras y procedimientos y la transcripción técnica. Esta etapa mejora la organización del OCR, no certifica la exactitud de los diagnósticos ni de las especificaciones.
 
 Los ajustes visuales de regiones se registran en `docs/ocr-layout-overrides.json`. Incluyen tablas sin bordes, una leyenda incompleta, un título de capítulo y artefactos de encuadernación. Los límites ajustados se distinguen de las detecciones del modelo; no se les asigna una probabilidad artificial de acierto. El resultado y las limitaciones de la ejecución están en [OCR_LAYOUT_REPORT.md](OCR_LAYOUT_REPORT.md).
+
+## Celdas, cifras y unidades
+
+La siguiente capa se documenta en [OCR_TABLE_REVIEW.md](OCR_TABLE_REVIEW.md): propuestas espaciales para las regiones de tabla y transcripciones cotejadas separadas, con evidencia por celda. El cotejo está en curso; no asumir que todas las tablas estén validadas.
