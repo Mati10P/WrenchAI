@@ -7,10 +7,14 @@ Fecha: 2026-10-23. La separación espacial de palabras no confirma por sí sola 
 - Se generaron borradores para las 95 regiones de tabla: 26 del manual de propietario y 69 del de reparación.
 - Se conservaron las 6.025 palabras OCR asignadas a esas regiones, sin pérdidas ni duplicados.
 - Se propusieron 2.806 grupos de palabras por posición. No se presentan como 2.806 celdas verificadas: pueden dividir una celda o mezclar filas, encabezados y notas.
-- Se transcribieron y cotejaron visualmente 30 celdas de un bloque de especificaciones de motor de la página PDF 10 del manual de reparación (impresa 12).
-- En ese bloque se corrigieron dos encabezados donde el OCR confundía una letra de unidad con un dígito y una coma decimal que aparecía como punto. El OCR original permanece disponible.
+- El primer lote cotejó 30 celdas de especificaciones de motor en la página PDF 10 del manual de reparación (impresa 12). El segundo amplió el cotejo a 69 celdas en seis estructuras: motor, bujías, tipo de embrague, diámetro de embrague, relaciones de caja y frenos.
+- Se corrigieron dos encabezados donde el OCR confundía una letra de unidad con un dígito. Al ampliar el cotejo se detectó un error de nuestra primera transcripción: el valor de escape de la columna izquierda lleva un punto en `0,40 a 0.50 mm` en el original. Se restauró ese literal; no se uniforma la puntuación decimal. El OCR original permanece disponible.
+- Los valores compartidos de bujías, tipo de embrague y frenos se representan una sola vez, con un recorte que abarca la zona compartida. Diámetros y relaciones conservan las columnas izquierda y derecha. No se agregan unidades a las relaciones ni se interpreta `DOT 4` como unidad numérica.
+- La expresión impresa `monodisco secocon placa a diafragma` se conserva sin corregir editorialmente la unión de palabras. El contexto del título identifica el bloque; no se inventan filas vacías para sus encabezados de sección.
 
-Las restantes tablas y secciones de esa misma página siguen pendientes de cotejo. Tampoco está confirmada la aplicabilidad del bloque transcrito al Gol G2 1.6 MI de 1998. Todo el conjunto conserva `rag_eligible=false`.
+Se cotejaron los valores de los cinco bloques de especificaciones de esa página. Las tablas de las demás páginas siguen pendientes. Tampoco está confirmada la aplicabilidad al Gol G2 1.6 MI de 1998. Todo el conjunto conserva `rag_eligible=false`: cotejar celdas no habilita por sí solo la página ni sus procedimientos.
+
+La primera versión usará un conjunto acotado de páginas bien revisadas. La revisión profunda de ambos manuales completos queda pendiente para una etapa posterior. Selección y criterios: [MVP_CORPUS.md](MVP_CORPUS.md).
 
 ## Procedimiento y evidencia
 

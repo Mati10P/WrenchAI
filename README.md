@@ -26,7 +26,9 @@ SQLite pertenece únicamente al prototipo anterior. No se migrarán automáticam
 
 ## Documentación técnica
 
-El manual original aún debe aportarse. Se preparará completo conservando páginas, secciones, unidades y trazabilidad. El contenido dudoso no respaldará respuestas técnicas. Los manuales privados permanecerán fuera de Git; las pruebas públicas usarán un corpus didáctico redistribuible.
+Se descargaron dos manuales candidatos y se procesaron sus 532 páginas con OCR y separación por regiones. Para la primera versión se usará un conjunto acotado de páginas bien revisadas, seleccionado según los casos del MVP. La revisión profunda de ambos manuales completos queda pendiente para una etapa posterior; no es un requisito para comenzar la aplicación.
+
+Cada página seleccionada deberá tener texto, cifras, unidades, tablas, ilustraciones y aplicabilidad cotejados, con trazabilidad al original y dudas registradas. Todavía no hay páginas habilitadas como evidencia para RAG. El contenido pendiente o dudoso no respaldará respuestas técnicas. Los manuales privados permanecerán fuera de Git; las pruebas públicas usarán un corpus didáctico redistribuible. Ver [criterios del corpus inicial](docs/MVP_CORPUS.md).
 
 Las respuestas son hipótesis, no diagnósticos confirmados. La ausencia de evidencia se mostrará explícitamente. Las reglas no certifican la seguridad mecánica del vehículo.
 
@@ -36,7 +38,7 @@ Fotos, análisis visual, chat abierto, búsqueda web automática, OCR dentro de 
 
 ## Entrega y etapas
 
-1. Preparar el manual, convenciones y decisiones de arquitectura.
+1. Preparar el conjunto inicial de páginas revisadas, convenciones y decisiones de arquitectura.
 2. Implementar API, migraciones y persistencia.
 3. Integrar ingesta, RAG, Gemini y seguridad.
 4. Construir la interfaz y el flujo de resolución.
@@ -63,7 +65,7 @@ Implementación por bloques explicados, con verificaciones y documentación. El 
 
 ## Seguimiento documental
 
-La búsqueda inicial, candidatos y límites de compatibilidad están registrados en [docs/MANUAL_SOURCES.md](docs/MANUAL_SOURCES.md). Se descargaron dos candidatos privados; ambos requieren OCR y revisión. Ver [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) para el avance y [AGENTS.md](AGENTS.md) para las convenciones.
+La búsqueda inicial, candidatos y límites de compatibilidad están registrados en [docs/MANUAL_SOURCES.md](docs/MANUAL_SOURCES.md). Ambos candidatos privados tienen OCR; su revisión técnica sigue en curso. Ver [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) para el avance y [AGENTS.md](AGENTS.md) para las convenciones.
 
 ### Preparación del corpus
 

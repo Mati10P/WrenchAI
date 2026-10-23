@@ -4,8 +4,9 @@
 - [x] Comparar checkout con GitHub y reparar origin/main.
 - [x] Buscar fuentes y descargar candidatos fuera de Git.
 - [ ] Verificar edición, autoría, cobertura y calidad de cada PDF.
-- [ ] Preparar el manual completo, conservando original y correspondencia por página.
-- [ ] Revisar tablas, unidades y cifras; marcar incertidumbre sin completarla por inferencia.
+- [x] Conservar originales y generar OCR con correspondencia por página para ambos manuales.
+- [ ] Seleccionar un conjunto acotado de páginas para los casos de la primera versión.
+- [ ] Cotejar en ese conjunto texto, tablas, unidades, cifras, ilustraciones y aplicabilidad; registrar incertidumbre sin completarla por inferencia.
 - [ ] Crear corpus didáctico redistribuible para pruebas.
 
 ## Bloques posteriores
@@ -19,7 +20,7 @@
 - Monolito modular y RAG propio; sin agentes ni frameworks de orquestación.
 - Backend local con Docker; demo pública estática sin claves ni llamadas a IA.
 - Sin fotos, chat abierto, búsqueda web automática ni OCR dentro del producto.
-- La preparación completa del manual es una etapa previa, fuera de los 3–5 días orientativos.
+- La primera versión usará un conjunto acotado de páginas bien revisadas según `docs/MVP_CORPUS.md`. La revisión profunda de ambos manuales completos queda pendiente para una etapa posterior y no bloquea la implementación del MVP. La preparación documental queda fuera de los 3–5 días orientativos de construcción.
 - Los commits y pushes son manuales y corresponden al propietario.
 
 ## Revisión del OCR - 2026-10-23
@@ -43,3 +44,9 @@ La ejecución de separación se completó sobre 532 páginas y conservó las 73.
 ## Cotejo inicial de tablas - 2026-10-23
 
 Se prepararon borradores espaciales para las 95 regiones de tabla, conservando 6.025 palabras. Se cotejaron 30 celdas de un bloque de la página PDF 10 del manual de reparación; las otras tablas y secciones permanecen pendientes. Las transcripciones incluyen evidencia por celda y no habilitan automáticamente el corpus para RAG. Procedimiento y limitaciones: `docs/OCR_TABLE_REVIEW.md`.
+
+## Alcance documental de la primera versión y segundo cotejo - 2026-10-23
+
+Se limita la primera versión a un conjunto de páginas bien revisadas; la revisión profunda de los dos manuales completos queda como trabajo posterior. Todavía faltan la selección y aprobación de ese conjunto, incluyendo aplicabilidad por variante.
+
+Se extendió el cotejo de la página PDF 10 (impresa 12) a los bloques de bujías, embrague, caja y frenos: 69 celdas en seis estructuras, con valores compartidos representados una sola vez. Se restauró un punto decimal que la revisión anterior había cambiado indebidamente a coma. Es cotejo de transcripción; no certifica corrección técnica ni compatibilidad. Todas las páginas siguen sin habilitación para RAG.
