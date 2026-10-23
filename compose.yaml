@@ -1,0 +1,29 @@
+name: wrenchai
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-wrenchai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wrenchai_local}
+      POSTGRES_DB: ${POSTGRES_DB:-wrenchai}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-wrenchai}:${POSTGRES_PASSWORD:-wrenchai_local}@db:5432/${POSTGRES_DB:-wrenchai}
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+volumes:
+  postgres_data:

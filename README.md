@@ -4,7 +4,21 @@ Proyecto de portfolio para conseguir una primera experiencia laboral: una aplica
 
 ## Estado actual
 
-Existe un prototipo de consola en `maintenance_demo.py`: valida fecha, kilometraje y descripción y guarda mantenimiento en SQLite. Se conserva como antecedente educativo. La aplicación web, PostgreSQL, RAG y Gemini todavía no están implementados.
+Ya existe una API con FastAPI, PostgreSQL y migraciones para registrar vehículos, incidencias, síntomas, mediciones y resolución de reparaciones. Funciona localmente con Docker y tiene pruebas de integración contra PostgreSQL. La interfaz React, RAG y Gemini siguen pendientes.
+
+El prototipo de consola `maintenance_demo.py` se conserva como antecedente educativo con SQLite. Sus datos no se migran automáticamente a la API.
+
+## Probar el primer bloque
+
+Con Docker Desktop funcionando, desde la raíz del repositorio:
+
+```powershell
+docker compose up --build -d
+```
+
+Abrí `http://localhost:8000/docs` para registrar un vehículo, crear una incidencia, agregar mediciones y guardar su resolución. Los datos desconocidos del vehículo pueden quedar vacíos. La API registra el trabajo informado; todavía no genera diagnósticos.
+
+Instrucciones, ejemplo completo, pruebas y decisiones en [docs/BACKEND.md](docs/BACKEND.md). La prioridad actual es el flujo mecánico de avería y reparación; la falta de datos de variante no bloquea su registro. Las especificaciones documentales siguen requiriendo evidencia compatible.
 
 ## MVP acordado
 

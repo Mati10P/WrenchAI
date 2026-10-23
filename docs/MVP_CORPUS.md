@@ -70,6 +70,8 @@ El tercer lote completó la pasada de transcripción de los contenidos delimitad
 
 El siguiente paso es resolver aplicabilidad y aceptación/exclusión de cada fragmento antes de preparar su ingesta para RAG. Todos siguen con `rag_eligible=false`. Las páginas de identificación se usan para procedencia y compatibilidad, no como citas de una hipótesis mecánica. Si una variante no puede establecerse, el caso correspondiente debe abstenerse; no se agregan páginas automáticamente para intentar justificar una respuesta.
 
+El propietario indicó que desconoce los datos de variante y prioriza usos mecánicos y arreglos. Se continúa con la API de incidencias y reparaciones sin inferir esos datos. La clasificación de uso y las decisiones pendientes están en [CORPUS_ACCEPTANCE.md](CORPUS_ACCEPTANCE.md). Esto no habilita automáticamente ningún pasaje para RAG.
+
 Los casos que queden sin documentación suficiente deberán expresar esa ausencia en lugar de inventar especificaciones. El conjunto permite avanzar con el modelo de datos y la API mientras continúa la revisión. El diagnóstico respaldado por documentos depende de la aprobación explícita de sus fragmentos.
 
 La revisión profunda del resto de los dos manuales se mantendrá en el seguimiento posterior. Los originales, transcripciones y recortes permanecen en `data/private`, excluidos de Git. La demo y las pruebas públicas usarán material redistribuible.

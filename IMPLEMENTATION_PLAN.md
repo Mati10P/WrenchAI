@@ -10,7 +10,7 @@
 - [ ] Crear corpus didáctico redistribuible para pruebas.
 
 ## Bloques posteriores
-- [ ] A: API, PostgreSQL, migraciones, vehículos, incidencias y mediciones; persistencia tras reinicio.
+- [x] A: API, PostgreSQL, migraciones, vehículos, incidencias y mediciones; persistencia tras reinicio. Primer bloque verificado con 14 pruebas de integración y reinicio real de API/base.
 - [ ] B: ingesta administrativa, Gemini, pgvector, citas y seguridad; diagnóstico real verificable.
 - [ ] C: interfaz en español; completar registro, diagnóstico y resolución desde navegador.
 - [ ] D: 20 casos, pruebas determinísticas, evaluación real separada y CI.
@@ -74,3 +74,15 @@ Acumulado: 14 pasajes y 25 tramos de texto en las 14 páginas técnicas de propi
 Se cotejaron los contenidos delimitados de las ocho páginas restantes del conjunto inicial, con ocho pasajes nuevos y doce celdas de R 75. Se separó el registro de presión ambiguo de las instrucciones y se conservó la unidad literal de la tabla. La herramienta de pasajes distingue portugués/español según fuente y rechaza idioma inconsistente.
 
 Acumulado: 22 pasajes y 41 tramos de texto en las 22 páginas seleccionadas, sin aprobar páginas completas ni aplicabilidad. Las celdas cotejadas son 81 (69 previas de R 10 y 12 de R 75). Pasaron 24 pruebas, Ruff y auditorías de evidencia/enlaces/tablas. El siguiente paso documental es la aceptación por fragmento según vehículo y fuente; la API y persistencia pueden avanzar independientemente. Detalle en `docs/MVP_REVIEW_LOG.md`.
+
+## Prioridad mecánica y primer bloque de API - 2026-10-23
+
+El propietario indicó que desconoce datos de variante y pidió priorizar usos mecánicos y arreglos. Se registran como desconocidos, sin detener la implementación del flujo de incidencias ni aprobar especificaciones por inferencia. Las decisiones documentales están en `docs/CORPUS_ACCEPTANCE.md`; no se habilitaron fragmentos para RAG.
+
+Se implementó el bloque A con FastAPI/Pydantic, SQLAlchemy, migración Alembic y PostgreSQL en Docker: vehículos con campos opcionales, incidencias con síntomas/kilometraje, mediciones decimales con unidad/condiciones y resolución obligatoria para cerrar. Incluye consulta de historial por vehículo/estado y límites de integridad en API y base. Las mediciones no se interpretan como diagnósticos.
+
+Pasaron 14 pruebas de integración en una base PostgreSQL temporal creada por el fixture: migración desde cero, repetición sin cambios pendientes, persistencia al recrear la aplicación, validación de entradas, restricciones de cierre, relaciones y borrados. Además se verificó un caso sintético vía HTTP en la API de Compose y se comprobó que su resolución y medición persistían tras reiniciar tanto API como PostgreSQL. Se conserva ese ejemplo local identificado como sintético; los datos de pruebas automatizadas se eliminaron con su base temporal.
+
+Docker Desktop falló al iniciar por un socket de ejecución inaccesible; se recuperó conservando las carpetas temporales y sin restablecimiento de fábrica. Procedimiento y comprobación en `docs/DOCKER_RECOVERY.md`. La primera ejecución de pruebas se interrumpió al investigar una demora; se repitió exitosamente usando 127.0.0.1, y se retiró solo la base temporal de aquella ejecución. Las conexiones de la API tienen un tiempo máximo de conexión de cinco segundos.
+
+Uso y límites del backend: `docs/BACKEND.md`. Siguen pendientes frontend, IA, ingesta, corpus didáctico y CI. El siguiente bloque puede construir la interfaz del flujo mecánico sobre esta API, antes de incorporar diagnóstico documental.
