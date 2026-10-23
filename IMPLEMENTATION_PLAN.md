@@ -11,15 +11,17 @@
 
 ## Bloques posteriores
 - [x] A: API, PostgreSQL, migraciones, vehículos, incidencias y mediciones; persistencia tras reinicio. Primer bloque verificado con 14 pruebas de integración y reinicio real de API/base.
-- [ ] B: ingesta administrativa, Gemini, pgvector, citas y seguridad; diagnóstico real verificable.
+- [ ] B: ingesta administrativa, Gemini, pgvector, citas y seguridad; diagnóstico conversacional con manuales primero y búsqueda web complementaria cuando no haya evidencia suficiente.
 - [ ] C: interfaz en español; completar registro, diagnóstico y resolución desde navegador.
+  - [x] Registro mecánico con React/TypeScript: vehículos, averías, síntomas, mediciones, estados, resolución y consulta de historial; recorrido comprobado en navegador.
+  - [ ] Diagnóstico con evidencia y consulta documental en la interfaz; depende del bloque B.
 - [ ] D: 20 casos, pruebas determinísticas, evaluación real separada y CI.
 - [ ] E: exportación de casos para demo de lectura en GitHub Pages, capturas y guion de video.
 
 ## Decisiones
 - Monolito modular y RAG propio; sin agentes ni frameworks de orquestación.
 - Backend local con Docker; demo pública estática sin claves ni llamadas a IA.
-- Sin fotos, chat abierto, búsqueda web automática ni OCR dentro del producto.
+- Sin fotos ni OCR dentro del producto. La experiencia principal pasa a ser un chat de mantenimiento con contexto persistente del auto y búsqueda web complementaria; esta decisión reemplaza la exclusión inicial del chat y la web.
 - La primera versión usará un conjunto acotado de páginas bien revisadas según `docs/MVP_CORPUS.md`. La revisión profunda de ambos manuales completos queda pendiente para una etapa posterior y no bloquea la implementación del MVP. La preparación documental queda fuera de los 3–5 días orientativos de construcción.
 - Los commits y pushes son manuales y corresponden al propietario.
 
@@ -86,3 +88,27 @@ Pasaron 14 pruebas de integración en una base PostgreSQL temporal creada por el
 Docker Desktop falló al iniciar por un socket de ejecución inaccesible; se recuperó conservando las carpetas temporales y sin restablecimiento de fábrica. Procedimiento y comprobación en `docs/DOCKER_RECOVERY.md`. La primera ejecución de pruebas se interrumpió al investigar una demora; se repitió exitosamente usando 127.0.0.1, y se retiró solo la base temporal de aquella ejecución. Las conexiones de la API tienen un tiempo máximo de conexión de cinco segundos.
 
 Uso y límites del backend: `docs/BACKEND.md`. Siguen pendientes frontend, IA, ingesta, corpus didáctico y CI. El siguiente bloque puede construir la interfaz del flujo mecánico sobre esta API, antes de incorporar diagnóstico documental.
+
+## Interfaz del registro mecánico - 2026-10-23
+
+Se incorporó React/TypeScript con Vite y estilos adaptables en español. La entrada principal es `http://localhost:5173`; Swagger en el puerto 8000 sigue disponible como herramienta técnica. Compose construye la interfaz y la sirve con Nginx, que deriva `/api` al backend existente. No se modificó el modelo de datos ni se agregaron diagnósticos simulados.
+
+Incluye alta/edición de vehículos con datos desconocidos opcionales, registro/edición de averías, síntomas, kilometraje, mediciones con unidad/condiciones, estado en reparación, cierre con resolución y corrección de la resolución. El historial permite búsqueda y filtros por estado. La lectura recorre la paginación de la API. No se implementó borrado de averías en la interfaz.
+
+Pasaron compilación TypeScript/Vite, comprobación de formato y construcción de la imagen Docker. Se recorrió la aplicación en navegador con datos sintéticos: alta y edición, rechazo de exceso de decimales, guardado exacto de `1,2500`, cierre obligatorio, edición de una avería cerrada conservando resolución y recarga del detalle persistido. También se verificaron búsqueda/filtros, error de registro inexistente y disposición en escritorio y pantalla pequeña. Son comprobaciones manuales asistidas, no una suite automatizada de frontend. Detalles y pasos reproducibles en `docs/FRONTEND.md`.
+
+Continúan pendientes Gemini, RAG, aceptación documental, corpus didáctico, evaluación real y CI. El bloque C permanece parcial hasta integrar diagnóstico y fuentes.
+
+## Cambio de experiencia: chat y contexto del auto
+
+El propietario pidió una experiencia utilizable mientras arregla el auto: describir el problema en un chat, conservar kilometraje y modificaciones y registrar pendientes por detrás. Se reemplaza el tablero principal por una conversación y el menú Mi auto (datos, pendientes, trabajos y conversaciones). El backend de vehículos, incidencias, mediciones y resoluciones se conserva.
+
+La migración 0002 agrega kilometraje/modificaciones opcionales y mensajes persistentes. El primer mensaje crea una incidencia con el kilometraje informado del auto; los siguientes se agregan al mismo caso. Los reintentos de un mismo mensaje usan un identificador estable para no crear otro pendiente. Los trabajos realizados pueden registrarse desde el menú. Los registros anteriores siguen accesibles.
+
+Esta entrega cambia la interfaz y el registro persistente, pero no conecta un modelo. Las confirmaciones de guardado están identificadas como tales. El próximo bloque debe incorporar el asistente: contexto del auto e historial, consulta de manuales compatibles, búsqueda web complementaria con fuentes explícitas, preguntas de seguimiento y reglas de seguridad. No se considera que el modelo esté entrenado con los manuales ni que los fragmentos pendientes estén aprobados.
+
+Validación: 17 pruebas de integración de backend, compilación del frontend y construcción Docker. Se comprobó en navegador el contexto del auto, el primer mensaje con creación automática de pendiente, un seguimiento persistido tras recarga y un trabajo independiente desde el menú. Los registros previos siguen visibles. Detalle y límites en `docs/FRONTEND.md`.
+
+## Simplificación del chat: mediciones
+
+Se retiraron el botón Agregar medición, su formulario y su envío desde la interfaz a pedido del propietario. La conversación conserva la acción para registrar cómo se resolvió el problema. Los datos históricos de mediciones y su contrato de API se conservan.

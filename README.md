@@ -4,11 +4,11 @@ Proyecto de portfolio para conseguir una primera experiencia laboral: una aplica
 
 ## Estado actual
 
-Ya existe una API con FastAPI, PostgreSQL y migraciones para registrar vehículos, incidencias, síntomas, mediciones y resolución de reparaciones. Funciona localmente con Docker y tiene pruebas de integración contra PostgreSQL. La interfaz React, RAG y Gemini siguen pendientes.
+La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. El menú **Mi auto** reúne kilometraje, modificaciones, pendientes y trabajos realizados. La conversación todavía no genera respuestas: Gemini, consulta de manuales y búsqueda web están pendientes de integración.
 
 El prototipo de consola `maintenance_demo.py` se conserva como antecedente educativo con SQLite. Sus datos no se migran automáticamente a la API.
 
-## Probar el primer bloque
+## Probar la aplicación
 
 Con Docker Desktop funcionando, desde la raíz del repositorio:
 
@@ -16,9 +16,9 @@ Con Docker Desktop funcionando, desde la raíz del repositorio:
 docker compose up --build -d
 ```
 
-Abrí `http://localhost:8000/docs` para registrar un vehículo, crear una incidencia, agregar mediciones y guardar su resolución. Los datos desconocidos del vehículo pueden quedar vacíos. La API registra el trabajo informado; todavía no genera diagnósticos.
+Abrí [WrenchAI en tu navegador](http://localhost:5173), completá lo que conozcas en **Mi auto** y escribí el problema. Los mensajes siguientes continúan el mismo caso; **Nuevo chat** inicia otro. Los pendientes y trabajos se consultan desde el menú, sin formularios de avería para empezar. El aviso junto al cuadro de texto indica que la IA aún no está conectada.
 
-Instrucciones, ejemplo completo, pruebas y decisiones en [docs/BACKEND.md](docs/BACKEND.md). La prioridad actual es el flujo mecánico de avería y reparación; la falta de datos de variante no bloquea su registro. Las especificaciones documentales siguen requiriendo evidencia compatible.
+Uso, desarrollo y verificación de la interfaz en [docs/FRONTEND.md](docs/FRONTEND.md). La pantalla técnica de la API sigue en `http://localhost:8000/docs`; su contrato, pruebas y decisiones están en [docs/BACKEND.md](docs/BACKEND.md). La falta de datos de variante no bloquea el registro del trabajo mecánico. Las especificaciones documentales siguen requiriendo evidencia compatible.
 
 ## MVP acordado
 
@@ -30,7 +30,7 @@ Instrucciones, ejemplo completo, pruebas y decisiones en [docs/BACKEND.md](docs/
 - Reglas determinísticas de seguridad que el modelo no puede reducir.
 - Evaluación reproducible sobre 20 casos, separando tests simulados de pruebas con Gemini real.
 
-Tres áreas de interfaz: vehículos/incidencias, detalle de incidencia y consulta de documentación. La ingesta documental será un comando administrativo.
+El chat es la entrada principal y conserva el contexto del auto. El asistente consultará primero manuales compatibles y, si no encuentra evidencia suficiente, buscará en internet mostrando el origen y los límites de la información. Esta secuencia aún no está implementada. Se usará recuperación documental (RAG), no entrenamiento de un modelo con los PDF. La ingesta documental será un comando administrativo.
 
 ## Stack previsto
 
@@ -50,7 +50,7 @@ Las respuestas son hipótesis, no diagnósticos confirmados. La ausencia de evid
 
 ## Fuera de alcance
 
-Fotos, análisis visual, chat abierto, búsqueda web automática, OCR dentro de la aplicación, multiusuario, pagos, OBD-II, entrenamiento de modelos y sistemas multiagente.
+Fotos, análisis visual, conversación ajena al mantenimiento del auto, OCR dentro de la aplicación, multiusuario, pagos, OBD-II, entrenamiento de modelos y sistemas multiagente. El chat de mantenimiento y la búsqueda web complementaria pasan a formar parte del alcance por decisión del propietario.
 
 ## Entrega y etapas
 

@@ -52,6 +52,8 @@ class VehicleInput(Schema):
         | None
     ) = None
     notes: Description | None = None
+    mileage: Annotated[int, Field(strict=True, ge=0, le=10000000)] | None = None
+    modifications: Description | None = None
 
 
 class VehicleOut(VehicleInput):
@@ -115,3 +117,17 @@ class IncidentOut(IncidentInput):
 
 class IncidentDetail(IncidentOut):
     measurements: list[MeasurementOut]
+
+
+class MessageInput(Schema):
+    id: UUID
+    content: Description
+
+
+class MessageOut(MessageInput):
+    incident_id: UUID
+    created_at: datetime
+
+
+class WorkInput(Schema):
+    description: Description

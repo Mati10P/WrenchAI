@@ -16,3 +16,8 @@ data/private/
 *.db-shm
 *.db-wal
 *AGENTS.md
+
+# Frontend
+node_modules/
+frontend/dist/
+*.tsbuildinfo

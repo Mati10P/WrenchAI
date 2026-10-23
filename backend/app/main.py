@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated
 from uuid import UUID
 
@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from .database import database_url, session_factory
-from .models import Incident, Measurement, Vehicle
+from .models import Incident, Measurement, Message, Vehicle
 from .schemas import (
     IncidentDetail,
     IncidentInput,
@@ -17,9 +17,12 @@ from .schemas import (
     IncidentUpdate,
     MeasurementInput,
     MeasurementOut,
+    MessageInput,
+    MessageOut,
     Status,
     VehicleInput,
     VehicleOut,
+    WorkInput,
 )
 
 
@@ -148,7 +151,7 @@ def create_app(url=None):
         for key, value in payload.model_dump(mode="python").items():
             setattr(obj, key, value.value if isinstance(value, Status) else value)
         if payload.status == Status.RESOLVED and obj.resolved_at is None:
-            obj.resolved_at = datetime.now(timezone.utc)
+            obj.resolved_at = datetime.now(UTC)
         save(db)
         return obj
 
@@ -169,6 +172,92 @@ def create_app(url=None):
         db.add(obj)
         save(db)
         return obj
+
+    def existing_message(db, payload, vehicle_id=None, incident_id=None):
+        message = db.get(Message, payload.id)
+        if message is None:
+            return None
+        parent = get(db, Incident, message.incident_id)
+        if (
+            message.content != payload.content
+            or (vehicle_id is not None and parent.vehicle_id != vehicle_id)
+            or (incident_id is not None and parent.id != incident_id)
+        ):
+            raise HTTPException(
+                409, "Message ID already used for different content or context"
+            )
+        return message
+
+    def save_message(db, payload, **context):
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            # A concurrent retry may already have committed this exact message.
+            existing = existing_message(db, payload, **context)
+            if existing is not None:
+                return existing
+            raise HTTPException(409, "Message could not be saved") from None
+        return db.get(Message, payload.id)
+
+    @app.post(
+        "/vehicles/{vehicle_id}/chats", response_model=MessageOut, status_code=201
+    )
+    def start_chat(vehicle_id: UUID, payload: MessageInput, db: DB):
+        vehicle = get(db, Vehicle, vehicle_id)
+        existing = existing_message(db, payload, vehicle_id=vehicle_id)
+        if existing is not None:
+            return existing
+        incident = Incident(
+            vehicle_id=vehicle_id,
+            title=payload.content[:160],
+            description=payload.content,
+            mileage=vehicle.mileage,
+        )
+        db.add(incident)
+        db.flush()
+        db.add(Message(id=payload.id, incident_id=incident.id, content=payload.content))
+        return save_message(db, payload, vehicle_id=vehicle_id)
+
+    @app.post(
+        "/incidents/{incident_id}/messages", response_model=MessageOut, status_code=201
+    )
+    def add_message(incident_id: UUID, payload: MessageInput, db: DB):
+        get(db, Incident, incident_id)
+        existing = existing_message(db, payload, incident_id=incident_id)
+        if existing is not None:
+            return existing
+        db.add(Message(id=payload.id, incident_id=incident_id, content=payload.content))
+        return save_message(db, payload, incident_id=incident_id)
+
+    @app.get("/incidents/{incident_id}/messages", response_model=list[MessageOut])
+    def messages(incident_id: UUID, db: DB, limit: Limit = 50, offset: Offset = 0):
+        get(db, Incident, incident_id)
+        return db.scalars(
+            select(Message)
+            .where(Message.incident_id == incident_id)
+            .order_by(Message.created_at, Message.id)
+            .limit(limit)
+            .offset(offset)
+        ).all()
+
+    @app.post(
+        "/vehicles/{vehicle_id}/work", response_model=IncidentOut, status_code=201
+    )
+    def record_work(vehicle_id: UUID, payload: WorkInput, db: DB):
+        vehicle = get(db, Vehicle, vehicle_id)
+        incident = Incident(
+            vehicle_id=vehicle_id,
+            title=payload.description[:160],
+            description=payload.description,
+            mileage=vehicle.mileage,
+            status="RESOLVED",
+            resolution=payload.description,
+            resolved_at=datetime.now(UTC),
+        )
+        db.add(incident)
+        save(db)
+        return incident
 
     return app
 

@@ -4,7 +4,7 @@ Primer bloque funcional: FastAPI + Pydantic + SQLAlchemy + Alembic + PostgreSQL.
 
 ## Ejecutar con Docker
 
-Requiere Docker Desktop con motor Linux funcionando y puertos locales 8000/55432 disponibles. Desde la raíz:
+Requiere Docker Desktop con motor Linux funcionando y puertos locales 5173/8000/55432 disponibles. Desde la raíz:
 
 ```powershell
 docker compose up --build -d
@@ -12,7 +12,7 @@ docker compose ps
 Invoke-RestMethod http://localhost:8000/ready
 ```
 
-Abrir `http://localhost:8000/docs` para probar la API con su interfaz OpenAPI. `/health` comprueba el proceso; `/ready` comprueba acceso a la tabla de vehículos, incluida la necesidad de migraciones. En Compose se aplican las migraciones antes de arrancar la API.
+Abrir `http://localhost:5173` para usar la aplicación React, documentada en [FRONTEND.md](FRONTEND.md). `http://localhost:8000/docs` permite probar directamente la API con su interfaz OpenAPI. `/health` comprueba el proceso; `/ready` comprueba acceso a la tabla de vehículos, incluida la necesidad de migraciones. En Compose se aplican las migraciones antes de arrancar la API.
 
 Compose usa credenciales de desarrollo explícitas y puertos ligados a `127.0.0.1`. `.env.example` permite configurar otra instancia local; no es una configuración de producción. No hay autenticación ni aislamiento por usuario. La imagen de PostgreSQL incluye pgvector, pero todavía no se creó la extensión ni se implementó búsqueda vectorial.
 
@@ -45,6 +45,8 @@ El detalle de incidencia incluye sus mediciones. Para agregar una, usar `POST /i
 | Incidencias de vehículo | `POST/GET /vehicles/{id}/incidents`; filtro opcional `status` |
 | Incidencia individual | `GET/PUT/DELETE /incidents/{id}` |
 | Mediciones | `POST /incidents/{id}/measurements`; lectura dentro del detalle de incidencia |
+| Conversaciones | `POST /vehicles/{id}/chats` crea mensaje y pendiente en una transacción; `POST/GET /incidents/{id}/messages` continúa y consulta el caso |
+| Trabajos | `POST /vehicles/{id}/work` registra un trabajo ya realizado con resolución y fecha de cierre |
 
 - Un nombre basta para registrar un vehículo. Marca, modelo, año, combustible, código de motor, mercado y notas son opcionales. Nulo significa desconocido; no se completa desde un manual. No se solicita patente, VIN ni número de motor completo.
 - Una incidencia registra título, descripción, síntomas y kilometraje opcional. Comienza en `OPEN`; puede pasar a `IN_PROGRESS` y `RESOLVED`.
@@ -54,6 +56,8 @@ El detalle de incidencia incluye sus mediciones. Para agregar una, usar `POST /i
 - Borrar un vehículo con incidencias devuelve `409`. El borrado explícito de una incidencia elimina también sus mediciones; es permanente. La API no borra el historial al resolver un caso.
 - Listas con `limit` entre 1 y 100 y `offset` no negativo. Recurso inexistente: `404`; entrada inválida: `422`; conflicto de integridad/estado: `409`.
 - No hay conversión automática de datos del prototipo SQLite ni ingesta del OCR privado.
+- La migración 0002 agrega `mileage` y `modifications` opcionales al vehículo y una tabla de mensajes. Conserva las incidencias anteriores. El kilometraje de una incidencia nueva creada desde el chat copia el del vehículo en ese momento; posteriores ediciones del vehículo no reescriben ese registro histórico.
+- Los mensajes reciben `{id: UUID, content: string}`. Reenviar el mismo ID/contenido/contexto devuelve el mensaje existente sin duplicar pendientes. Reutilizarlo con otro contenido o vehículo devuelve 409. Los mensajes son entradas del usuario, no respuestas de un modelo. No hay extracción semántica, actualización automática de kilometraje ni diagnóstico todavía.
 
 ## Estructura para explicar en una entrevista
 

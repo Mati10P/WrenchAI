@@ -3,10 +3,10 @@ from decimal import Decimal
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
+    JSON,
     CheckConstraint,
     DateTime,
     ForeignKey,
-    JSON,
     Numeric,
     String,
     Text,
@@ -20,7 +20,13 @@ from .database import Base
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
-    __table_args__ = (CheckConstraint("year IS NULL OR year BETWEEN 1886 AND 2100"),)
+    __table_args__ = (
+        CheckConstraint("year IS NULL OR year BETWEEN 1886 AND 2100"),
+        CheckConstraint(
+            "mileage IS NULL OR mileage BETWEEN 0 AND 10000000",
+            name="vehicle_mileage_range",
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(100))
@@ -31,6 +37,8 @@ class Vehicle(Base):
     engine_code: Mapped[str | None] = mapped_column(String(40))
     market: Mapped[str | None] = mapped_column(String(60))
     notes: Mapped[str | None] = mapped_column(Text)
+    mileage: Mapped[int | None]
+    modifications: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -77,5 +85,18 @@ class Measurement(Base):
     unit: Mapped[str] = mapped_column(String(30))
     conditions: Mapped[str | None] = mapped_column(Text)
     observed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class Message(Base):
+    __tablename__ = "messages"
+    # Client-generated ID makes a retry safe after a lost response.
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
+    incident_id: Mapped[UUID] = mapped_column(
+        ForeignKey("incidents.id", ondelete="CASCADE"), index=True
+    )
+    content: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
