@@ -21,3 +21,15 @@
 - Sin fotos, chat abierto, búsqueda web automática ni OCR dentro del producto.
 - La preparación completa del manual es una etapa previa, fuera de los 3–5 días orientativos.
 - Los commits y pushes son manuales y corresponden al propietario.
+
+## Revisión del OCR - 2026-10-23
+
+- Se regeneraron las 532 páginas en una versión privada separada, con coordenadas TSV comprobables.
+- Se cambió la rotación de 173 páginas de reparación y 2 de propietario respecto del OCR inicial, tras comparar orientaciones y cotejar hojas de contacto.
+- Se agregaron correcciones visuales explícitas para páginas con poco texto o diagramas en varias orientaciones.
+- Se conservan 73.544 cajas de palabras vinculadas a sus imágenes orientadas.
+- Se localizaron cinco tablas y una figura en dos páginas del manual de reparación. El resto conserva vínculos a contexto de página completa.
+- Hay 44 páginas de reparación y 25 de propietario con confianza media OCR inferior a 75. Incluyen índices, aperturas de capítulos y esquemas; la puntuación no indica por sí sola si el contenido es aprovechable.
+- La revisión de cifras, unidades, estructura de tablas y referencias técnicas sigue pendiente. No se marca el corpus como validado para RAG.
+
+Ver `docs/OCR_WORKFLOW.md` para reproducir y auditar el procesamiento.

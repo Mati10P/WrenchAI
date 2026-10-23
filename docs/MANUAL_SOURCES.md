@@ -33,3 +33,7 @@ La descarga pública no demuestra permiso de redistribución. No incluir los PDF
 - Inventario con hashes: data/private/manuals/inventory.json.
 - SHA-256 propietario: bf515cb34cf95ad8093166defbf87d13fb74551fe7580da93f7f28efc1e55034
 - SHA-256 reparación: e20fd2fc3e23db4d996f24ca10fbe91e96b366ae7f992b0d9e95792a3ce3a284
+
+## Revisión OCR - 2026-10-23
+
+El propietario confirmó que ambos manuales son adecuados para trabajar. Se generó una segunda versión de OCR de 532 páginas con correcciones de orientación y trazabilidad de imágenes, texto y coordenadas. La aprobación de los manuales no sustituye la revisión técnica de cada transcripción. Ver OCR_WORKFLOW.md e IMPLEMENTATION_PLAN.md para el estado real.

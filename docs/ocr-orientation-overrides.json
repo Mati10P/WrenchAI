@@ -1,0 +1,22 @@
+{
+  "gol-repair-candidate": {
+    "160": {
+      "rotation_clockwise": 90,
+      "reason": "Diagram labels visually checked; automatic confidence preferred a sideways layout."
+    },
+    "369": {
+      "rotation_clockwise": 0,
+      "reason": "Heading and connector labels visually checked; automatic recognition selected a sideways page."
+    }
+  },
+  "gol-owner-candidate": {
+    "83": {
+      "rotation_clockwise": 90,
+      "reason": "Chapter heading or back-cover logo visually checked."
+    },
+    "144": {
+      "rotation_clockwise": 270,
+      "reason": "Chapter heading or back-cover logo visually checked."
+    }
+  }
+}
