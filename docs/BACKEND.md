@@ -100,3 +100,7 @@ La suite emite una advertencia de deprecación del cliente HTTP de Starlette res
 `POST /vehicles/{id}/tasks` crea una tarea; `PUT /incidents/{id}/task` edita título, descripción, completed, work_notes, performed_on (fecha de calendario) y work_mileage. `PATCH /incidents/{id}/task-state` recibe completed y permite marcar/desmarcar sin perder notas ni fecha/kilómetros. Completar exige notas del trabajo. La reapertura está habilitada por este contrato de tareas; el PUT anterior de incidencias conserva su restricción. No se modifican kilometraje original, síntomas, mensajes ni mediciones al editar la tarea. La migración 0003 copia resoluciones previas a work_notes y deja fecha/kilómetros desconocidos en null.
 
 El contrato de tareas incluye `cost`, decimal no negativo con hasta dos decimales (Numeric(14,2)), enviado como cadena. Null significa desconocido; 0 es un costo registrado de cero. Se conserva al cambiar el check. El total visual suma todos los costos pagados cargados del vehículo, sin excluir tareas pendientes. Todos se expresan en una misma moneda; no hay conversión monetaria.
+
+## Integración del asistente
+
+La migración 0005 agrega assistant_replies: una respuesta por mensaje, contenido estructurado, fuentes citadas, modelo y una copia del contexto usado. GET /assistant/status informa configuración; POST /messages/{id}/reply genera o recupera la respuesta; GET /incidents/{id}/replies lista las respuestas paginadas. El guardado del mensaje es independiente y sobrevive a fallas del proveedor. Ver [ASSISTANT.md](ASSISTANT.md).

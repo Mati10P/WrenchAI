@@ -46,6 +46,28 @@ export type Message = {
   created_at: string;
 };
 
+export type Reply = {
+  message_id: string;
+  incident_id: string;
+  model: string;
+  safety_warning: string | null;
+  created_at: string;
+  content: {
+    summary: string;
+    hypotheses: string[];
+    questions: string[];
+    checks: string[];
+    citation_ids: string[];
+  };
+  sources: { id: string; title: string; page: number; text: string }[];
+};
+export type AssistantStatus = {
+  configured: boolean;
+  approved_passages: number;
+  corpus_valid: boolean;
+  web_search: boolean;
+};
+
 export async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -64,6 +86,15 @@ export async function request<T>(
     );
   }
   if (!response.ok) {
+    if (path.endsWith("/reply")) {
+      const body = await response.json().catch(() => null);
+      throw new Error(
+        typeof body?.detail === "string"
+          ? body.detail
+          : "La respuesta no se pudo generar. El mensaje está guardado; podés reintentar.",
+      );
+    }
+
     if (response.status === 409)
       throw new Error(
         "No se pudo guardar este cambio porque entra en conflicto con el registro actual. Actualizá la página antes de intentarlo de nuevo.",

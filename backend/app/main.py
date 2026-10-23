@@ -8,8 +8,10 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from . import assistant, evidence
 from .database import database_url, session_factory
-from .models import Incident, Measurement, Message, Vehicle
+from .models import AssistantReply, Incident, Measurement, Message, Vehicle
+from .replies import reply_to
 from .schemas import (
     IncidentDetail,
     IncidentInput,
@@ -19,6 +21,7 @@ from .schemas import (
     MeasurementOut,
     MessageInput,
     MessageOut,
+    ReplyOut,
     Status,
     TaskInput,
     TaskState,
@@ -308,6 +311,35 @@ def create_app(url=None):
         apply_task_state(obj, payload.completed)
         save(db)
         return obj
+
+    @app.get("/assistant/status")
+    def assistant_status():
+        try:
+            count = len(evidence.load_passages())
+            corpus_valid = True
+        except (OSError, ValueError, TypeError):
+            count, corpus_valid = 0, False
+        return {
+            "configured": assistant.configured(),
+            "approved_passages": count,
+            "corpus_valid": corpus_valid,
+            "web_search": False,
+        }
+
+    @app.post("/messages/{message_id}/reply", response_model=ReplyOut)
+    def create_reply(message_id: UUID, db: DB):
+        return reply_to(db, message_id)
+
+    @app.get("/incidents/{incident_id}/replies", response_model=list[ReplyOut])
+    def replies(incident_id: UUID, db: DB, limit: Limit = 50, offset: Offset = 0):
+        get(db, Incident, incident_id)
+        return db.scalars(
+            select(AssistantReply)
+            .where(AssistantReply.incident_id == incident_id)
+            .order_by(AssistantReply.created_at, AssistantReply.message_id)
+            .limit(limit)
+            .offset(offset)
+        ).all()
 
     return app
 

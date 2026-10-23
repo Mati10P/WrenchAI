@@ -1,8 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { request, listAll, json } from "./api";
-import type { Vehicle, VehicleInput, Incident, Detail, Message } from "./api";
+import type {
+  Vehicle,
+  VehicleInput,
+  Incident,
+  Detail,
+  Message,
+  Reply,
+  AssistantStatus,
+} from "./api";
 import { date, km, route } from "./presentation";
+import { AssistantMessage } from "./components/AssistantMessage";
 import { TodoTable } from "./components/TodoTable";
 import { Icon } from "./components/Icon";
 import { Modal } from "./components/Modal";
@@ -18,6 +27,10 @@ export default function App() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [replies, setReplies] = useState<Reply[]>([]);
+  const [assistantStatus, setAssistantStatus] =
+    useState<AssistantStatus | null>(null);
+  const [replyBusy, setReplyBusy] = useState(false);
   const [panel, setPanel] = useState<Panel | null>(null);
   const [editor, setEditor] = useState<Form | null>(null);
   const [draft, setDraft] = useState("");
@@ -39,6 +52,14 @@ export default function App() {
   const active =
     vehicles.find((v) => v.id === vehicleId) ||
     (!vehicleId ? vehicles[0] : undefined);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    request<AssistantStatus>("/assistant/status", { signal: controller.signal })
+      .then(setAssistantStatus)
+      .catch(() => setAssistantStatus(null));
+    return () => controller.abort();
+  }, [revision]);
 
   useEffect(() => {
     const change = () => {
@@ -89,6 +110,7 @@ export default function App() {
     setIncidents([]);
     setDetail(null);
     setMessages([]);
+    setReplies([]);
     setError("");
     if (!active) {
       setLoadingChat(false);
@@ -103,6 +125,7 @@ export default function App() {
       ? Promise.all([
           request<Detail>(`/incidents/${incidentId}`, { signal: abort.signal }),
           listAll<Message>(`/incidents/${incidentId}/messages`, abort.signal),
+          listAll<Reply>(`/incidents/${incidentId}/replies`, abort.signal),
         ])
       : Promise.resolve(null);
     Promise.all([incidentList, conversation])
@@ -114,6 +137,7 @@ export default function App() {
         if (chat) {
           setDetail(chat[0]);
           setMessages(chat[1]);
+          setReplies(chat[2]);
         }
       })
       .catch((e) => {
@@ -126,7 +150,7 @@ export default function App() {
   }, [active?.id, incidentId, revision]);
   useEffect(() => {
     scrollEnd.current?.scrollIntoView({ block: "nearest" });
-  }, [messages.length, detail?.id]);
+  }, [messages.length, replies.length, detail?.id]);
 
   function navigate(id?: string, chat?: string) {
     if (busy) return;
@@ -169,6 +193,19 @@ export default function App() {
       if (!incidentId)
         window.location.hash = route(active.id, message.incident_id);
       setRevision((v) => v + 1);
+      setReplyBusy(true);
+      try {
+        await request<Reply>(`/messages/${message.id}/reply`, json("POST"));
+      } catch (e) {
+        setNotice(
+          e instanceof Error
+            ? e.message
+            : "No se pudo generar la respuesta. El mensaje quedó guardado.",
+        );
+      } finally {
+        setReplyBusy(false);
+        setRevision((v) => v + 1);
+      }
     } catch (e) {
       setNotice(
         e instanceof Error
@@ -178,6 +215,23 @@ export default function App() {
     } finally {
       setBusy(false);
       composer.current?.focus();
+    }
+  }
+  async function retryReply(message: Message) {
+    if (busy) return;
+    setBusy(true);
+    setReplyBusy(true);
+    setNotice("");
+    try {
+      await request<Reply>(`/messages/${message.id}/reply`, json("POST"));
+    } catch (e) {
+      setNotice(
+        e instanceof Error ? e.message : "No se pudo generar la respuesta.",
+      );
+    } finally {
+      setBusy(false);
+      setReplyBusy(false);
+      setRevision((v) => v + 1);
     }
   }
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -380,11 +434,38 @@ export default function App() {
                 </div>
               )}
               {messages.map((message) => (
-                <div className="user-message" key={message.id}>
-                  <span>Vos</span>
-                  <p>{message.content}</p>
-                </div>
+                <Fragment key={message.id}>
+                  <div className="user-message">
+                    <span>Vos</span>
+                    <p>{message.content}</p>
+                  </div>
+                  {replies
+                    .filter((r) => r.message_id === message.id)
+                    .map((reply) => (
+                      <AssistantMessage key={reply.message_id} reply={reply} />
+                    ))}
+                </Fragment>
               ))}
+              {replyBusy && (
+                <p role="status" className="thinking">
+                  WrenchAI está preparando una respuesta…
+                </p>
+              )}
+              {!replyBusy &&
+                messages.length > 0 &&
+                !replies.some(
+                  (r) => r.message_id === messages[messages.length - 1].id,
+                ) && (
+                  <button
+                    className="quiet"
+                    disabled={busy}
+                    onClick={() =>
+                      void retryReply(messages[messages.length - 1])
+                    }
+                  >
+                    Generar respuesta
+                  </button>
+                )}
               <p className="saved-receipt" role="status">
                 <Icon name="check" size={15} />
                 {messages.length
@@ -434,9 +515,15 @@ export default function App() {
         </div>
         <div className="composer-area">
           <p className="availability">
-            La IA todavía no está conectada. Podés guardar el problema y
-            continuar el registro; aún no hay respuestas ni búsqueda en manuales
-            o internet.
+            {!assistantStatus
+              ? "No se pudo comprobar la disponibilidad del asistente."
+              : !assistantStatus.configured
+                ? "Falta configurar Gemini. Tus mensajes se guardan; podrás generar las respuestas cuando esté conectado."
+                : !assistantStatus.corpus_valid
+                  ? "La configuración documental necesita revisión."
+                  : assistantStatus.approved_passages === 0
+                    ? "Gemini configurado. Aún no hay manuales habilitados: las respuestas serán orientación general, sin búsqueda web."
+                    : "Gemini configurado. Las fuentes compatibles utilizadas aparecen junto a cada respuesta."}
           </p>
           {notice && (
             <p className="form-error" role="alert">

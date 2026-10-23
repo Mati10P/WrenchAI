@@ -162,3 +162,13 @@ class TaskInput(Schema):
 
 class TaskState(Schema):
     completed: bool
+
+
+class ReplyOut(Schema):
+    message_id: UUID
+    incident_id: UUID
+    content: dict
+    sources: list[dict]
+    model: str
+    safety_warning: str | None
+    created_at: datetime

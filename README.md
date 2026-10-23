@@ -4,7 +4,7 @@ Proyecto de portfolio para conseguir una primera experiencia laboral: una aplica
 
 ## Estado actual
 
-La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. El menú **Mi auto** reúne marca, modelo, año, kilometraje, modificaciones y una lista de tareas con pendientes y trabajos realizados. La conversación todavía no genera respuestas: Gemini, consulta de manuales y búsqueda web están pendientes de integración.
+La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. El menú **Mi auto** reúne marca, modelo, año, kilometraje, modificaciones y una lista de tareas con pendientes y trabajos realizados. La integración con Gemini está preparada: usa el contexto del auto y conserva las respuestas. Requiere configurar una clave en el servidor; la prueba con Gemini real queda pendiente. Todavía no hay manuales aprobados habilitados ni búsqueda web.
 
 El prototipo de consola `maintenance_demo.py` se conserva como antecedente educativo con SQLite. Sus datos no se migran automáticamente a la API.
 
@@ -16,7 +16,7 @@ Con Docker Desktop funcionando, desde la raíz del repositorio:
 docker compose up --build -d
 ```
 
-Abrí [WrenchAI en tu navegador](http://localhost:5173), completá lo que conozcas en **Mi auto** y escribí el problema. Los mensajes siguientes continúan el mismo caso; **Nuevo chat** inicia otro. Los pendientes y trabajos se consultan desde el menú, sin formularios de avería para empezar. El aviso junto al cuadro de texto indica que la IA aún no está conectada.
+Abrí [WrenchAI en tu navegador](http://localhost:5173), completá lo que conozcas en **Mi auto** y escribí el problema. Los mensajes siguientes continúan el mismo caso; **Nuevo chat** inicia otro. Los pendientes y trabajos se consultan desde el menú, sin formularios de avería para empezar. El aviso junto al cuadro de texto muestra si falta configurar Gemini o evidencia documental. Configuración y límites en [docs/ASSISTANT.md](docs/ASSISTANT.md).
 
 Uso, desarrollo y verificación de la interfaz en [docs/FRONTEND.md](docs/FRONTEND.md). La pantalla técnica de la API sigue en `http://localhost:8000/docs`; su contrato, pruebas y decisiones están en [docs/BACKEND.md](docs/BACKEND.md). La falta de datos de variante no bloquea el registro del trabajo mecánico. Las especificaciones documentales siguen requiriendo evidencia compatible.
 

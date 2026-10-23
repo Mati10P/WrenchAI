@@ -1,14 +1,14 @@
 # Chat y menú Mi auto
 
-La entrada principal es http://localhost:5173. La interfaz guarda mensajes reales en PostgreSQL, pero todavía no tiene un modelo conectado ni consulta manuales o internet. El aviso junto al cuadro de texto lo indica explícitamente.
+La entrada principal es http://localhost:5173. La interfaz guarda mensajes y respuestas en PostgreSQL. La integración con Gemini requiere una clave del servidor; sin ella conserva los mensajes y muestra el error. No hay evidencia documental aprobada habilitada ni búsqueda web. Ver ASSISTANT.md.
 
 ## Recorrido
 
 1. Abrir **Mi auto → Datos** y completar marca, modelo, año, kilometraje y modificaciones conocidas. Marca, modelo, año y kilometraje están visibles en Datos y al editar. Los demás datos técnicos son opcionales y se despliegan al editar. Se recuerda el auto seleccionado en este navegador.
 2. Escribir un problema y enviar. El primer mensaje crea una conversación y un pendiente por detrás, sin pedir título, síntomas ni estado en formularios.
 3. Agregar observaciones en el mismo chat. Se conservan en el mismo caso; no se crea una avería por cada mensaje. Enter envía y Shift + Enter agrega una línea.
-4. Consultar **Mi auto → Tareas** o **Conversaciones** para retomar un caso. Al recargar permanecen los mensajes.
-5. Si se resolvió, usar **Ya lo resolví** y describir qué se hizo. También se puede registrar mantenimiento independiente desde **Mi auto → Tareas → Agregar tarea**.
+4. Consultar **Mi auto → To-do** o **Conversaciones** para retomar un caso. Al recargar permanecen los mensajes.
+5. Si se resolvió, usar **Ya lo resolví** y describir qué se hizo. También se puede registrar mantenimiento independiente desde **Mi auto → To-do → Agregar tarea**.
 6. Usar **Nuevo chat** para otro problema. El borrador no enviado se descarta al cambiar de conversación o vehículo.
 
 Los registros anteriores, sus mediciones y resoluciones siguen disponibles. Se retiró la acción Agregar medición del chat a pedido del propietario. Los estados internos OPEN/IN_PROGRESS se agrupan como pendientes en el menú. El kilometraje se carga explícitamente: no se deduce del texto, del historial ni de los manuales.
@@ -74,3 +74,7 @@ Validación de tareas: 19 pruebas de integración contra PostgreSQL, build TypeS
 Se renombra Tareas a To-do y se presenta como tabla con check, fecha del trabajo, descripción, kilómetros y costo. Pendientes primero; tocar una celda abre la edición de sus detalles. El costo es dinero ya pagado, en una misma moneda elegida por el usuario, y el total suma todos los importes cargados del auto, también los pendientes. Un costo vacío no significa cero y se indica cuántos faltan. PostgreSQL usa Numeric(14,2) y la suma visual usa centavos enteros. La migración 0004 conserva los registros anteriores con costo desconocido.
 
 Verificación: 25 pruebas de integración y build TypeScript/Vite correctos. En navegador se guardó un costo sintético de 1234,56, se recargó la página y se comprobó el total 1.234,56. La tabla permite desplazamiento horizontal en pantallas estrechas.
+
+## Respuestas del asistente
+
+Después de guardar un mensaje se solicita su respuesta. Si falla, Generar respuesta permite reintentar sin reenviar el mensaje. Se muestran hipótesis, preguntas, comprobaciones y fuentes citadas cuando existan. Los avisos determinísticos se identifican como reglas de seguridad. No se modifican datos del auto ni se completan tareas automáticamente. Configuración y limitaciones actuales: [ASSISTANT.md](ASSISTANT.md).
