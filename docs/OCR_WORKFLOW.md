@@ -43,3 +43,11 @@ Las regiones localizadas visualmente se guardan como recortes con su página, ca
 La orientación se revisó visualmente en hojas de contacto, con inspección ampliada de casos especiales. La revisión técnica detallada sigue pendiente: páginas impresas, valores, unidades, columnas y referencias entre páginas. Ninguna página pasa automáticamente a evidencia técnica validada por tener una confianza alta.
 
 Commit sugerido para este bloque: `fix: rebuild OCR orientation and link text to page visuals`.
+
+## Limpieza de ruido pendiente
+
+Se comprobó que cinco fragmentos espurios de PDF 19 del manual de reparación pertenecían a la ilustración y aparecían intercalados en el texto del procedimiento. Se eliminaron únicamente de la transcripción limpia mediante correcciones privadas explícitas; el OCR crudo conserva el resultado original.
+
+Ejecutar `python scripts/find_ocr_noise.py` para generar `data/private/manuals/review/noise-candidates.json`. Detecta líneas cortas, caracteres de reemplazo y texto dentro de regiones de ilustración ya localizadas. Es una cola de revisión, no un filtro de borrado: letras sueltas, unidades, etiquetas de figuras y celdas pueden ser contenido real.
+
+El siguiente trabajo del corpus es localizar regiones de texto, ilustraciones y tablas en cada página; cotejar las candidatas contra el escaneo; excluir del texto narrativo el ruido confirmado de las figuras; y transcribir tablas conservando encabezados, columnas y unidades. Mantener trazabilidad de cada exclusión y revisión. Hasta entonces la limpieza de contenido no está completa.
