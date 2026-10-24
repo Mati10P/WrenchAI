@@ -6,7 +6,7 @@ El propietario decidió configurar la clave más adelante. Agregar en `.env` de 
 
 ```dotenv
 GEMINI_API_KEY=tu_clave
-GEMINI_MODEL=gemini-3.8-flash
+GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
 No colocar claves en React, capturas ni commits. Aplicar desde la raíz:
@@ -61,3 +61,24 @@ Se comprobó conectividad y acceso al modelo con la clave configurada. Una gener
 Para gemini-3.8-flash se solicita thinkingLevel=low, opción documentada para reducir latencia: https://ai.google.dev/gemini-api/docs/latest-model. No garantiza un tiempo máximo de respuesta. Pasaron 13 pruebas del adaptador, incluidas las categorías de errores de transporte. La prueba real no valida diagnósticos mecánicos ni el corpus.
 
 Se reintentó el mensaje ya guardado a través del proxy de la aplicación: respuesta HTTP exitosa en 40,01 segundos, con gemini-3.8-flash. La respuesta quedó persistida en la conversación existente. Continúa pendiente mejorar la latencia percibida; no se presenta este resultado como respuesta instantánea.
+
+
+## Velocidad del chat: Flash-Lite
+
+Se cambia el modelo predeterminado y la configuración local a gemini-3.5-flash-lite. Está disponible para la clave configurada y soporta respuestas estructuradas. Referencia: [modelo oficial](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite). Se mantiene el nivel de razonamiento predeterminado del proveedor para este modelo; el ajuste low específico de 3.8 Flash sigue disponible si se selecciona ese modelo explícitamente.
+
+Mediciones reales locales: consulta sintética sobre fuga del escape con contexto mínimo, 1,84 segundos; reintento del mensaje existente con contexto completo a través del proxy, 3,91 segundos y respuesta persistida. El usuario había observado un timeout de 60 segundos con 3.8 Flash en esa conversación. Son muestras puntuales, no percentiles ni una garantía de latencia. No se repitieron llamadas al modelo lento solo para medir.
+
+El prompt pide alrededor de 150 palabras, sin rellenar listas innecesarias y con prioridad para las advertencias. Se conserva el contexto del auto, historial, fuentes, validación estructurada, reglas determinísticas y ausencia de reintentos automáticos. No se reducen los límites del historial para obtener esta mejora. La evaluación mecánica de 20 casos sigue pendiente: mayor velocidad no demuestra calidad equivalente entre modelos. No se añadió streaming en este bloque.
+
+Validación: 19 pruebas de integración del asistente y corpus pasaron; construcción Docker, Ruff y git diff --check correctos. La respuesta del caso ya está guardada y se puede ver al recargar el chat.
+
+## Selector de modelo
+
+El chat ofrece Gemini 3.5 Flash-Lite (rápido) y Gemini 3.8 Flash (mayor demora), ambos comprobados previamente con la cuenta configurada. La preferencia se guarda en localStorage de este navegador y se envía en el cuerpo de cada solicitud de respuesta. Si la preferencia guardada no está disponible, se usa la opción predeterminada disponible. Cada respuesta muestra y conserva su modelo efectivo. Los avisos determinísticos se identifican como reglas de seguridad.
+
+POST /messages/{id}/reply acepta opcionalmente {"model":"gemini-3.5-flash-lite"}. El servidor valida una lista explícita y no cambia variables globales ni la preferencia de otros clientes. Una respuesta ya guardada se devuelve sin regenerar aunque se seleccione otro modelo. El selector se bloquea durante el envío. Elegir Flash puede volver a producir mayor demora; no se promete una latencia por opción.
+
+Pasaron 15 pruebas del asistente, incluidas selección por solicitud, rechazo de modelos desconocidos y conservación del modelo de respuestas existentes. Compilación TypeScript/Vite correcta. No se requirieron llamadas pagas para verificar el selector.
+
+La comprobación visual quedó pendiente porque el uso local del navegador está deshabilitado en Work. La compilación y las pruebas del contrato no sustituyen esa revisión visual. Docker reconstruyó la aplicación con el selector.

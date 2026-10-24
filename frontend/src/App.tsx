@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { request, listAll, json } from "./api";
 import type {
@@ -30,6 +30,19 @@ export default function App() {
   const [replies, setReplies] = useState<Reply[]>([]);
   const [assistantStatus, setAssistantStatus] =
     useState<AssistantStatus | null>(null);
+  const [chosenModel, setChosenModel] = useState(() => {
+    try {
+      return localStorage.getItem("wrenchai.model") || "";
+    } catch {
+      return "";
+    }
+  });
+  const modelOptions = assistantStatus?.models || [];
+  const effectiveModel = modelOptions.some((m) => m.id === chosenModel)
+    ? chosenModel
+    : modelOptions.some((m) => m.id === assistantStatus?.default_model)
+      ? assistantStatus?.default_model
+      : modelOptions[0]?.id;
   const [replyBusy, setReplyBusy] = useState(false);
   const [panel, setPanel] = useState<Panel | null>(null);
   const [editor, setEditor] = useState<Form | null>(null);
@@ -46,6 +59,17 @@ export default function App() {
   );
   const scrollEnd = useRef<HTMLDivElement>(null);
   const composer = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const resize = () => {
+      const field = composer.current;
+      if (!field) return;
+      field.style.height = "0px";
+      field.style.height = `${Math.min(Math.max(field.scrollHeight, 36), 144)}px`;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [draft]);
   const parts = hash.replace(/^#\/?/, "").split("/");
   const vehicleId = parts[0] === "vehicles" ? parts[1] : undefined;
   const incidentId = parts[2] === "incidents" ? parts[3] : undefined;
@@ -195,7 +219,10 @@ export default function App() {
       setRevision((v) => v + 1);
       setReplyBusy(true);
       try {
-        await request<Reply>(`/messages/${message.id}/reply`, json("POST"));
+        await request<Reply>(
+          `/messages/${message.id}/reply`,
+          json("POST", { model: effectiveModel }),
+        );
       } catch (e) {
         setNotice(
           e instanceof Error
@@ -223,7 +250,10 @@ export default function App() {
     setReplyBusy(true);
     setNotice("");
     try {
-      await request<Reply>(`/messages/${message.id}/reply`, json("POST"));
+      await request<Reply>(
+        `/messages/${message.id}/reply`,
+        json("POST", { model: effectiveModel }),
+      );
     } catch (e) {
       setNotice(
         e instanceof Error ? e.message : "No se pudo generar la respuesta.",
@@ -542,7 +572,7 @@ export default function App() {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               maxLength={10000}
-              rows={2}
+              rows={1}
               disabled={!active || busy}
               onKeyDown={(e) => {
                 if (
@@ -555,21 +585,50 @@ export default function App() {
                 }
               }}
             />
-            <button
-              className="send-button"
-              aria-label="Enviar mensaje"
-              disabled={
-                !active ||
-                !draft.trim() ||
-                busy ||
-                loadingChat ||
-                !!error ||
-                (!!incidentId && !detail)
-              }
-              type="submit"
-            >
-              {busy ? "…" : "↑"}
-            </button>
+            <div className="composer-actions">
+              <label className="model-picker">
+                <select
+                  aria-label="Modelo de IA"
+                  value={effectiveModel || ""}
+                  disabled={busy || replyBusy || !modelOptions.length}
+                  onChange={(event) => {
+                    setChosenModel(event.target.value);
+                    try {
+                      localStorage.setItem(
+                        "wrenchai.model",
+                        event.target.value,
+                      );
+                    } catch {
+                      /* optional preference */
+                    }
+                  }}
+                >
+                  {!modelOptions.length && (
+                    <option value="">Cargando modelos…</option>
+                  )}
+                  {modelOptions.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.label.split(" · ")[0]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                className="send-button"
+                aria-label="Enviar mensaje"
+                disabled={
+                  !active ||
+                  !draft.trim() ||
+                  busy ||
+                  loadingChat ||
+                  !!error ||
+                  (!!incidentId && !detail)
+                }
+                type="submit"
+              >
+                {busy ? "…" : "↑"}
+              </button>
+            </div>
           </form>
           <p className="composer-hint">
             Enter para enviar · Shift + Enter para otra línea

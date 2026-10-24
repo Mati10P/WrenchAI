@@ -4,7 +4,7 @@ Proyecto de portfolio para conseguir una primera experiencia laboral: una aplica
 
 ## Estado actual
 
-La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. El menú **Mi auto** reúne marca, modelo, año, kilometraje, modificaciones y una lista de tareas con pendientes y trabajos realizados. La integración con Gemini está preparada: usa el contexto del auto y conserva las respuestas. Requiere configurar una clave en el servidor; la prueba con Gemini real queda pendiente. Todavía no hay manuales aprobados habilitados ni búsqueda web.
+La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. El menú **Mi auto** reúne marca, modelo, año, kilometraje, modificaciones y un **To-do** con pendientes, trabajos realizados y costos. Gemini usa el contexto del auto y conserva las respuestas; el chat permite elegir modelo. Requiere una clave en el servidor y ya se registraron pruebas reales de generación. La evaluación mecánica completa sigue pendiente. Hay ingesta y recuperación documental textual, pero todavía no hay manuales reales aprobados habilitados, búsqueda semántica con pgvector ni búsqueda web. El avance verificado y los pendientes están en la [checklist del plan](IMPLEMENTATION_PLAN.md).
 
 El prototipo de consola `maintenance_demo.py` se conserva como antecedente educativo con SQLite. Sus datos no se migran automáticamente a la API.
 
@@ -30,7 +30,7 @@ Uso, desarrollo y verificación de la interfaz en [docs/FRONTEND.md](docs/FRONTE
 - Reglas determinísticas de seguridad que el modelo no puede reducir.
 - Evaluación reproducible sobre 20 casos, separando tests simulados de pruebas con Gemini real.
 
-El chat es la entrada principal y conserva el contexto del auto. El asistente consultará primero manuales compatibles y, si no encuentra evidencia suficiente, buscará en internet mostrando el origen y los límites de la información. Esta secuencia aún no está implementada. Se usará recuperación documental (RAG), no entrenamiento de un modelo con los PDF. La ingesta documental será un comando administrativo.
+El chat es la entrada principal y conserva el contexto del auto. Antes de generar una respuesta, recupera fragmentos aprobados y compatibles desde PostgreSQL mediante búsqueda textual. Falta habilitar los manuales reales, incorporar recuperación semántica y completar la búsqueda en internet cuando la evidencia resulte insuficiente, mostrando origen y límites. Se usa recuperación documental (RAG), no entrenamiento de un modelo con los PDF. La ingesta documental ya funciona como comando administrativo.
 
 ## Stack previsto
 

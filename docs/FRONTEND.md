@@ -78,3 +78,7 @@ Verificación: 25 pruebas de integración y build TypeScript/Vite correctos. En 
 ## Respuestas del asistente
 
 Después de guardar un mensaje se solicita su respuesta. Si falla, Generar respuesta permite reintentar sin reenviar el mensaje. Se muestran hipótesis, preguntas, comprobaciones y fuentes citadas cuando existan. Los avisos determinísticos se identifican como reglas de seguridad. No se modifican datos del auto ni se completan tareas automáticamente. Configuración y limitaciones actuales: [ASSISTANT.md](ASSISTANT.md).
+
+Ajuste visual solicitado: el selector queda dentro del cuadro de escritura, en la fila inferior derecha junto al botón de enviar, con nombre corto y sin una etiqueta visible adicional. Conserva nombre accesible, selección por teclado y preferencia persistida.
+
+El compositor arranca con una línea (36 px) y una fila inferior de controles de 32 px, para una altura aproximada de 96 px. El textarea crece con el texto hasta 144 px y luego permite desplazamiento; vuelve a compacto al enviar o borrar. Se elimina el margen heredado del selector y el botón de enviar pasa a circular. Compilación verificada; revisión visual pendiente por acceso al navegador deshabilitado.

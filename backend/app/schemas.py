@@ -172,3 +172,7 @@ class ReplyOut(Schema):
     model: str
     safety_warning: str | None
     created_at: datetime
+
+
+class ReplyInput(Schema):
+    model: Annotated[str, Field(min_length=1, max_length=100)] | None = None

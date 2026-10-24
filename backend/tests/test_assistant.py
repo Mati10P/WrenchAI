@@ -253,3 +253,44 @@ def test_transport_error_category(monkeypatch, error, status, phrase):
     assert exc.value.status == status
     assert phrase in exc.value.message
     assert "private" not in exc.value.message
+
+
+def test_model_choice_is_per_request_and_persisted(client, monkeypatch):
+    _, first = start(client)
+    _, second = start(client)
+    calls = []
+
+    def generate(context, model=None):
+        calls.append(model)
+        return answer()
+
+    monkeypatch.setattr(assistant, "generate", generate)
+    for message, model in [
+        (first, "gemini-3.5-flash-lite"),
+        (second, "gemini-3.8-flash"),
+    ]:
+        response = client.post(
+            f"/messages/{message['id']}/reply", json={"model": model}
+        )
+        assert response.status_code == 200
+        assert response.json()["model"] == model
+    cached = client.post(
+        f"/messages/{first['id']}/reply", json={"model": "gemini-3.8-flash"}
+    )
+    assert cached.json()["model"] == "gemini-3.5-flash-lite"
+    assert calls == ["gemini-3.5-flash-lite", "gemini-3.8-flash"]
+    assert assistant.model_name() == "gemini-3.8-flash"
+
+
+def test_unknown_model_rejected_before_generation(client, monkeypatch):
+    _, message = start(client)
+
+    def generate(*args, **kwargs):
+        pytest.fail("Invalid model must not call provider")
+
+    monkeypatch.setattr(assistant, "generate", generate)
+    response = client.post(
+        f"/messages/{message['id']}/reply", json={"model": "unapproved-model"}
+    )
+    assert response.status_code == 422
+    assert len(client.get("/assistant/status").json()["models"]) == 2

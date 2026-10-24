@@ -8,6 +8,9 @@ export function AssistantMessage({ reply }: { reply: Reply }) {
       <strong>
         {reply.safety_warning ? "Aviso de seguridad de WrenchAI" : "WrenchAI"}
       </strong>
+      {!reply.safety_warning && (
+        <small className="reply-model">{reply.model}</small>
+      )}
       <p>{reply.content.summary}</p>
       {(
         [

@@ -21,6 +21,7 @@ from .schemas import (
     MeasurementOut,
     MessageInput,
     MessageOut,
+    ReplyInput,
     ReplyOut,
     Status,
     TaskInput,
@@ -318,6 +319,8 @@ def create_app(url=None):
         corpus_valid = True
         return {
             "configured": assistant.configured(),
+            "models": assistant.MODEL_OPTIONS,
+            "default_model": assistant.model_name(),
             "approved_passages": count,
             "corpus_valid": corpus_valid,
             "web_search": False,
@@ -334,8 +337,8 @@ def create_app(url=None):
         }
 
     @app.post("/messages/{message_id}/reply", response_model=ReplyOut)
-    def create_reply(message_id: UUID, db: DB):
-        return reply_to(db, message_id)
+    def create_reply(message_id: UUID, db: DB, payload: ReplyInput | None = None):
+        return reply_to(db, message_id, payload.model if payload else None)
 
     @app.get("/incidents/{incident_id}/replies", response_model=list[ReplyOut])
     def replies(incident_id: UUID, db: DB, limit: Limit = 50, offset: Offset = 0):

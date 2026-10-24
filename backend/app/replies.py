@@ -10,7 +10,12 @@ from . import assistant, corpus
 from .models import AssistantReply, Incident, Message, Vehicle
 
 
-def reply_to(db, message_id):
+def reply_to(db, message_id, requested_model=None):
+    if requested_model is not None:
+        try:
+            assistant.selected_model(requested_model)
+        except assistant.AssistantError as exc:
+            raise HTTPException(exc.status, exc.message) from None
     message = db.get(Message, message_id)
     if message is None:
         raise HTTPException(404, "Message not found")
@@ -116,8 +121,12 @@ def reply_to(db, message_id):
         model = "safety-rules-v1"
     else:
         try:
-            answer = assistant.generate(context)
-            model = assistant.model_name()
+            answer = (
+                assistant.generate(context, model=requested_model)
+                if requested_model is not None
+                else assistant.generate(context)
+            )
+            model = requested_model or assistant.model_name()
         except assistant.AssistantError as exc:
             raise HTTPException(exc.status, exc.message) from None
     used = [source for source in sources if source["id"] in answer.citation_ids]

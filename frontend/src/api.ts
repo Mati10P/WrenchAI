@@ -62,6 +62,8 @@ export type Reply = {
   sources: { id: string; title: string; page: number; text: string }[];
 };
 export type AssistantStatus = {
+  models: { id: string; label: string }[];
+  default_model: string;
   configured: boolean;
   approved_passages: number;
   corpus_valid: boolean;

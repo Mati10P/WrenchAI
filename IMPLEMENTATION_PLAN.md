@@ -1,22 +1,74 @@
 # Plan de implementación
 
-## Preparación documental (en curso)
+## Checklist consolidada — revisión 2026-10-24
+
+Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` indica alcance implementado; los bloques con pendientes permanecen abiertos. Las entradas posteriores conservan el historial y pueden describir estados anteriores.
+
+### Preparación documental (parcial)
 - [x] Comparar checkout con GitHub y reparar origin/main.
 - [x] Buscar fuentes y descargar candidatos fuera de Git.
 - [ ] Verificar edición, autoría, cobertura y calidad de cada PDF.
 - [x] Conservar originales y generar OCR con correspondencia por página para ambos manuales.
 - [x] Seleccionar un conjunto acotado de páginas para los casos de la primera versión: 22 páginas y 20 escenarios documentados, pendientes de aprobación técnica y ejecución.
 - [ ] Cotejar en ese conjunto texto, tablas, unidades, cifras, ilustraciones y aplicabilidad; registrar incertidumbre sin completarla por inferencia.
-- [ ] Crear corpus didáctico redistribuible para pruebas.
+- [x] Cotejar 22 pasajes y 41 tramos del conjunto seleccionado; conservar evidencia y bloqueos. Esto no aprueba páginas completas ni aplicabilidad.
+- [x] Crear un corpus didáctico propio redistribuible para probar ingesta y recuperación: `backend/examples/rag`, exclusivo del vehículo ficticio RAG-DEMO.
+- [ ] Ampliar el corpus didáctico para cubrir los 20 escenarios y la demo pública.
+- [ ] Aceptar y recortar fragmentos de manuales compatibles con el vehículo, e importarlos explícitamente. Actualmente hay cero fragmentos aprobados cargados.
 
-## Bloques posteriores
-- [x] A: API, PostgreSQL, migraciones, vehículos, incidencias y mediciones; persistencia tras reinicio. Primer bloque verificado con 14 pruebas de integración y reinicio real de API/base.
-- [ ] B: ingesta administrativa, Gemini, pgvector, citas y seguridad; diagnóstico conversacional con manuales primero y búsqueda web complementaria cuando no haya evidencia suficiente.
-- [ ] C: interfaz en español; completar registro, diagnóstico y resolución desde navegador.
-  - [x] Registro mecánico con React/TypeScript: vehículos, averías, síntomas, mediciones, estados, resolución y consulta de historial; recorrido comprobado en navegador.
-  - [ ] Diagnóstico con evidencia y consulta documental en la interfaz; depende del bloque B.
-- [ ] D: 20 casos, pruebas determinísticas, evaluación real separada y CI.
-- [ ] E: exportación de casos para demo de lectura en GitHub Pages, capturas y guion de video.
+### A — API y persistencia (completo para el alcance acordado)
+- [x] FastAPI/Pydantic, SQLAlchemy, PostgreSQL y migraciones Alembic 0001–0006.
+- [x] Vehículos, incidencias, síntomas, mediciones por API, estados, resolución e historial persistente.
+- [x] Contexto del auto: marca, modelo, año, kilometraje, modificaciones y campos desconocidos opcionales.
+- [x] Conversaciones persistentes; primer mensaje crea un pendiente y los reintentos no duplican el mensaje.
+- [x] To-do con checks reversibles, fecha, kilómetros, notas, costo decimal y total de importes registrados.
+- [x] Docker Compose con PostgreSQL, API y frontend. Persistencia tras reinicio documentada en el bloque original.
+
+### B — Asistente y fuentes (parcial)
+- [x] Adaptador Gemini, contexto del auto/historial y respuestas estructuradas persistentes.
+- [x] Manejo de errores, reintento manual sin duplicar mensajes y control de concurrencia.
+- [x] Selector de modelo en el chat, validado en backend y conservado por navegador.
+- [x] Pruebas reales de conectividad y generación registradas; mejora puntual de latencia con Flash-Lite. No equivalen a evaluación mecánica.
+- [x] Cuatro reglas determinísticas de advertencia y validación de identificadores de citas.
+- [x] Ingesta administrativa transaccional con aprobación explícita y comprobación SHA-256.
+- [x] Recuperación textual en PostgreSQL, filtrado de compatibilidad y consulta de fuentes sin Gemini.
+- [ ] Habilitar manuales reales aprobados y verificar el circuito completo con evidencia compatible.
+- [ ] Embeddings y recuperación semántica con pgvector; hoy se usa búsqueda textual.
+- [ ] Estrategia multilingüe y evaluación de relevancia para consultas en español y fuentes en portugués.
+- [ ] Búsqueda web complementaria con fuentes explícitas cuando falte evidencia documental.
+
+### C — Interfaz en español (parcial)
+- [x] React/TypeScript: chat por problema, historial, Mi auto y To-do con costos.
+- [x] Registro y edición del auto, tareas, resolución y respuestas del asistente.
+- [x] Presentación de fuentes citadas y estados de error/falta de evidencia. Las mediciones se retiraron de la interfaz a pedido del propietario; permanecen en API e historial.
+- [x] Recorridos manuales de navegador documentados en `docs/FRONTEND.md`.
+- [ ] Comprobar desde navegador diagnóstico con manuales reales aprobados y búsqueda web, una vez completado B.
+
+### D — Pruebas y evaluación (parcial)
+- [x] Definir 20 escenarios y sus criterios en `docs/MVP_CASES.md`.
+- [x] Suite automatizada de backend con proveedor simulado y PostgreSQL real: 46 pruebas pasan en esta revisión.
+- [x] Herramientas documentales: 24 pruebas pasan en esta revisión.
+- [x] Compilación TypeScript/Vite y formato del frontend correctos.
+- [ ] Ejecutar los 20 escenarios de extremo a extremo; evaluar por separado citas, abstención, seguridad y recuperación.
+- [ ] Evaluación mecánica real de Gemini y comparación de calidad/latencia entre modelos con casos representativos.
+- [ ] Configurar CI con GitHub Actions.
+- [ ] Revisar las 72 observaciones de Ruff detectadas con la configuración actual al ejecutar `python -m ruff check backend scripts` (48 C408, 18 I001 y seis restantes). No se corrigieron durante esta revisión documental.
+
+### E — Demo y entrega (pendiente)
+- [ ] Exportar casos sintéticos y respuestas guardadas para demo de lectura.
+- [ ] Construir/publicar demo estática en GitHub Pages, sin claves ni llamadas a IA.
+- [ ] Preparar capturas y guion de video; completar documentación de entrega.
+
+### Evidencia de esta revisión
+
+- Backend: desde `backend`, `..\.venv\Scripts\python.exe -m pytest -q`: **46 passed**, una advertencia de deprecación de Starlette/httpx. El fixture usa una base PostgreSQL temporal, aplica migraciones y comprueba diferencias con los modelos.
+- Documentos: `.\.venv\Scripts\python.exe -m pytest -q scripts/tests`: **24 passed**.
+- Frontend: `npm run build` y `npm run format:check`: correctos.
+- `docker compose ps`: tres servicios activos, PostgreSQL healthy. `/ready`: ready. `/assistant/status`: configured=true, approved_passages=0, web_search=false; informa los dos modelos disponibles.
+- `git diff --check`: sin errores de whitespace; Git avisa de futuras conversiones LF/CRLF.
+- No se repitieron llamadas pagas a Gemini, reinicios de servicios ni recorridos de navegador en esta revisión. Las pruebas reales y visuales anteriores se distinguen de las ejecutadas hoy. Hay cambios locales previos sin commit; esta checklist incluye el estado del checkout.
+
+Orden recomendado: aceptación e importación del subconjunto documental → recuperación semántica/multilingüe → búsqueda web → evaluación de 20 casos y recorrido completo → CI y demo. La corrección de Ruff puede hacerse como bloque independiente.
 
 ## Decisiones
 - Monolito modular y RAG propio; sin agentes ni frameworks de orquestación.
@@ -140,3 +192,12 @@ Se inventariaron 22 pasajes cotejados y 30 vínculos a figuras; ninguno está ap
 ## Corrección del timeout de Gemini
 
 Una prueba real confirmó una generación de 54,23 segundos frente al límite anterior de 25. Se amplió el transporte a 60 segundos, el proxy a 90 y se configuró razonamiento low para Gemini 3.8 Flash. Se distinguen errores de conexión y timeout. Pasaron 13 pruebas del adaptador; el reintento real del mensaje guardado respondió en 40,01 segundos y se persistió. Detalles en docs/ASSISTANT.md.
+
+
+## Velocidad conversacional
+
+Se selecciona Gemini 3.5 Flash-Lite como modelo predeterminado tras comprobar disponibilidad y dos respuestas reales: 1,84 s con contexto mínimo y 3,91 s a través de la aplicación con contexto completo. El prompt solicita respuestas breves conservando advertencias. Pasaron 19 pruebas del asistente/corpus y Docker. Se conserva el contexto y siguen pendientes evaluación mecánica completa y mediciones de latencia representativas. Evidencia y límites: docs/ASSISTANT.md.
+
+## Elección del modelo desde el chat
+
+Se incorpora un selector junto al cuadro de mensaje, con preferencia persistida por navegador y validación en backend. La elección se aplica a próximas respuestas; las existentes conservan su modelo. Pasaron 15 pruebas del asistente y compilación TypeScript/Vite. Contrato y comportamiento en docs/ASSISTANT.md.
