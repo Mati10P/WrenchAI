@@ -136,3 +136,7 @@ Pasaron 35 pruebas contra PostgreSQL con proveedor simulado y compilación TypeS
 Se incorporó la migración 0006, importador transaccional con comprobación SHA-256 del original, recuperación textual en PostgreSQL y consulta de fuentes por vehículo sin Gemini. El chat utiliza esas fuentes antes de generar la respuesta. Se agregó material didáctico propio limitado a un vehículo ficticio para reproducir el circuito.
 
 Se inventariaron 22 pasajes cotejados y 30 vínculos a figuras; ninguno está aprobado para RAG. Se conservan sus bloqueos de aplicabilidad y no se importan a producción. El bloque B continúa parcial: faltan aceptación documental, recuperación semántica con pgvector, evaluación de relevancia, búsqueda web y prueba real de Gemini. Procedimiento y evidencia: docs/RAG.md.
+
+## Corrección del timeout de Gemini
+
+Una prueba real confirmó una generación de 54,23 segundos frente al límite anterior de 25. Se amplió el transporte a 60 segundos, el proxy a 90 y se configuró razonamiento low para Gemini 3.8 Flash. Se distinguen errores de conexión y timeout. Pasaron 13 pruebas del adaptador; el reintento real del mensaje guardado respondió en 40,01 segundos y se persistió. Detalles en docs/ASSISTANT.md.

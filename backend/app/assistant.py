@@ -114,6 +114,8 @@ def generate(context):
             "maxOutputTokens": 4096,
         },
     }
+    if model_name() == "gemini-3.8-flash":
+        payload["generationConfig"]["thinkingConfig"] = {"thinkingLevel": "low"}
     request = Request(
         f"https://generativelanguage.googleapis.com/v1beta/models/{model_name()}:generateContent",
         data=json.dumps(payload).encode(),
@@ -121,7 +123,7 @@ def generate(context):
         method="POST",
     )
     try:
-        with urlopen(request, timeout=25) as response:
+        with urlopen(request, timeout=60) as response:
             raw = response.read(200001)
         if len(raw) > 200000:
             raise ValueError("Oversized provider response")
@@ -154,11 +156,21 @@ def generate(context):
         raise AssistantError(
             502, "Gemini no pudo responder. Tu mensaje está guardado; podés reintentar."
         ) from None
-    except (TimeoutError, URLError):
+    except TimeoutError:
         raise AssistantError(
             504,
-            "Gemini tardó demasiado o no está disponible. Tu mensaje está guardado; podés reintentar.",
+            "Gemini superó el tiempo de espera de 60 segundos. Tu mensaje está guardado; podés reintentar.",
         ) from None
+    except URLError as exc:
+        timed_out = isinstance(exc.reason, TimeoutError)
+
+        raise AssistantError(
+            504 if timed_out else 502,
+            "Gemini superó el tiempo de espera de 60 segundos. Tu mensaje está guardado; podés reintentar."
+            if timed_out
+            else "No se pudo conectar con Gemini. Tu mensaje está guardado; revisá la conexión y reintentá.",
+        ) from None
+
     except (ValueError, KeyError, IndexError, TypeError, ValidationError):
         raise AssistantError(
             502,

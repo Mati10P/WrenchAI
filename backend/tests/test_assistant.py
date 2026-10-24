@@ -1,7 +1,7 @@
 import json
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from uuid import uuid4
 
 import pytest
@@ -158,7 +158,7 @@ def test_gemini_transport_and_unknown_citations(monkeypatch):
 
     def transport(request, timeout):
         seen.append(json.loads(request.data))
-        assert timeout == 25
+        assert timeout == 60
         assert "test-only-key" not in request.full_url
         return Response(
             {
@@ -231,3 +231,25 @@ def test_evidence_requires_explicit_approval_and_matching_vehicle(
     path.write_text(json.dumps([passage]))
     with pytest.raises(ValueError):
         evidence.load_passages()
+
+
+@pytest.mark.parametrize(
+    "error,status,phrase",
+    [
+        (TimeoutError(), 504, "60 segundos"),
+        (URLError(TimeoutError()), 504, "60 segundos"),
+        (URLError("private network details"), 502, "conectar"),
+    ],
+)
+def test_transport_error_category(monkeypatch, error, status, phrase):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-only-key")
+
+    def transport(*args, **kwargs):
+        raise error
+
+    monkeypatch.setattr(assistant, "urlopen", transport)
+    with pytest.raises(assistant.AssistantError) as exc:
+        assistant.generate({"sources": []})
+    assert exc.value.status == status
+    assert phrase in exc.value.message
+    assert "private" not in exc.value.message
