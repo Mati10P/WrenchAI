@@ -104,3 +104,7 @@ El contrato de tareas incluye `cost`, decimal no negativo con hasta dos decimale
 ## Integración del asistente
 
 La migración 0005 agrega assistant_replies: una respuesta por mensaje, contenido estructurado, fuentes citadas, modelo y una copia del contexto usado. GET /assistant/status informa configuración; POST /messages/{id}/reply genera o recupera la respuesta; GET /incidents/{id}/replies lista las respuestas paginadas. El guardado del mensaje es independiente y sobrevive a fallas del proveedor. Ver [ASSISTANT.md](ASSISTANT.md).
+
+## Recuperación documental
+
+La migración 0006 incorpora fragmentos documentales persistentes. GET /vehicles/{id}/sources?q=consulta recupera hasta cuatro fuentes compatibles sin llamar a Gemini. La ingesta es administrativa y transaccional, con comprobación del original por SHA-256. Ver [RAG.md](RAG.md) para reproducir con material didáctico y conocer los límites de la búsqueda textual.

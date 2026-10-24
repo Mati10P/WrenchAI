@@ -1,4 +1,4 @@
-"""Small approved-corpus adapter; lexical retrieval, not vector search yet."""
+"""Accepted passage contract and legacy file-validation helpers."""
 
 import json
 import os
@@ -31,14 +31,20 @@ class Passage(BaseModel):
     ]
 
 
-def load_passages():
-    path = os.environ.get("APPROVED_CORPUS_PATH", "").strip()
+def load_passages(path=None):
+    path = path or os.environ.get("APPROVED_CORPUS_PATH", "").strip()
     if not path:
         return []
-    raw = Path(path).read_bytes()
+    return parse_passages(Path(path).read_bytes())
+
+
+def parse_passages(raw):
     if len(raw) > 2_000_000:
         raise ValueError("Corpus too large")
-    items = [Passage.model_validate(value) for value in json.loads(raw)]
+    values = json.loads(raw)
+    if not isinstance(values, list):
+        raise TypeError("Corpus must be a JSON list")
+    items = [Passage.model_validate(value) for value in values]
     if len(items) > 200 or len({p.id for p in items}) != len(items):
         raise ValueError("Invalid corpus size or duplicate IDs")
     if any(not p.requirements for p in items):

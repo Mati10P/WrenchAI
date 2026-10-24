@@ -127,3 +127,11 @@ class AssistantReply(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class DocumentPassage(Base):
+    __tablename__ = "document_passages"
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    payload: Mapped[dict] = mapped_column(JSON)
+    search_text: Mapped[str] = mapped_column(Text)
+    corpus_sha256: Mapped[str] = mapped_column(String(64))

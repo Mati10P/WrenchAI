@@ -130,3 +130,9 @@ Verificación: 25 pruebas de integración y build TypeScript/Vite correctos. En 
 Se implementó el adaptador Gemini, respuestas estructuradas persistentes (migración 0005), contexto del auto/historial, reintentos sin reenviar mensajes, validación de citas y cuatro reglas de advertencia. La interfaz muestra respuestas y distingue falta de clave o evidencia. El propietario configurará la clave después; no se probaron respuestas reales.
 
 Pasaron 35 pruebas contra PostgreSQL con proveedor simulado y compilación TypeScript/Vite. El bloque B continúa parcial: recuperación provisional por palabras, sin corpus real aprobado habilitado, pgvector ni búsqueda web. La evaluación completa de los 20 escenarios sigue pendiente. Configuración, privacidad, contrato y límites en docs/ASSISTANT.md.
+
+## Ingesta y recuperación documental local
+
+Se incorporó la migración 0006, importador transaccional con comprobación SHA-256 del original, recuperación textual en PostgreSQL y consulta de fuentes por vehículo sin Gemini. El chat utiliza esas fuentes antes de generar la respuesta. Se agregó material didáctico propio limitado a un vehículo ficticio para reproducir el circuito.
+
+Se inventariaron 22 pasajes cotejados y 30 vínculos a figuras; ninguno está aprobado para RAG. Se conservan sus bloqueos de aplicabilidad y no se importan a producción. El bloque B continúa parcial: faltan aceptación documental, recuperación semántica con pgvector, evaluación de relevancia, búsqueda web y prueba real de Gemini. Procedimiento y evidencia: docs/RAG.md.

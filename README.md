@@ -86,3 +86,7 @@ La búsqueda inicial, candidatos y límites de compatibilidad están registrados
 ### Preparación del corpus
 
 El OCR y su revisión se ejecutan con herramientas locales documentadas en [docs/OCR_WORKFLOW.md](docs/OCR_WORKFLOW.md). El análisis por regiones separa borradores de texto, figuras y tablas, conservando los originales. La preparación técnica del corpus sigue en curso y todavía no se considera evidencia validada para RAG.
+
+### Ingesta y consulta documental sin Gemini
+
+Ya se puede importar un conjunto aprobado y consultar sus fuentes desde PostgreSQL sin clave de IA. Incluye un ejemplo didáctico propio, aislado por modelo de vehículo ficticio. Es recuperación textual; la búsqueda semántica con pgvector y la habilitación de los manuales reales continúan pendientes. Instrucciones en [docs/RAG.md](docs/RAG.md).

@@ -8,7 +8,7 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from . import assistant, evidence
+from . import assistant, corpus
 from .database import database_url, session_factory
 from .models import AssistantReply, Incident, Measurement, Message, Vehicle
 from .replies import reply_to
@@ -313,17 +313,24 @@ def create_app(url=None):
         return obj
 
     @app.get("/assistant/status")
-    def assistant_status():
-        try:
-            count = len(evidence.load_passages())
-            corpus_valid = True
-        except (OSError, ValueError, TypeError):
-            count, corpus_valid = 0, False
+    def assistant_status(db: DB):
+        count = corpus.count_passages(db)
+        corpus_valid = True
         return {
             "configured": assistant.configured(),
             "approved_passages": count,
             "corpus_valid": corpus_valid,
             "web_search": False,
+        }
+
+    @app.get("/vehicles/{vehicle_id}/sources")
+    def search_sources(
+        vehicle_id: UUID, db: DB, q: str = Query(min_length=1, max_length=2000)
+    ):
+        vehicle = get(db, Vehicle, vehicle_id)
+        return {
+            "method": "postgresql_full_text",
+            "sources": corpus.search(db, vehicle, q),
         }
 
     @app.post("/messages/{message_id}/reply", response_model=ReplyOut)

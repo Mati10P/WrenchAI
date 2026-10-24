@@ -1,0 +1,15 @@
+[
+  {
+    "id": "demo-observations",
+    "title": "Ejemplo didáctico: pérdida de refrigerante",
+    "page": 1,
+    "text": "Documento didáctico propio de WrenchAI. Vehículo ficticio RAG-DEMO.\nRegistrar cuándo aparece la pérdida de refrigerante y qué observó el usuario. No confirma una causa ni prescribe una reparación.\n",
+    "approved": true,
+    "approved_by": "WrenchAI: revisión de alcance didáctico",
+    "review_reference": "docs/RAG.md: corpus didáctico",
+    "source_sha256": "58eb53d3d8a33061d91831cba2d9b40cde0e5246d9286a7a86917e88dc945216",
+    "requirements": {
+      "model": "RAG-DEMO"
+    }
+  }
+]

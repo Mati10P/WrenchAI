@@ -33,11 +33,7 @@ Al habilitar Gemini, ese contexto se envía a Google. No se envían PDF completo
 
 No hay fragmentos reales aprobados habilitados. Los dos manuales completos siguen pendientes de revisión profunda; para la primera versión se aceptará un subconjunto revisado y compatible, según CORPUS_ACCEPTANCE.md.
 
-El adaptador provisional carga una lista JSON desde APPROVED_CORPUS_PATH. Cada entrada exige id, title, page (página PDF desde 1), text, approved=true, approved_by, review_reference, source_sha256 y requirements. Los requisitos admiten make, model, year, fuel, engine_code y market; al menos uno es obligatorio y todos deben coincidir con datos conocidos del vehículo. La aprobación debe ser una decisión documental real, no un cambio de bandera para habilitar OCR.
-
-La huella valida formato, no coteja automáticamente el PDF original. El responsable debe verificar contenido, procedencia y aplicabilidad antes de publicar el archivo. Se rechaza el corpus inválido; no se utiliza parcialmente. Máximo 200 fragmentos y 2 MB. Recuperación provisional por coincidencia de palabras, hasta cuatro fragmentos: **todavía no es búsqueda semántica con pgvector**. La respuesta solo puede citar IDs recuperados; esto no demuestra por sí solo que cada afirmación esté respaldada.
-
-Para desarrollo local se puede exportar APPROVED_CORPUS_PATH al proceso de la API. Compose no monta documentos privados por defecto: habilitarlo requiere un override local con volumen de solo lectura y esa variable apuntando al archivo dentro del contenedor. No copiar manuales ni secretos a la imagen. No se incluye un corpus ficticio como evidencia de producción; los tests sí usan fragmentos sintéticos.
+La ingesta administrativa valida el contrato de cada fragmento y la huella del original, y persiste el conjunto en PostgreSQL. La recuperación textual filtra requisitos contra datos conocidos del vehículo. El chat ya no lee APPROVED_CORPUS_PATH en cada solicitud. Ver [RAG.md](RAG.md) para el procedimiento actual, el material didáctico y los límites: todavía no hay búsqueda semántica con pgvector ni fragmentos privados habilitados.
 
 ## Errores, concurrencia y límites
 
@@ -52,3 +48,7 @@ Cuatro reglas detectan algunas expresiones de riesgo de frenos, combustible, pre
 35 pruebas automatizadas pasaron contra PostgreSQL temporal, incluyendo migración 0005, persistencia, contexto, reintentos, bloqueo concurrente, errores del proveedor, citas desconocidas y exclusión de fragmentos incompatibles. El proveedor está simulado: no se ejecutaron llamadas reales a Gemini. Compilación TypeScript/Vite verificada. Quedan pendientes la clave, prueba real, aceptación documental, pgvector, búsqueda web y evaluación completa de los 20 escenarios.
 
 Verificación local adicional: Docker reconstruyó e inició API y frontend conservando PostgreSQL. GET /assistant/status devolvió configured=false, approved_passages=0 y web_search=false, coherente con la configuración pendiente. Pasaron Ruff, formato del frontend y git diff --check. La revisión visual de este bloque no pudo completarse porque el navegador está deshabilitado en Work; no se presenta como realizada.
+
+## Actualización: corpus persistido
+
+La lectura directa de APPROVED_CORPUS_PATH fue sustituida por importación administrativa a PostgreSQL. El importador ahora comprueba los archivos originales contra sus huellas; el chat recupera desde la base. El contrato de fragmento y el requisito de aprobación se conservan. Instrucciones actuales y límites: [RAG.md](RAG.md). No hay corpus privado habilitado ni búsqueda semántica todavía.

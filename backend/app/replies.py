@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import OperationalError
 
-from . import assistant, evidence
+from . import assistant, corpus
 from .models import AssistantReply, Incident, Message, Vehicle
 
 
@@ -58,16 +58,7 @@ def reply_to(db, message_id):
         "notes",
     )
     facts = {name: getattr(vehicle, name) for name in fields}
-    try:
-        passages = evidence.load_passages()
-    except (OSError, ValueError, TypeError):
-        raise HTTPException(
-            503,
-            "El corpus configurado no pasó la validación. Revisá su configuración antes de generar respuestas.",
-        ) from None
-    sources = evidence.retrieve(
-        passages, vehicle, incident.description + " " + message.content
-    )
+    sources = corpus.search(db, vehicle, incident.description + " " + message.content)
     previous = {
         r.message_id: r.content
         for r in db.scalars(
