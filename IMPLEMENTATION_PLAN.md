@@ -15,6 +15,7 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [x] Crear un corpus didáctico propio redistribuible para probar ingesta y recuperación: `backend/examples/rag`, exclusivo del vehículo ficticio RAG-DEMO.
 - [ ] Ampliar el corpus didáctico para cubrir los 20 escenarios y la demo pública.
 - [ ] Aceptar y recortar fragmentos de manuales compatibles con el vehículo, e importarlos explícitamente. Actualmente hay cero fragmentos aprobados cargados.
+- [x] Verificar nuevamente la integridad de los 22 pasajes y preparar una matriz de aceptación por fragmento: `docs/MVP_ACCEPTANCE_MATRIX.md`. El propietario confirmó el vehículo objetivo; sus modificaciones y selección se conservan en privado. La aplicabilidad sigue pendiente y los pasajes de instrumental original quedan fuera del primer lote por una modificación registrada.
 
 ### A — API y persistencia (completo para el alcance acordado)
 - [x] FastAPI/Pydantic, SQLAlchemy, PostgreSQL y migraciones Alembic 0001–0006.
