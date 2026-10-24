@@ -8,7 +8,15 @@ Se inventariaron los 22 pasajes privados cotejados y sus 30 vínculos a figuras:
 
 ## Importación administrativa
 
-La migración 0006 agrega document_passages. Un archivo JSON representa el conjunto completo activo, con el contrato de Passage en app/evidence.py. Cada fragmento requiere aprobación explícita, responsable, referencia de revisión, página PDF, texto, requisitos del vehículo y SHA-256 del original. Un PDF cotejado no queda aprobado automáticamente.
+La migración 0006 agrega document_passages. Un archivo JSON representa el conjunto completo activo, con el contrato de Passage en app/evidence.py. Cada fragmento requiere aprobación explícita, responsable, referencia de revisión, páginas PDF, texto, requisitos del vehículo y SHA-256 del original. Un PDF cotejado no queda aprobado automáticamente.
+
+### Citas de varias páginas
+
+Los conjuntos nuevos pueden declarar `"pages": [28, 29]` en lugar de `"page": 28`. Son números de página del PDF, comenzando en 1: entre 1 y 32 enteros positivos únicos, en orden ascendente. Se rechazan listas vacías, duplicadas, desordenadas, valores booleanos, decimales y cadenas. Una lista como `[28, 31]` cita exactamente esas páginas; no agrega las intermedias. La pertenencia y correspondencia de esas páginas con el fragmento se verifica durante el cotejo, no mediante el hash del archivo.
+
+El formato anterior con `page` sigue aceptado y se lee como una lista de una página. La representación normalizada conserva `page` como primera página para clientes anteriores y agrega `pages` con la lista completa. Si se suministran ambos, `page` debe coincidir con el primer elemento. No se completa información desconocida de citas antiguas.
+
+La recuperación entrega la lista completa al asistente y la respuesta guarda una copia de la fuente, incluidas sus páginas. La interfaz enumera esas páginas en cada cita y mantiene la lectura de respuestas antiguas que solo tienen `page`. No se necesita una migración SQL: fuentes y contexto ya están almacenados en JSONB. La lectura no reescribe documentos ni respuestas históricas.
 
 Los originales se colocan en una carpeta de ingesta, cada archivo con su SHA-256 como nombre (sin extensión). Usar copias; conservar los originales y sus nombres en el archivo documental privado. El importador lee y comprueba la huella del original antes de escribir. La huella confirma identidad del archivo, no exactitud de la transcripción, correspondencia de página ni suficiencia de la aprobación: eso pertenece al cotejo documental. Figuras/tablas no se convierten en texto ni se aprueban por esta operación.
 
@@ -36,7 +44,7 @@ Este comando reemplaza el corpus de esa base; no ejecutarlo sobre un conjunto ap
 
 `GET /vehicles/{id}/sources?q=refrigerante`
 
-Devuelve method=postgresql_full_text y fuentes con texto, página y procedencia. No genera diagnóstico ni requiere Gemini. Un vehículo incompatible o una consulta sin coincidencias devuelve sources vacío. GET /assistant/status informa el número total importado, que no equivale a fuentes compatibles con cada auto.
+Devuelve method=postgresql_full_text y fuentes con texto, páginas y procedencia. No genera diagnóstico ni requiere Gemini. Un vehículo incompatible o una consulta sin coincidencias devuelve sources vacío. GET /assistant/status informa el número total importado, que no equivale a fuentes compatibles con cada auto.
 
 ## Recuperación y límites
 

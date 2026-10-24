@@ -41,7 +41,9 @@ export function AssistantMessage({ reply }: { reply: Reply }) {
       {reply.sources.map((source) => (
         <details className="source" key={source.id}>
           <summary>
-            {source.title} · página PDF {source.page}
+            {source.title} ·{" "}
+            {(source.pages?.length ?? 1) > 1 ? "páginas PDF" : "página PDF"}{" "}
+            {(source.pages ?? [source.page]).join(", ")}
           </summary>
           <p>{source.text}</p>
         </details>

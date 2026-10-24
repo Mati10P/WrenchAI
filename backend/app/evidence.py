@@ -6,20 +6,23 @@ import re
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from .assistant import normalize
 
 Text = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=6000)
 ]
+PageNumber = Annotated[int, Field(strict=True, ge=1)]
 
 
 class Passage(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: Annotated[str, StringConstraints(pattern=r"^[a-zA-Z0-9_-]{1,80}$")]
     title: Text
-    page: Annotated[int, Field(ge=1)]
+    # Keep the first page for existing clients; pages is the complete citation.
+    page: PageNumber
+    pages: Annotated[list[PageNumber], Field(min_length=1, max_length=32)]
     text: Text
     approved: Literal[True]
     approved_by: Text
@@ -29,6 +32,29 @@ class Passage(BaseModel):
     requirements: dict[
         Literal["make", "model", "year", "fuel", "engine_code", "market"], str | int
     ]
+
+    @model_validator(mode="before")
+    @classmethod
+    def read_legacy_page(cls, value):
+        if isinstance(value, dict):
+            value = dict(value)
+            if "pages" not in value and "page" in value:
+                value["pages"] = [value["page"]]
+            elif (
+                "page" not in value
+                and isinstance(value.get("pages"), list)
+                and value["pages"]
+            ):
+                value["page"] = value["pages"][0]
+        return value
+
+    @model_validator(mode="after")
+    def validate_citation_pages(self):
+        if self.pages != sorted(set(self.pages)):
+            raise ValueError("Pages must be unique and in ascending PDF order")
+        if self.page != self.pages[0]:
+            raise ValueError("Legacy page must equal the first citation page")
+        return self
 
 
 def load_passages(path=None):

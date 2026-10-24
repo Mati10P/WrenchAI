@@ -59,7 +59,13 @@ export type Reply = {
     checks: string[];
     citation_ids: string[];
   };
-  sources: { id: string; title: string; page: number; text: string }[];
+  sources: {
+    id: string;
+    title: string;
+    page: number;
+    pages?: number[];
+    text: string;
+  }[];
 };
 export type AssistantStatus = {
   models: { id: string; label: string }[];

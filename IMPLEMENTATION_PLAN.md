@@ -33,6 +33,7 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [x] Cuatro reglas determinísticas de advertencia y validación de identificadores de citas.
 - [x] Ingesta administrativa transaccional con aprobación explícita y comprobación SHA-256.
 - [x] Recuperación textual en PostgreSQL, filtrado de compatibilidad y consulta de fuentes sin Gemini.
+- [x] Citas de varias páginas en ingesta, recuperación, contexto, respuestas persistentes e interfaz; lectura compatible con citas antiguas de una página.
 - [ ] Habilitar manuales reales aprobados y verificar el circuito completo con evidencia compatible.
 - [ ] Embeddings y recuperación semántica con pgvector; hoy se usa búsqueda textual.
 - [ ] Estrategia multilingüe y evaluación de relevancia para consultas en español y fuentes en portugués.
@@ -77,6 +78,14 @@ Orden recomendado: aceptación e importación del subconjunto documental → rec
 - Sin fotos ni OCR dentro del producto. La experiencia principal pasa a ser un chat de mantenimiento con contexto persistente del auto y búsqueda web complementaria; esta decisión reemplaza la exclusión inicial del chat y la web.
 - La primera versión usará un conjunto acotado de páginas bien revisadas según `docs/MVP_CORPUS.md`. La revisión profunda de ambos manuales completos queda pendiente para una etapa posterior y no bloquea la implementación del MVP. La preparación documental queda fuera de los 3–5 días orientativos de construcción.
 - Los commits y pushes son manuales y corresponden al propietario.
+
+## Citas de varias páginas — 2026-10-24
+
+Se completó el primer paso del bloque documental: `pages` conserva todas las páginas PDF de un fragmento durante ingesta, recuperación, envío de contexto, guardado de respuestas y presentación en el chat. `page` se conserva como primera página para compatibilidad; los documentos y respuestas anteriores siguen siendo legibles sin reescribir el historial. Se validan páginas positivas, enteras, únicas y ordenadas, sin completar páginas intermedias. No requiere migración SQL.
+
+Pasaron 63 pruebas de backend contra PostgreSQL temporal, incluidas recuperación de páginas consecutivas y separadas, contexto enviado al proveedor simulado, persistencia al recrear la aplicación y retirar el corpus, lectura de registros antiguos y rechazo transaccional de listas inválidas. La advertencia de deprecación Starlette/httpx continúa. Pasaron build y formato del frontend, cuatro comprobaciones del HTML renderizado del componente de citas y Ruff sobre los dos archivos Python modificados. No se realizó un nuevo recorrido visual en navegador ni una llamada real a Gemini.
+
+Docker construyó y actualizó API/frontend; `/ready` respondió ready y la interfaz HTTP respondió 200. La aplicación conserva cero fragmentos habilitados. Continúan pendientes la delimitación/aceptación del primer lote y los requisitos de compatibilidad para fuentes condicionadas por montaje o instrumental. Contrato y límites en `docs/RAG.md`.
 
 ## Revisión del OCR - 2026-10-23
 

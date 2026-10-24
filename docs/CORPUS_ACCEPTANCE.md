@@ -2,7 +2,7 @@
 
 ## Estado de aceptación — 2026-10-24
 
-La [matriz por fragmento](MVP_ACCEPTANCE_MATRIX.md) cubre los 22 pasajes y delimita candidatos, identificación, contexto y exclusiones. Se verificó nuevamente la integridad de toda su evidencia. El propietario confirmó el registro objetivo y aclaró que los otros eran pruebas. Sus modificaciones se conservan en el registro privado de aceptación; una modificación del instrumental impide asumir correspondencia con el tablero original del manual. Sigue pendiente resolver aplicabilidad; no se habilitó ningún fragmento. El contrato de ingesta actual tampoco representa condiciones de tablero/montaje ni citas de varias páginas, que deben resolverse antes de aceptar contenido dependiente de ellas.
+La [matriz por fragmento](MVP_ACCEPTANCE_MATRIX.md) cubre los 22 pasajes y delimita candidatos, identificación, contexto y exclusiones. Se verificó nuevamente la integridad de toda su evidencia. El propietario confirmó el registro objetivo y aclaró que los otros eran pruebas. Sus modificaciones se conservan en el registro privado de aceptación; una modificación del instrumental impide asumir correspondencia con el tablero original del manual. Sigue pendiente resolver aplicabilidad; no se habilitó ningún fragmento. Las citas de varias páginas ya están implementadas según `RAG.md`. El contrato de ingesta todavía no representa condiciones de tablero/montaje, que deben resolverse antes de aceptar contenido dependiente de ellas.
 
 Ya existe material didáctico redistribuible en `backend/examples/rag`, limitado al vehículo ficticio RAG-DEMO. Falta ampliarlo para los 20 escenarios; el párrafo histórico sobre su ausencia describe el estado anterior a la ingesta documental.
 
