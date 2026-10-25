@@ -401,3 +401,16 @@ Se selecciona Gemini 3.5 Flash-Lite como modelo predeterminado tras comprobar di
 ## Elección del modelo desde el chat
 
 Se incorpora un selector junto al cuadro de mensaje, con preferencia persistida por navegador y validación en backend. La elección se aplica a próximas respuestas; las existentes conservan su modelo. Pasaron 15 pruebas del asistente y compilación TypeScript/Vite. Contrato y comportamiento en docs/ASSISTANT.md.
+
+
+## Rediseño UI/UX con shadcn — 25 de octubre de 2026
+
+Se aplicó la skill `emil-design-eng` de https://github.com/emilkowalski/skills (instalada en el entorno del propietario). La interfaz incorpora navegación lateral, historial reciente, acceso a pendientes y trabajos y sugerencias que completan el borrador sin enviarlo. Conserva los contratos de API, las fuentes documentales y los flujos de guardado existentes.
+
+Se configuró Tailwind CSS con el plugin oficial de Vite y se generaron Button, Badge y Dialog desde el registro oficial de shadcn mediante `npx shadcn@latest add button badge dialog --yes`. El código queda en `frontend/src/components/ui`; los imports de `cn` se adaptaron a la utilidad local. Los diálogos usan Radix para foco, Escape y capas superpuestas. Documentación de referencia: https://ui.shadcn.com/docs/installation/vite y https://ui.shadcn.com/docs/dark-mode/vite.
+
+Apariencia permite Claro, Oscuro y Sistema. La elección se conserva en `wrenchai.theme`; Sistema escucha cambios de preferencia. Un script inicial aplica el tema antes de montar React. Los tokens cubren chat, tablas, formularios, errores y avisos; las figuras documentales conservan el papel blanco original. Los controles tienen foco visible y el movimiento se reduce según `prefers-reduced-motion`. En móvil la barra se compacta y los accesos a datos, pendientes e historial siguen disponibles desde Mi auto y Conversaciones.
+
+Verificación ejecutada: `npm run build`, `npm run format:check`, `git diff --check` y construcción del contenedor frontend. Se inspeccionaron en navegador a 1280×720 el inicio en claro y oscuro, la persistencia del tema tras recargar y el diálogo Mi auto. Se ajustó el espacio vertical del inicio a partir de esa revisión. No se enviaron consultas a Gemini ni se modificaron registros del vehículo para esta revisión. La adaptación móvil y el seguimiento de cambios del tema del sistema están implementados; su revisión manual específica queda pendiente.
+
+Commit sugerido: `feat(ui): rediseñar WrenchAI con shadcn y temas claro y oscuro`.

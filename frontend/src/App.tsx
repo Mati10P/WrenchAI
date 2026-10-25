@@ -18,6 +18,20 @@ import { Modal } from "./components/Modal";
 import { EditorFields } from "./components/EditorFields";
 import type { Editor } from "./components/EditorFields";
 
+import { Button } from "./components/ui/button";
+import { Badge } from "./components/ui/badge";
+import { ThemePicker } from "./components/ThemePicker";
+import {
+  MessageSquare,
+  ListChecks,
+  CarFront,
+  ChevronRight,
+  BookOpen,
+  ArrowUpRight,
+  Gauge,
+  CircleHelp,
+} from "lucide-react";
+
 type Panel = "auto" | "tasks" | "chats";
 type Form = Editor | { type: "task"; item?: Incident; complete?: boolean };
 
@@ -356,292 +370,447 @@ export default function App() {
 
   return (
     <div className="chat-app">
-      <header className="chat-header">
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={(event) => {
+          event.preventDefault();
+          document.getElementById("main-content")?.focus();
+        }}
+      >
+        Ir al contenido
+      </a>
+      <aside className="sidebar" aria-label="Navegación principal">
         <button
           className="brand"
           disabled={busy}
           onClick={() => navigate(active?.id)}
-          aria-label="WrenchAI, nuevo chat"
+          aria-label="WrenchAI, inicio"
         >
-          <Icon name="wrench" />
+          <span className="brand-mark">
+            <Icon name="wrench" size={21} />
+          </span>{" "}
           Wrench<span>AI</span>
         </button>
-        <div className="header-actions">
-          <button
-            className="quiet"
-            disabled={busy || !active}
-            onClick={() => navigate(active?.id)}
+        <span className="workspace-label">TU ESPACIO DE MECÁNICA</span>
+        <Button
+          className="new-chat"
+          disabled={busy || !active}
+          onClick={() => navigate(active?.id)}
+        >
+          <Icon name="plus" size={17} /> Nuevo chat{" "}
+          <span className="button-end">↗</span>
+        </Button>
+        <nav className="side-nav">
+          <Button
+            variant="ghost"
+            className={!panel ? "nav-active" : ""}
+            disabled={busy}
+            onClick={() => {
+              setPanel(null);
+              composer.current?.focus();
+            }}
           >
-            <Icon name="plus" size={17} />
-            Nuevo chat
-          </button>
-          <button
-            className="car-button"
+            <MessageSquare size={18} /> Asistente
+          </Button>
+          <Button
+            variant="ghost"
             disabled={busy}
             onClick={() => setPanel("auto")}
           >
-            <Icon name="car" size={19} />
-            Mi auto
-          </button>
-        </div>
-      </header>
-      <main className="conversation">
-        <div className="context-line">
-          <button
-            className="quiet"
-            disabled={busy}
-            onClick={() => setPanel("auto")}
-          >
-            {active?.name || "Elegí tu auto"}
-            <span> · {active ? km(active.mileage) : ""}</span>
-          </button>
-          <button
-            className="quiet"
+            <CarFront size={18} /> Mi auto
+          </Button>
+          <Button
+            variant="ghost"
             disabled={busy || !active}
-            onClick={() => setPanel("chats")}
+            onClick={() => setPanel("tasks")}
           >
-            Conversaciones
-          </button>
-        </div>
-        <div className="chat-scroll">
-          {loading && !vehicles.length ? (
-            <p role="status">Cargando tu auto…</p>
-          ) : error ? (
-            <div className="error-state" role="alert">
-              <p>{error}</p>
+            <ListChecks size={18} /> Pendientes y trabajos{" "}
+            <Badge variant="secondary">
+              {incidents.filter((i) => i.status !== "RESOLVED").length}
+            </Badge>
+          </Button>
+        </nav>
+        <div className="sidebar-history">
+          <div className="section-label">
+            CONVERSACIONES{" "}
+            <button
+              className="history-all"
+              disabled={busy || !active}
+              onClick={() => setPanel("chats")}
+              aria-label="Ver todas las conversaciones"
+            >
+              <ArrowUpRight size={15} />
+            </button>
+          </div>
+          {!incidents.length ? (
+            <p className="history-empty">Tus consultas van a aparecer acá.</p>
+          ) : (
+            incidents.slice(0, 7).map((item) => (
               <button
-                onClick={() => {
-                  setError("");
-                  setRevision((v) => v + 1);
-                }}
+                key={item.id}
+                className={`history-item ${incidentId === item.id ? "current" : ""}`}
+                disabled={busy}
+                onClick={() => navigate(active?.id, item.id)}
               >
-                Volver a intentar
+                <MessageSquare size={14} />
+                <span>{item.title}</span>
               </button>
-              <button onClick={() => navigate(active?.id)}>
-                Volver al chat
-              </button>
+            ))
+          )}
+        </div>
+        <div className="sidebar-bottom">
+          <div className="sidebar-note">
+            <BookOpen size={18} />
+            <div>
+              <strong>Del manual a tu taller.</strong>
+              <p>Fuentes a mano, en cada consulta.</p>
             </div>
-          ) : vehicleId && !active ? (
-            <p role="alert">No encontramos este auto. Elegí otro en Mi auto.</p>
-          ) : loadingChat ? (
-            <p role="status">Cargando conversación…</p>
-          ) : !detail ? (
-            <div className="welcome">
-              <span className="welcome-icon">
-                <Icon name="wrench" size={30} />
-              </span>
-              <h1>¿Qué le pasa al auto?</h1>
-              <p>
-                Contame qué notás, cuándo pasa o qué estás intentando arreglar.
-              </p>
-              {!active ? (
+          </div>
+          <button
+            className="vehicle-card"
+            disabled={busy}
+            onClick={() => setPanel("auto")}
+          >
+            <span className="vehicle-avatar">
+              <CarFront size={20} />
+            </span>
+            <span>
+              <strong>{active?.name || "Tu próximo proyecto"}</strong>
+              <small>
+                {active ? km(active.mileage) : "Agregá tu primer auto"}
+              </small>
+            </span>
+            <ChevronRight size={15} />
+          </button>
+          <ThemePicker />
+        </div>
+      </aside>
+      <div className="main-workspace">
+        <header className="chat-header">
+          <div className="page-breadcrumb">
+            <span>Mi taller</span>
+            <ChevronRight size={14} />
+            <strong>Asistente</strong>
+          </div>
+          <div className="header-actions">
+            <Badge variant="outline" className="local-badge">
+              Espacio local
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={busy}
+              onClick={() => setPanel("auto")}
+            >
+              <CarFront size={16} />
+              <span>Mi auto</span>
+            </Button>
+          </div>
+        </header>
+        <main className="conversation" id="main-content" tabIndex={-1}>
+          <div className="context-line">
+            <button
+              className="quiet"
+              disabled={busy}
+              onClick={() => setPanel("auto")}
+            >
+              {active?.name || "Elegí tu auto"}
+              <span> · {active ? km(active.mileage) : ""}</span>
+            </button>
+            <button
+              className="quiet"
+              disabled={busy || !active}
+              onClick={() => setPanel("chats")}
+            >
+              Conversaciones
+            </button>
+          </div>
+          <div className="chat-scroll">
+            {loading && !vehicles.length ? (
+              <p role="status">Cargando tu auto…</p>
+            ) : error ? (
+              <div className="error-state" role="alert">
+                <p>{error}</p>
                 <button
-                  className="primary"
-                  onClick={() => open({ type: "vehicle" })}
-                >
-                  Agregar mi auto
-                </button>
-              ) : (
-                <button
-                  className="example"
                   onClick={() => {
-                    setDraft(
-                      "El auto se siente tosco, suena grave y no tiene potencia.",
-                    );
-                    composer.current?.focus();
+                    setError("");
+                    setRevision((v) => v + 1);
                   }}
                 >
-                  “El auto se siente tosco, suena grave y no tiene potencia.”
-                  <Icon name="arrow" size={16} />
+                  Volver a intentar
                 </button>
-              )}
-            </div>
-          ) : (
-            <div className="messages" aria-label="Conversación">
-              <div className="conversation-date">{date(detail.created_at)}</div>
-              {messages[0]?.content !== detail.description && (
-                <div className="user-message">
-                  <span>Registro anterior</span>
-                  <p>{detail.description}</p>
+                <button onClick={() => navigate(active?.id)}>
+                  Volver al chat
+                </button>
+              </div>
+            ) : vehicleId && !active ? (
+              <p role="alert">
+                No encontramos este auto. Elegí otro en Mi auto.
+              </p>
+            ) : loadingChat ? (
+              <p role="status">Cargando conversación…</p>
+            ) : !detail ? (
+              <div className="welcome">
+                <div className="welcome-eyebrow">
+                  <span className="status-dot" /> TU COPILOTO DE MECÁNICA
                 </div>
-              )}
-              {messages.map((message) => (
-                <Fragment key={message.id}>
-                  <div className="user-message">
-                    <span>Vos</span>
-                    <p>{message.content}</p>
-                  </div>
-                  {replies
-                    .filter((r) => r.message_id === message.id)
-                    .map((reply) => (
-                      <AssistantMessage key={reply.message_id} reply={reply} />
-                    ))}
-                </Fragment>
-              ))}
-              {replyBusy && (
-                <p role="status" className="thinking">
-                  WrenchAI está preparando una respuesta…
+                <h1>
+                  Conocé tu auto.
+                  <br />
+                  <span>Resolvé con confianza.</span>
+                </h1>
+                <p>
+                  Un ruido nuevo, una duda o el próximo service.
+                  <br className="desktop-break" /> Empezá por lo que notás. Lo
+                  pensamos juntos.
                 </p>
-              )}
-              {!replyBusy &&
-                messages.length > 0 &&
-                !replies.some(
-                  (r) => r.message_id === messages[messages.length - 1].id,
-                ) && (
+                {!active ? (
+                  <Button onClick={() => open({ type: "vehicle" })}>
+                    <Icon name="plus" size={17} /> Agregar mi auto
+                  </Button>
+                ) : (
+                  <div className="suggestions">
+                    {[
+                      {
+                        icon: <Gauge size={20} />,
+                        title: "Algo no anda bien",
+                        hint: "Ruidos, vibraciones o pérdida de potencia",
+                        prompt:
+                          "Noto un ruido extraño en el auto. ¿Qué datos necesitás para orientarme?",
+                      },
+                      {
+                        icon: <Icon name="tool" size={20} />,
+                        title: "Planificar un service",
+                        hint: "Prepará el próximo mantenimiento",
+                        prompt:
+                          "Quiero planificar el próximo mantenimiento. ¿Qué información necesitás de mi auto?",
+                      },
+                      {
+                        icon: <CircleHelp size={20} />,
+                        title: "Entender mi auto",
+                        hint: "Consultá una pieza o un procedimiento",
+                        prompt:
+                          "Quiero entender mejor un componente de mi auto. ¿Podés ayudarme a encontrarlo en el manual?",
+                      },
+                    ].map((item) => (
+                      <button
+                        key={item.title}
+                        className="suggestion"
+                        onClick={() => {
+                          setDraft(item.prompt);
+                          composer.current?.focus();
+                        }}
+                      >
+                        <span className="suggestion-icon">{item.icon}</span>
+                        <strong>{item.title}</strong>
+                        <span>{item.hint}</span>
+                        <ArrowUpRight className="suggestion-arrow" size={16} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="welcome-footnote">
+                  <BookOpen size={14} /> Contexto de tu auto · Historial de
+                  trabajos · Fuentes documentales
+                </div>
+              </div>
+            ) : (
+              <div className="messages" aria-label="Conversación">
+                <div className="conversation-date">
+                  {date(detail.created_at)}
+                </div>
+                {messages[0]?.content !== detail.description && (
+                  <div className="user-message">
+                    <span>Registro anterior</span>
+                    <p>{detail.description}</p>
+                  </div>
+                )}
+                {messages.map((message) => (
+                  <Fragment key={message.id}>
+                    <div className="user-message">
+                      <span>Vos</span>
+                      <p>{message.content}</p>
+                    </div>
+                    {replies
+                      .filter((r) => r.message_id === message.id)
+                      .map((reply) => (
+                        <AssistantMessage
+                          key={reply.message_id}
+                          reply={reply}
+                        />
+                      ))}
+                  </Fragment>
+                ))}
+                {replyBusy && (
+                  <p role="status" className="thinking">
+                    WrenchAI está preparando una respuesta…
+                  </p>
+                )}
+                {!replyBusy &&
+                  messages.length > 0 &&
+                  !replies.some(
+                    (r) => r.message_id === messages[messages.length - 1].id,
+                  ) && (
+                    <button
+                      className="quiet"
+                      disabled={busy}
+                      onClick={() =>
+                        void retryReply(messages[messages.length - 1])
+                      }
+                    >
+                      Generar respuesta
+                    </button>
+                  )}
+                <p className="saved-receipt" role="status">
+                  <Icon name="check" size={15} />
+                  {messages.length
+                    ? "Mensajes guardados en esta conversación."
+                    : "Registro guardado."}{" "}
+                  {detail.status !== "RESOLVED" &&
+                    "El problema está en tus pendientes."}
+                </p>
+                {!!detail.measurements.length && (
+                  <details className="chat-record">
+                    <summary>
+                      Mediciones guardadas ({detail.measurements.length})
+                    </summary>
+                    {detail.measurements.map((m) => (
+                      <p key={m.id}>
+                        <strong>
+                          {m.name}: {m.value} {m.unit}
+                        </strong>
+                        <br />
+                        {m.conditions}
+                      </p>
+                    ))}
+                  </details>
+                )}
+                {detail.resolution && (
+                  <div className="work-note">
+                    <strong>Trabajo registrado</strong>
+                    <p>{detail.resolution}</p>
+                  </div>
+                )}
+                <div className="chat-tools">
                   <button
                     className="quiet"
                     disabled={busy}
                     onClick={() =>
-                      void retryReply(messages[messages.length - 1])
+                      open({ type: "task", item: detail, complete: true })
                     }
                   >
-                    Generar respuesta
+                    {detail.status === "RESOLVED"
+                      ? "Editar trabajo realizado"
+                      : "Ya lo resolví"}
                   </button>
-                )}
-              <p className="saved-receipt" role="status">
-                <Icon name="check" size={15} />
-                {messages.length
-                  ? "Mensajes guardados en esta conversación."
-                  : "Registro guardado."}{" "}
-                {detail.status !== "RESOLVED" &&
-                  "El problema está en tus pendientes."}
-              </p>
-              {!!detail.measurements.length && (
-                <details className="chat-record">
-                  <summary>
-                    Mediciones guardadas ({detail.measurements.length})
-                  </summary>
-                  {detail.measurements.map((m) => (
-                    <p key={m.id}>
-                      <strong>
-                        {m.name}: {m.value} {m.unit}
-                      </strong>
-                      <br />
-                      {m.conditions}
-                    </p>
-                  ))}
-                </details>
-              )}
-              {detail.resolution && (
-                <div className="work-note">
-                  <strong>Trabajo registrado</strong>
-                  <p>{detail.resolution}</p>
                 </div>
-              )}
-              <div className="chat-tools">
-                <button
-                  className="quiet"
-                  disabled={busy}
-                  onClick={() =>
-                    open({ type: "task", item: detail, complete: true })
+              </div>
+            )}
+            <div ref={scrollEnd} />
+          </div>
+          <div className="composer-area">
+            <p className="availability">
+              {!assistantStatus
+                ? "No se pudo comprobar la disponibilidad del asistente."
+                : !assistantStatus.configured
+                  ? "Falta configurar Gemini. Tus mensajes se guardan; podrás generar las respuestas cuando esté conectado."
+                  : !assistantStatus.corpus_valid
+                    ? "La configuración documental necesita revisión."
+                    : assistantStatus.manual_library?.available &&
+                        active?.manual_reference
+                      ? `${assistantStatus.manual_library.pages} páginas disponibles en ${assistantStatus.manual_library.manuals} manuales. Consultamos los temas pertinentes${assistantStatus.web_search ? " y buscamos documentación del fabricante cuando falta información" : ""}.`
+                      : assistantStatus.approved_passages === 0
+                        ? "Gemini configurado. Aún no hay manuales habilitados: las respuestas serán orientación general, sin búsqueda web."
+                        : active?.manual_reference
+                          ? "Consultamos los manuales del Gol de fábrica. Gemini tiene en cuenta tus modificaciones; las fuentes utilizadas aparecen en cada respuesta."
+                          : "Gemini configurado. Las fuentes compatibles utilizadas aparecen junto a cada respuesta."}
+            </p>
+            {notice && (
+              <p className="form-error" role="alert">
+                {notice}
+              </p>
+            )}
+            <form className="composer" onSubmit={send}>
+              <textarea
+                ref={composer}
+                aria-label="Mensaje"
+                placeholder={
+                  active
+                    ? "Escribí lo que le pasa al auto…"
+                    : "Agregá tu auto para empezar"
+                }
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                maxLength={10000}
+                rows={1}
+                disabled={!active || busy}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    !e.shiftKey &&
+                    !e.nativeEvent.isComposing
+                  ) {
+                    e.preventDefault();
+                    e.currentTarget.form?.requestSubmit();
                   }
+                }}
+              />
+              <div className="composer-actions">
+                <span className="composer-context">
+                  <Icon name="wrench" size={14} /> Asistente de mecánica
+                </span>
+                <label className="model-picker">
+                  <select
+                    aria-label="Modelo de IA"
+                    value={effectiveModel || ""}
+                    disabled={busy || replyBusy || !modelOptions.length}
+                    onChange={(event) => {
+                      setChosenModel(event.target.value);
+                      try {
+                        localStorage.setItem(
+                          "wrenchai.model",
+                          event.target.value,
+                        );
+                      } catch {
+                        /* optional preference */
+                      }
+                    }}
+                  >
+                    {!modelOptions.length && (
+                      <option value="">Cargando modelos…</option>
+                    )}
+                    {modelOptions.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.label.split(" · ")[0]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  className="send-button"
+                  aria-label="Enviar mensaje"
+                  disabled={
+                    !active ||
+                    !draft.trim() ||
+                    busy ||
+                    loadingChat ||
+                    !!error ||
+                    (!!incidentId && !detail)
+                  }
+                  type="submit"
                 >
-                  {detail.status === "RESOLVED"
-                    ? "Editar trabajo realizado"
-                    : "Ya lo resolví"}
+                  {busy ? "…" : "↑"}
                 </button>
               </div>
-            </div>
-          )}
-          <div ref={scrollEnd} />
-        </div>
-        <div className="composer-area">
-          <p className="availability">
-            {!assistantStatus
-              ? "No se pudo comprobar la disponibilidad del asistente."
-              : !assistantStatus.configured
-                ? "Falta configurar Gemini. Tus mensajes se guardan; podrás generar las respuestas cuando esté conectado."
-                : !assistantStatus.corpus_valid
-                  ? "La configuración documental necesita revisión."
-                  : assistantStatus.manual_library?.available &&
-                      active?.manual_reference
-                    ? `${assistantStatus.manual_library.pages} páginas disponibles en ${assistantStatus.manual_library.manuals} manuales. Consultamos los temas pertinentes${assistantStatus.web_search ? " y buscamos documentación del fabricante cuando falta información" : ""}.`
-                    : assistantStatus.approved_passages === 0
-                      ? "Gemini configurado. Aún no hay manuales habilitados: las respuestas serán orientación general, sin búsqueda web."
-                      : active?.manual_reference
-                        ? "Consultamos los manuales del Gol de fábrica. Gemini tiene en cuenta tus modificaciones; las fuentes utilizadas aparecen en cada respuesta."
-                        : "Gemini configurado. Las fuentes compatibles utilizadas aparecen junto a cada respuesta."}
-          </p>
-          {notice && (
-            <p className="form-error" role="alert">
-              {notice}
+            </form>
+            <p className="composer-hint">
+              La orientación del asistente no reemplaza una revisión
+              profesional. · Enter para enviar
             </p>
-          )}
-          <form className="composer" onSubmit={send}>
-            <textarea
-              ref={composer}
-              aria-label="Mensaje"
-              placeholder={
-                active
-                  ? "Escribí lo que le pasa al auto…"
-                  : "Agregá tu auto para empezar"
-              }
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              maxLength={10000}
-              rows={1}
-              disabled={!active || busy}
-              onKeyDown={(e) => {
-                if (
-                  e.key === "Enter" &&
-                  !e.shiftKey &&
-                  !e.nativeEvent.isComposing
-                ) {
-                  e.preventDefault();
-                  e.currentTarget.form?.requestSubmit();
-                }
-              }}
-            />
-            <div className="composer-actions">
-              <label className="model-picker">
-                <select
-                  aria-label="Modelo de IA"
-                  value={effectiveModel || ""}
-                  disabled={busy || replyBusy || !modelOptions.length}
-                  onChange={(event) => {
-                    setChosenModel(event.target.value);
-                    try {
-                      localStorage.setItem(
-                        "wrenchai.model",
-                        event.target.value,
-                      );
-                    } catch {
-                      /* optional preference */
-                    }
-                  }}
-                >
-                  {!modelOptions.length && (
-                    <option value="">Cargando modelos…</option>
-                  )}
-                  {modelOptions.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.label.split(" · ")[0]}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                className="send-button"
-                aria-label="Enviar mensaje"
-                disabled={
-                  !active ||
-                  !draft.trim() ||
-                  busy ||
-                  loadingChat ||
-                  !!error ||
-                  (!!incidentId && !detail)
-                }
-                type="submit"
-              >
-                {busy ? "…" : "↑"}
-              </button>
-            </div>
-          </form>
-          <p className="composer-hint">
-            Enter para enviar · Shift + Enter para otra línea
-          </p>
-        </div>
-      </main>
+          </div>
+        </main>
+      </div>
       {panel && (
         <Modal
           title="Mi auto"

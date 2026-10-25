@@ -1,7 +1,5 @@
-import { useEffect, useRef, useId } from "react";
-import type { ReactNode } from "react";
-import { Icon } from "./Icon";
-
+import { useRef, type ReactNode } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 export function Modal({
   title,
   children,
@@ -13,35 +11,27 @@ export function Modal({
   children: ReactNode;
   close: () => void;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const headingId = useId();
-  useEffect(() => {
-    const dialog = ref.current!;
-    dialog.showModal();
-    dialog.querySelector<HTMLElement>("input, textarea, select")?.focus();
-    return () => dialog.close();
-  }, []);
+  const previousFocus = useRef(document.activeElement as HTMLElement | null);
   return (
-    <dialog
-      ref={ref}
-      className={wide ? "wide-modal" : undefined}
-      onCancel={(event) => {
-        event.preventDefault();
-        close();
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) close();
       }}
-      aria-labelledby={headingId}
     >
-      <div className="modal-heading">
-        <h2 id={headingId}>{title}</h2>
-        <button
-          className="icon-button"
-          onClick={close}
-          aria-label="Cerrar formulario"
-        >
-          <Icon name="close" />
-        </button>
-      </div>
-      {children}
-    </dialog>
+      <DialogContent
+        aria-describedby={undefined}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          previousFocus.current?.focus();
+        }}
+        className={wide ? "app-dialog wide-modal" : "app-dialog"}
+      >
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div>{children}</div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -8,6 +8,14 @@
       name="description"
       content="Tus problemas, conversaciones y trabajos, con el contexto de tu auto."
     />
+    <script>
+      try {
+        const theme = localStorage.getItem("wrenchai.theme");
+        const dark = theme === "dark" || (theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
+      } catch {}
+    </script>
     <title>WrenchAI · Tu auto</title>
   </head>
   <body>
