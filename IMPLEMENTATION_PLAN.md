@@ -1,5 +1,31 @@
 # Plan de implementación
 
+## Próximo bloque priorizado — procedimientos ilustrados completos y seguimientos precisos
+
+Actualización del 25 de octubre de 2026 a partir del caso real de filtro de combustible. El objetivo es recuperar la secuencia documental completa y producir una explicación útil, con el texto y las figuras en el orden del manual. Este bloque se incorpora antes de búsqueda web y demo; conserva abiertos los hallazgos de la evaluación de veinte escenarios.
+
+Diagnóstico comprobado en código/catálogo, todavía sin corrección funcional:
+
+- La sección «Filtro de combustible» está delimitada en PDF 137–139. Tiene tres figuras asociadas: dos en PDF 138 sin identidad en el catálogo (V.14 y V.15) y una en PDF 139 identificada solo como V.16. El filtro de identidad excluye las primeras dos antes de la generación.
+- La validación actual comprueba IDs válidos y presencia de alguna figura cuando corresponde. No exige completar una secuencia ilustrada ni mantener la posición relativa de sus explicaciones.
+- Al resolver la secuencia real «como cambio el filtro de combustible?» → «donde está el filtro?» → «no lo encuentro, en donde exactamente?», los dos seguimientos se clasifican como cambios de tema. El primer tema conserva solo «combustible», sin la identidad específica del filtro.
+- La captura muestra un rechazo por presupuesto de imágenes en el tercer turno. Hay que auditar las páginas seleccionadas y sus bytes; perder el tema puede expandir la búsqueda, pero aún no se atribuye todo el error a esa única causa.
+
+Trabajo y criterios de aceptación:
+
+- [ ] Representar el tema como una secuencia ordenada de bloques/regiones de texto y figuras a través de páginas, con anclas de página y posición. Separar contenido del tema anterior y siguiente.
+- [ ] Verificar e identificar V.14, V.15 y V.16 contra sus recortes originales. Para la consulta completa de cambio, ofrecer y mostrar las tres, una sola vez y en ese orden; excluir V.13 (sensor) y V.17 (cable del acelerador). No habilitar indiscriminadamente figuras anónimas de otros temas.
+- [ ] Colocar la explicación correspondiente antes, entre y después de las figuras según la secuencia del manual. Validar cobertura y orden de la secuencia esperada en la aplicación, además de las referencias. Ajustar los límites de bloques/figuras al procedimiento sin imponer tres imágenes a una pregunta puntual que no las necesita.
+- [ ] Mejorar la explicación visible: responder primero lo preguntado, explicar términos y acciones que el usuario necesita comprender, conservar pasos y advertencias relevantes y distinguir interpretación de texto documental. No dejar la respuesta esencial solo en `summary`, ni agregar pasos, herramientas o ubicaciones no respaldados.
+- [ ] Mantener la identidad del componente en seguimientos y distinguir intención de cambio, ubicación y aclaración. «Dónde está el filtro», «no lo encuentro» y «en dónde exactamente» deben retener filtro de combustible; una pregunta por otro filtro debe cambiar correctamente de componente.
+- [ ] Para ubicación exacta, buscar vistas generales o texto de localización dentro del manual, además del procedimiento. Dar referencias físicas concretas solo si se verifican. Si falta esa evidencia, explicar exactamente qué no se pudo establecer; no presentar «en su soporte» como respuesta de localización ni deducir un lado por el dibujo.
+- [ ] Auditar y acotar el presupuesto visual: selección pertinente, recortes de áreas originales, preservación de legibilidad y eliminación de duplicación innecesaria entre páginas y figuras. Mantener los límites del proveedor y las verificaciones de integridad; no resolverlo solo elevando el límite de bytes.
+- [ ] Conservar el acceso a cada página original completa y el contenido de respuestas antiguas; las mejoras se aplican a nuevas generaciones.
+- [ ] Probar por API y navegador la consulta de cambio, los dos seguimientos de ubicación y la aclaración sobre «desconectar el encendido». Comprobar secuencia V.14/V.15/V.16, párrafos intercalados, claridad de la explicación, fuente de la ubicación o límite explícito, ausencia de error de lectura y persistencia tras recargar.
+- [ ] Añadir regresiones de procedimientos con varias figuras, figuras sin identidad y cambios entre filtros; repetir los cuatro fallos y cinco casos parciales de la evaluación antes de ampliar funcionalidades.
+
+Esta actualización modifica el plan. La implementación y sus pruebas de aceptación permanecen pendientes.
+
 ## Entrega vigente — veinte escenarios y CI, 2026-10-25
 
 - [x] Versionar los veinte casos ejecutables, adaptados a manuales completos, con criterios previos y comparación con/sin modificaciones.
@@ -14,7 +40,7 @@
 - [ ] Repetir regresiones y agregar preguntas independientes antes de presentar una tasa de calidad o ampliar a búsqueda web.
 
 Detalle, rúbricas y resultados: [MVP_EVALUATION.md](docs/MVP_EVALUATION.md).
-**Próximo bloque:** corregir los fallos de fidelidad encontrados. La búsqueda web y la demo siguen pendientes. Las entregas inferiores conservan el historial.
+**Próximo bloque:** procedimientos ilustrados completos y seguimientos precisos, priorizados arriba a partir del filtro de combustible; incorporar también los fallos de fidelidad de esta evaluación. La búsqueda web y la demo siguen pendientes. Las entregas inferiores conservan el historial.
 
 ## Entrega vigente — seguimiento conversacional y alcance de equipos, 2026-10-25
 
