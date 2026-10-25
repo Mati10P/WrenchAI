@@ -1,6 +1,43 @@
 # Plan de implementación
 
-## Bloque vigente — búsqueda híbrida con vectores, 2026-10-25
+## Entrega vigente — tono profesional, fidelidad e ilustraciones, 2026-10-25
+
+- [x] Responder con voseo natural y tono profesional/directo; retirar «che» y saludos iniciales, sin alterar valores ni unidades.
+- [x] Omitir modificaciones sin interferencia; responder su influencia cuando el usuario la pregunta, distinguiendo incertidumbre de equivalencia documentada.
+- [x] Identificar explícitamente documentos y autorías conocidas/desconocidas en fuentes y snapshots.
+- [x] Extraer 598 figuras originales de 407 páginas en un bundle privado, con hashes y procedencia; siete identificaciones revisadas visualmente.
+- [x] Mostrar párrafos e ilustraciones intercalados con pies y acceso a la página original; conservar respuestas anteriores y validar IDs/hashes del snapshot.
+- [x] Ejecutar doce casos declarados antes de la primera ronda; corregir errores de referencias y selección de imágenes, conservar intentos y revisar la respuesta sobre influencia de la palanca modificada.
+- [x] Backend: 95 pruebas correctas; build/formato frontend y comprobación de los 598 recortes correctos. Verificar recarga del chat y apertura de PDF 198 desde el enlace de su figura.
+- [ ] Ampliar la revisión con preguntas nuevas. Los doce casos ya se utilizaron para ajustes y son regresión; la explicación de refrigerante responde la advertencia pero solo parcialmente su motivo. El cotejo mecánico completo de los manuales permanece pendiente.
+
+Detalle, reproducción y límites: [ILLUSTRATED_ANSWERS.md](docs/ILLUSTRATED_ANSWERS.md). Las modificaciones originales del auto se conservaron; la evaluación usa un vehículo sintético aislado. El siguiente bloque de implementación es el contexto de preguntas de seguimiento, con recuperación del tema previo sin arrastrarlo cuando cambia la consulta.
+
+## Plan del bloque entregado — fidelidad de respuestas y citas, 2026-10-25
+
+La infraestructura de manuales completos y búsqueda híbrida está implementada y registrada en el último commit. La prioridad siguiente es mejorar la respuesta que recibe el usuario. La prueba real de escobillas recuperó y citó la página correcta, pero Gemini confundió la autoría del documento y mencionó escape/suspensión sin relación clara con la consulta. Los diez casos usados para calibrar recuperación no validan por sí solos la calidad de las respuestas.
+
+### Trabajo del siguiente bloque
+
+- [x] Entregar al generador una identidad documental inequívoca por fuente: manual, tipo de documento, autoría verificada o desconocida y página PDF. Conservar esa identidad en las citas y en el snapshot; no completar autorías por inferencia.
+- [x] Ajustar la generación para responder primero con lo respaldado por las páginas citadas, distinguirlo de hipótesis y mencionar únicamente modificaciones pertinentes. Para una pregunta de escobillas, omitir escape y suspensión; para neumáticos o embrague, explicar el alcance de las modificaciones relacionadas sin inventar efectos confirmados.
+- [x] Cotejar las afirmaciones de los casos probados con sus páginas y registrar los fallos, incluyendo texto/figura de embrague en 82/83; mantener el guard de insuficiencia cuando no hay citas que respondan.
+- [x] Preparar doce consultas nuevas, distintas de las diez de calibración, con páginas esperadas y criterios definidos antes de ejecutarlas: `docs/fidelity-cases-v1.json`. Tras los ajustes, este conjunto es de regresión.
+- [x] Registrar recuperación, fuentes efectivamente citadas, estilo, modificaciones, imágenes, abstención, seguridad, latencia y errores; conservar tres rondas y el reintento de influencia de palanca.
+- [x] Recorrer el chat y abrir la página citada desde la interfaz; verificar presentación y persistencia tras recargar.
+
+**Criterio de cierre:** corregir y volver a probar el caso de escobillas sin autoría inventada ni modificaciones ajenas al tema; comprobar los doce casos nuevos sin atribuciones documentales o especificaciones inventadas y con abstención en los casos previstos; revisar las citas contra las páginas originales y dejar resultados reproducibles. Las reglas determinísticas de seguridad y las pruebas pertinentes deben seguir pasando. Una revisión mecánica profesional y el cotejo completo del OCR permanecen pendientes; estas pruebas no los sustituyen.
+
+### Orden posterior
+
+1. Fidelidad de respuestas y evaluación nueva: el bloque definido arriba.
+2. Contexto en preguntas de seguimiento: la recuperación actual usa solo el mensaje nuevo. Resolver consultas como «¿y cuánto lleva?» o «¿y atrás?» con el tema previo pertinente, sin arrastrar fuentes cuando cambie de tema, y probar ambos comportamientos.
+3. Evaluación ampliada de los veinte escenarios de `docs/MVP_CASES.md`, adaptando sus supuestos al alcance actual, y CI para las comprobaciones automatizadas reproducibles.
+4. Búsqueda web complementaria con procedencia explícita para consultas sin respaldo suficiente en manuales; luego demo y entrega.
+
+La preparación de este plan fue documental. Su ejecución posterior sí incluyó cambios de código, pruebas reales, suite automatizada y revisión visual; la evidencia y sus límites están registrados en la entrega vigente y `docs/ILLUSTRATED_ANSWERS.md`.
+
+## Bloque completado — infraestructura de búsqueda híbrida con vectores, 2026-10-25
 
 La biblioteca completa incorpora recuperación semántica multilingüe con Gemini Embedding y pgvector, combinada con BM25. Los vectores sirven para localizar páginas: la respuesta sigue apoyándose en las imágenes originales y el contexto real del vehículo.
 
@@ -51,7 +88,7 @@ Esta decisión reemplaza los bloqueos anteriores basados en modificaciones del v
 
 El bloque se cierra con un corpus real no vacío y preguntas de ejemplo respondidas usando sus fuentes. La ampliación al contenido de los manuales completos se hará después, por lotes revisados. El lote v1 ya está importado y probado con Gemini real por HTTP. Sigue pendiente el recorrido visual en navegador, bloqueado por las herramientas disponibles.
 
-## Checklist consolidada — revisión 2026-10-24
+## Checklist consolidada — actualización 2026-10-25
 
 Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` indica alcance implementado; los bloques con pendientes permanecen abiertos. Las entradas posteriores conservan el historial y pueden describir estados anteriores.
 
@@ -69,7 +106,7 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [x] Verificar nuevamente la integridad de los 22 pasajes y preparar una matriz de aceptación por fragmento: `docs/MVP_ACCEPTANCE_MATRIX.md`. El propietario confirmó el vehículo objetivo; sus modificaciones y selección se conservan en privado. La exclusión automática por instrumental modificado fue reemplazada por la referencia de fábrica del MVP.
 
 ### A — API y persistencia (completo para el alcance acordado)
-- [x] FastAPI/Pydantic, SQLAlchemy, PostgreSQL y migraciones Alembic 0001–0006.
+- [x] FastAPI/Pydantic, SQLAlchemy, PostgreSQL y migraciones Alembic 0001–0008; incluye referencia documental y vectores de navegación.
 - [x] Vehículos, incidencias, síntomas, mediciones por API, estados, resolución e historial persistente.
 - [x] Contexto del auto: marca, modelo, año, kilometraje, modificaciones y campos desconocidos opcionales.
 - [x] Conversaciones persistentes; primer mensaje crea un pendiente y los reintentos no duplican el mensaje.
@@ -85,9 +122,10 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [x] Ingesta administrativa transaccional con aprobación explícita y comprobación SHA-256.
 - [x] Recuperación textual en PostgreSQL, filtrado de compatibilidad y consulta de fuentes sin Gemini.
 - [x] Citas de varias páginas en ingesta, recuperación, contexto, respuestas persistentes e interfaz; lectura compatible con citas antiguas de una página.
-- [ ] Habilitar el lote real de referencia de fábrica y verificar el circuito completo, con modificaciones como contexto para Gemini.
-- [ ] Embeddings y recuperación semántica con pgvector; hoy se usa búsqueda textual.
-- [ ] Estrategia multilingüe y evaluación de relevancia para consultas en español y fuentes en portugués.
+- [x] Habilitar el lote real de cinco fragmentos revisados y la biblioteca de 532 páginas como referencia de fábrica; comprobar el circuito por HTTP conservando modificaciones. La fidelidad de generación y el recorrido visual siguen en el próximo bloque.
+- [x] Embeddings y recuperación híbrida BM25/pgvector: 546 vectores, índice versionado, caché y fallback léxico.
+- [x] Recuperación multilingüe con vocabulario español/portugués y embeddings; primera calibración de diez consultas documentada en `docs/VECTOR_RETRIEVAL.md`.
+- [ ] Evaluar relevancia y respuestas con consultas nuevas, sin reutilizar la calibración como prueba independiente.
 - [ ] Búsqueda web complementaria con fuentes explícitas cuando falte evidencia documental.
 
 ### C — Interfaz en español (parcial)
@@ -95,11 +133,11 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [x] Registro y edición del auto, tareas, resolución y respuestas del asistente.
 - [x] Presentación de fuentes citadas y estados de error/falta de evidencia. Las mediciones se retiraron de la interfaz a pedido del propietario; permanecen en API e historial.
 - [x] Recorridos manuales de navegador documentados en `docs/FRONTEND.md`.
-- [ ] Comprobar desde navegador diagnóstico con manuales reales aprobados y búsqueda web, una vez completado B.
+- [ ] Comprobar desde navegador respuestas con fragmentos revisados y páginas originales de lectura automática, incluyendo apertura de citas y recarga. La búsqueda web se comprobará al implementarla.
 
 ### D — Pruebas y evaluación (parcial)
 - [x] Definir 20 escenarios y sus criterios en `docs/MVP_CASES.md`.
-- [x] Suite automatizada de backend con proveedor simulado y PostgreSQL real: 46 pruebas pasan en esta revisión.
+- [x] Suite automatizada de backend con proveedor simulado y PostgreSQL real: última ejecución de 95 pruebas correctas en el bloque de respuestas ilustradas.
 - [x] Herramientas documentales: 24 pruebas pasan en esta revisión.
 - [x] Compilación TypeScript/Vite y formato del frontend correctos.
 - [ ] Ejecutar los 20 escenarios de extremo a extremo; evaluar por separado citas, abstención, seguridad y recuperación.
@@ -112,7 +150,9 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [ ] Construir/publicar demo estática en GitHub Pages, sin claves ni llamadas a IA.
 - [ ] Preparar capturas y guion de video; completar documentación de entrega.
 
-### Evidencia de esta revisión
+### Evidencia histórica de la revisión 2026-10-24
+
+Los resultados siguientes corresponden a aquella revisión y no describen la disponibilidad actual del corpus. Para manuales completos y vectores, ver los bloques superiores y `docs/FULL_MANUAL_LIBRARY.md` / `docs/VECTOR_RETRIEVAL.md`.
 
 - Backend: desde `backend`, `..\.venv\Scripts\python.exe -m pytest -q`: **46 passed**, una advertencia de deprecación de Starlette/httpx. El fixture usa una base PostgreSQL temporal, aplica migraciones y comprueba diferencias con los modelos.
 - Documentos: `.\.venv\Scripts\python.exe -m pytest -q scripts/tests`: **24 passed**.
@@ -121,12 +161,12 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - `git diff --check`: sin errores de whitespace; Git avisa de futuras conversiones LF/CRLF.
 - No se repitieron llamadas pagas a Gemini, reinicios de servicios ni recorridos de navegador en esta revisión. Las pruebas reales y visuales anteriores se distinguen de las ejecutadas hoy. Hay cambios locales previos sin commit; esta checklist incluye el estado del checkout.
 
-Orden recomendado: lote real revisado + referencia de fábrica + recuperación de preguntas españolas + respuestas con citas y contexto de modificaciones → recuperación semántica/multilingüe con pgvector → ampliación por lotes de los manuales → búsqueda web → evaluación completa de 20 casos → CI y demo. El primer recorrido del chat con fuentes reales se comprueba en el primer bloque. La corrección de Ruff puede hacerse como bloque independiente.
+El orden de trabajo vigente está al comienzo del documento. El lote real, el acceso a manuales completos y pgvector ya están implementados; siguen fidelidad de respuesta, seguimiento conversacional, evaluación ampliada/CI y web/demo. La corrección global de Ruff puede hacerse como bloque independiente.
 
 ## Decisiones
 - Monolito modular y RAG propio; sin agentes ni frameworks de orquestación.
 - Backend local con Docker; demo pública estática sin claves ni llamadas a IA.
-- Sin fotos ni OCR dentro del producto. La experiencia principal pasa a ser un chat de mantenimiento con contexto persistente del auto y búsqueda web complementaria; esta decisión reemplaza la exclusión inicial del chat y la web.
+- La experiencia principal es un chat de mantenimiento con contexto persistente del auto. La biblioteca privada usa OCR para navegación e imágenes de páginas para fundamentar respuestas. La carga de fotos del usuario no está implementada. La búsqueda web complementaria continúa planificada.
 - La primera versión usará un conjunto acotado de páginas bien revisadas según `docs/MVP_CORPUS.md`. La revisión profunda de ambos manuales completos queda pendiente para una etapa posterior y no bloquea la implementación del MVP. La preparación documental queda fuera de los 3–5 días orientativos de construcción.
 - Los commits y pushes son manuales y corresponden al propietario.
 

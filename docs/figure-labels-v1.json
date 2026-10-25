@@ -1,0 +1,36 @@
+{
+  "gol-owner-candidate-0095-region-004": {
+    "page_image_sha256": "b71c6efe1a3e6a2e49ab872738ddb091e92936ca822de906ad1a6cfaf314ce44",
+    "label": "Detalle de la traba A de la escobilla: se ve la letra A y la flecha azul."
+  },
+  "gol-owner-candidate-0095-region-001": {
+    "page_image_sha256": "b71c6efe1a3e6a2e49ab872738ddb091e92936ca822de906ad1a6cfaf314ce44",
+    "label": "Escobilla montada junto al parabrisas; esta figura no muestra la traba A."
+  },
+  "gol-owner-candidate-0095-region-002": {
+    "page_image_sha256": "b71c6efe1a3e6a2e49ab872738ddb091e92936ca822de906ad1a6cfaf314ce44",
+    "label": "Antena electrónica del techo; no representa una escobilla."
+  },
+  "gol-repair-candidate-0083-region-002": {
+    "page_image_sha256": "a219c441f6a78eff973ce607e916489567a4b0ea2e796ab1433e201605eac23a",
+    "label": "Figura III.5: regulación de altura de los pedales de embrague y freno, indicación 0 a 10 mm.",
+    "context_pages": [
+      82
+    ]
+  },
+  "gol-repair-candidate-0083-region-001": {
+    "page_image_sha256": "a219c441f6a78eff973ce607e916489567a4b0ea2e796ab1433e201605eac23a",
+    "label": "Figura III.6: extracción del anillo de traba de la horquilla; no muestra los pedales.",
+    "context_pages": []
+  },
+  "gol-owner-candidate-0100-region-001": {
+    "page_image_sha256": "231181dd47838bcedfd14c39507a0518f41914da0011d1a8eae29fa0468194d0",
+    "label": "Faro antiniebla: A cofia de sellado, B traba y C referencias de montaje de la lámpara.",
+    "context_pages": []
+  },
+  "gol-owner-candidate-0100-region-002": {
+    "page_image_sha256": "231181dd47838bcedfd14c39507a0518f41914da0011d1a8eae29fa0468194d0",
+    "label": "Indicador de giro delantero; no es el faro antiniebla.",
+    "context_pages": []
+  }
+}

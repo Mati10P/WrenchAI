@@ -8,7 +8,7 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from . import assistant, corpus, manual_library, vector_search
+from . import assistant, corpus, manual_figures, manual_library, vector_search
 from .database import database_url, session_factory
 from .models import AssistantReply, Incident, Measurement, Message, Vehicle
 from .references import retrieval_reference
@@ -368,6 +368,20 @@ def create_app(url=None):
     @app.post("/messages/{message_id}/reply", response_model=ReplyOut)
     def create_reply(message_id: UUID, db: DB, payload: ReplyInput | None = None):
         return reply_to(db, message_id, payload.model if payload else None)
+
+    @app.get("/manual-figures/{figure_id}")
+    def manual_figure(
+        figure_id: str,
+        sha256: str | None = Query(default=None, pattern=r"^[a-f0-9]{64}$"),
+    ):
+        try:
+            return Response(
+                manual_figures.image_bytes(figure_id, sha256),
+                media_type="image/jpeg",
+                headers={"Cache-Control": "private, no-store"},
+            )
+        except assistant.AssistantError as exc:
+            raise HTTPException(exc.status, exc.message) from None
 
     @app.get("/incidents/{incident_id}/replies", response_model=list[ReplyOut])
     def replies(incident_id: UUID, db: DB, limit: Limit = 50, offset: Offset = 0):

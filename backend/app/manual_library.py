@@ -95,6 +95,8 @@ GROUPS = [
     "direccion direcao",
     "suspension suspensao amortiguador amortecedor",
     "bateria acumulador",
+    "antiniebla antinieblas neblina",
+    "faro faros farol farois",
     "limpiaparabrisas limpador parabrisas para-brisa",
     "lampara lampada bombilla",
     "cinturon cintos cinturon cinto seguridad seguranca",
@@ -185,11 +187,49 @@ def source(p):
         "scope": "Referencia de fábrica. Comprobar la variante indicada en la página; el manual de reparación incluye distintas motorizaciones. No inferir cifras ni unidades ilegibles.",
         "reference_profile": FACTORY_REFERENCE["id"],
         "image_url": f"/api/manual-pages/{p['id']}",
+        "document": document_identity(p),
     }
 
 
+def document_identity(page):
+    return {
+        "id": page["manual"],
+        "title": page["title"],
+        "kind": "independent_repair_manual"
+        if page["manual"] == "gol-repair-candidate"
+        else "owner_manual"
+        if page["manual"] == "gol-owner-candidate"
+        else "unverified",
+        "author": "Gabriel Ferrer"
+        if page["manual"] == "gol-repair-candidate"
+        else None,
+        "official_status": "not_verified",
+    }
+
+
+def identify_sources(sources):
+    pages, _, _ = library()
+    documents = {p["source_sha256"]: document_identity(p) for p in pages}
+    return [
+        s
+        | {
+            "document": documents.get(
+                s.get("source_sha256"),
+                {
+                    "id": None,
+                    "title": s["title"],
+                    "kind": "unverified",
+                    "author": None,
+                    "official_status": "not_verified",
+                },
+            )
+        }
+        for s in sources
+    ]
+
+
 def search(vehicle, query, db=None, diagnostics=None):
-    from . import embeddings, vector_search
+    from . import embeddings, manual_figures, vector_search
 
     diagnostics = diagnostics if diagnostics is not None else {}
     diagnostics.update(method="bm25", fallback_reason=None)
@@ -221,6 +261,10 @@ def search(vehicle, query, db=None, diagnostics=None):
         p["id"]
         for _, p in sorted(ranked, key=lambda item: (-item[0], item[1]["id"]))[:20]
     ]
+    labeled = manual_figures.labeled_pages(query)
+    if labeled:
+        lexical = list(dict.fromkeys(labeled + lexical))[:20]
+        diagnostics["illustration_label_pages"] = labeled
     identifiers = lexical
     if db is not None and vector_search.enabled():
         index = vector_search.index_status(db)

@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import OperationalError
 
-from . import assistant, corpus, manual_library
+from . import assistant, corpus, manual_figures, manual_library
 from .models import AssistantReply, Incident, Message, Vehicle
 from .references import retrieval_reference
 
@@ -75,6 +75,7 @@ def reply_to(db, message_id, requested_model=None):
             sources += manual_library.search(
                 vehicle, message.content, db=db, diagnostics=retrieval
             )
+            sources = manual_figures.attach(manual_library.identify_sources(sources))
     except assistant.AssistantError as exc:
         raise HTTPException(exc.status, exc.message) from None
     previous = {
@@ -148,6 +149,21 @@ def reply_to(db, message_id, requested_model=None):
                 else assistant.generate(context)
             )
             model = requested_model or assistant.model_name()
+            if (
+                not answer.citation_ids
+                and context["retrieval_reference"]["mode"] == "factory_reference"
+            ):
+                context["retrieval"]["generation_model"] = model
+                answer = assistant.Answer(
+                    summary="No encontré respaldo suficiente para responder esa consulta en las páginas consultadas. Esto no permite concluir que el tema esté ausente del manual completo.",
+                    hypotheses=[],
+                    checks=[],
+                    questions=[
+                        "¿Podés aportar la referencia exacta del componente o su documentación específica?"
+                    ],
+                    citation_ids=[],
+                )
+                model = "document-coverage-v2"
         except assistant.AssistantError as exc:
             raise HTTPException(exc.status, exc.message) from None
     used = [source for source in sources if source["id"] in answer.citation_ids]

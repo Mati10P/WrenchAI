@@ -59,6 +59,10 @@ export type Reply = {
     questions: string[];
     checks: string[];
     citation_ids: string[];
+    blocks?: (
+      | { type: "paragraph"; text: string; source_ids: string[] }
+      | { type: "illustration"; figure_id: string; caption: string }
+    )[];
   };
   sources: {
     id: string;
@@ -71,6 +75,20 @@ export type Reply = {
     scope?: string | null;
     reference_profile?: string | null;
     language?: "es" | "pt";
+    document?: {
+      id: string | null;
+      title: string;
+      kind: string;
+      author: string | null;
+      official_status: string;
+    };
+    figures?: {
+      id: string;
+      source_id: string;
+      image_sha256: string;
+      bbox: number[];
+      extraction_status: string;
+    }[];
   }[];
 };
 export type AssistantStatus = {
