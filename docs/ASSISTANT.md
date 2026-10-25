@@ -1,5 +1,7 @@
 # Asistente: integración preparada
 
+Actualización vigente: [procedimientos completos, estado conversacional v2 y vistas compactas](COMPLETE_PROCEDURES.md). Los bundles y resultados inferiores documentan las entregas anteriores.
+
 ## Actualización funcional — 2026-10-24
 
 Estado vigente: el asistente ya usa cinco fragmentos reales, con referencia de fábrica y modificaciones separadas en el contexto. Se verificaron respuestas reales con citas y falta de cobertura. No hay pgvector ni búsqueda web. Ver [MVP_REAL_CORPUS.md](MVP_REAL_CORPUS.md); los estados de clave/prueba/corpus pendientes descritos abajo corresponden a bloques anteriores.

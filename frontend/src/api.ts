@@ -59,8 +59,16 @@ export type Reply = {
     questions: string[];
     checks: string[];
     citation_ids: string[];
+    evidence_status?:
+      "supported" | "partial" | "insufficient" | "clarification";
+    evidence_gap?: string | null;
     blocks?: (
-      | { type: "paragraph"; text: string; source_ids: string[] }
+      | {
+          type: "paragraph";
+          text: string;
+          source_ids: string[];
+          manual_block_ids?: string[];
+        }
       | { type: "illustration"; figure_id: string; caption: string }
     )[];
   };

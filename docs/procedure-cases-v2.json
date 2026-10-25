@@ -1,0 +1,143 @@
+[
+  {
+    "id": "fuel-filter-sequence-and-location",
+    "turns": [
+      {
+        "question": "como cambio el filtro de combustible?",
+        "expected_any": [
+          "gol-repair-candidate-0137"
+        ],
+        "figure_expected": true,
+        "allowed_figures": [
+          "gol-repair-candidate-0138-region-002",
+          "gol-repair-candidate-0138-region-001",
+          "gol-repair-candidate-0139-region-001"
+        ],
+        "expected_figure_sequence": [
+          "gol-repair-candidate-0138-region-002",
+          "gol-repair-candidate-0138-region-001",
+          "gol-repair-candidate-0139-region-001"
+        ]
+      },
+      {
+        "question": "donde está el filtro?",
+        "expected_any": [
+          "gol-repair-candidate-0137",
+          "gol-repair-candidate-0138",
+          "gol-repair-candidate-0139"
+        ],
+        "clarification_allowed": true,
+        "query_contains": [
+          "filtro de combustible"
+        ],
+        "allow_abstention": true
+      },
+      {
+        "question": "no lo encuentro, en donde exactamente?",
+        "expected_any": [
+          "gol-repair-candidate-0137",
+          "gol-repair-candidate-0138",
+          "gol-repair-candidate-0139"
+        ],
+        "clarification_allowed": true,
+        "query_contains": [
+          "filtro de combustible"
+        ],
+        "allow_abstention": true
+      },
+      {
+        "question": "para cambiar el filtro de combustible me dice desconectar el encendido, eso significa desconectar el negativo de la batería? o cómo sería?",
+        "expected_any": [
+          "gol-repair-candidate-0137"
+        ],
+        "clarification_allowed": true,
+        "query_contains": [
+          "filtro de combustible"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "exhaust-joint-clarification",
+    "turns": [
+      {
+        "question": "como hago que el escape no pierda?",
+        "expected_any": [
+          "gol-repair-candidate-0161",
+          "gol-repair-candidate-0162"
+        ],
+        "clarification_allowed": true,
+        "allow_abstention": true
+      },
+      {
+        "question": "como pongo la junta entre la bajada del escape y el escape?",
+        "expected_any": [
+          "gol-repair-candidate-0161",
+          "gol-repair-candidate-0162"
+        ],
+        "clarification_allowed": true,
+        "allow_abstention": true
+      },
+      {
+        "question": "el múltiple, bajada y junta son originales. decime cómo pongo la junta esa de forma de dona que está difícil de poner",
+        "expected_any": [
+          "gol-repair-candidate-0161",
+          "gol-repair-candidate-0162"
+        ],
+        "clarification_allowed": true,
+        "query_contains": [
+          "junta",
+          "escape"
+        ],
+        "allow_abstention": true
+      },
+      {
+        "question": "el problema es poner bien la junta entre la bajada del escape y el escape, queda torcida",
+        "expected_any": [
+          "gol-repair-candidate-0161",
+          "gol-repair-candidate-0162"
+        ],
+        "clarification_allowed": true,
+        "query_contains": [
+          "junta",
+          "escape"
+        ],
+        "allow_abstention": true
+      }
+    ]
+  },
+  {
+    "id": "filter-topic-switch",
+    "turns": [
+      {
+        "question": "Cómo cambio el filtro de combustible?",
+        "expected_any": [
+          "gol-repair-candidate-0137"
+        ],
+        "figure_expected": true,
+        "allowed_figures": [
+          "gol-repair-candidate-0138-region-002",
+          "gol-repair-candidate-0138-region-001",
+          "gol-repair-candidate-0139-region-001"
+        ],
+        "expected_figure_sequence": [
+          "gol-repair-candidate-0138-region-002",
+          "gol-repair-candidate-0138-region-001",
+          "gol-repair-candidate-0139-region-001"
+        ]
+      },
+      {
+        "question": "Ahora cómo cambio el filtro de aire?",
+        "expected_any": [
+          "gol-repair-candidate-0144",
+          "gol-owner-candidate-0091"
+        ],
+        "clarification_allowed": true,
+        "query_excludes": [
+          "combustible"
+        ],
+        "allow_abstention": true
+      }
+    ]
+  }
+]

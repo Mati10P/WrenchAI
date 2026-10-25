@@ -96,3 +96,7 @@ El OCR y su revisión se ejecutan con herramientas locales documentadas en [docs
 ### Ingesta y consulta documental sin Gemini
 
 Se puede importar un conjunto aprobado y consultar sus fuentes desde PostgreSQL sin clave de IA. Incluye un ejemplo didáctico propio, aislado por vehículo ficticio. La biblioteca real y la recuperación híbrida se configuran por separado; generar respuestas con lectura visual requiere Gemini. Instrucciones en [RAG.md](docs/RAG.md), [FULL_MANUAL_LIBRARY.md](docs/FULL_MANUAL_LIBRARY.md) y [VECTOR_RETRIEVAL.md](docs/VECTOR_RETRIEVAL.md).
+
+### Procedimientos ilustrados y seguimientos
+
+El filtro de combustible conserva las tres figuras y sus explicaciones en orden documental. Los seguimientos mantienen componente e intención; las respuestas explicitan los datos que no pueden verificarse. Instalación, pruebas y límites en [COMPLETE_PROCEDURES.md](docs/COMPLETE_PROCEDURES.md). La validación completa de secuencias está habilitada para los procedimientos revisados, actualmente el filtro; no implica que todo el manual esté validado.

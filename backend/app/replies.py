@@ -91,6 +91,10 @@ def reply_to(db, message_id, requested_model=None):
     warning = assistant.safety_warning(
         "\n".join([incident.description, *(m.content for m in history)])
     )
+    subject_frame = (resolution.get("frame") or {}).get("subjects", {})
+    approved_query = (
+        "escape" if set(subject_frame) == {"exhaust"} else resolution["query"]
+    )
     retrieval = {"conversation": resolution}
     equipment_scope = document_scope.requires_equipment_document(resolution)
     needs_clarification = bool(resolution["clarification"])
@@ -98,7 +102,7 @@ def reply_to(db, message_id, requested_model=None):
         sources = (
             []
             if warning or equipment_scope or needs_clarification
-            else corpus.search(db, vehicle, resolution["query"])
+            else corpus.search(db, vehicle, approved_query)
         )
         if not warning and not equipment_scope and not needs_clarification:
             sources += manual_library.search(
@@ -182,24 +186,45 @@ def reply_to(db, message_id, requested_model=None):
         model = "document-coverage-v1"
     else:
         try:
+            from .manual_flow import diagram_scope
+
+            scoped = diagram_scope(context)
             answer = (
-                assistant.generate(context, model=requested_model)
+                scoped
+                if scoped is not None
+                else assistant.generate(context, model=requested_model)
                 if requested_model is not None
                 else assistant.generate(context)
             )
-            model = requested_model or assistant.model_name()
+            model = (
+                {
+                    "location": "document-location-scope-v1",
+                    "explanation": "document-term-scope-v1",
+                }.get(resolution.get("intent"), "document-diagram-scope-v1")
+                if scoped is not None
+                else requested_model or assistant.model_name()
+            )
             if (
                 not answer.citation_ids
                 and context["retrieval_reference"]["mode"] == "factory_reference"
             ):
                 context["retrieval"]["generation_model"] = model
                 answer = assistant.Answer(
-                    summary="Necesito precisar la consulta antes de respaldar la respuesta con los manuales."
+                    summary=answer.evidence_gap
+                    or (
+                        "Necesito precisar la consulta antes de respaldar la respuesta con los manuales."
+                        if answer.questions
+                        else "No encontré respaldo suficiente para responder esa consulta en las páginas consultadas. Esto no permite concluir que el tema esté ausente del manual completo."
+                    ),
+                    evidence_status="clarification"
                     if answer.questions
-                    else "No encontré respaldo suficiente para responder esa consulta en las páginas consultadas. Esto no permite concluir que el tema esté ausente del manual completo.",
+                    else "insufficient",
+                    evidence_gap=answer.evidence_gap,
                     hypotheses=[],
                     checks=[],
                     questions=answer.questions
+                    if answer.evidence_gap
+                    else answer.questions
                     or [
                         "¿Podés aportar la referencia exacta del componente o su documentación específica?"
                     ],

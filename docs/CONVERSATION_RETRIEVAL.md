@@ -1,5 +1,7 @@
 # Recuperación con contexto de conversación
 
+Actualización vigente: [procedimientos completos, estado conversacional v2 y vistas compactas](COMPLETE_PROCEDURES.md). Los bundles y resultados inferiores documentan las entregas anteriores.
+
 Entrega local del 25 de octubre de 2026. Cierra el bloque de seguimientos y el
 pendiente del PIN de una radio instalada que citaba el autoradio original.
 

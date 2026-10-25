@@ -58,5 +58,20 @@
     "label": "Indicador de giro delantero; no es el faro antiniebla.",
     "context_pages": [],
     "section_id": "gol-owner-candidate-0100-region-007"
+  },
+  "gol-repair-candidate-0138-region-002": {
+    "page_image_sha256": "10dcf906e06552ed0be0e5aabd31c855202ebec21b835a251f0af27610260687",
+    "label": "Figura V.14. Conectores de entrada y salida del filtro de combustible.",
+    "section_id": "gol-repair-candidate-0137-region-004"
+  },
+  "gol-repair-candidate-0138-region-001": {
+    "page_image_sha256": "10dcf906e06552ed0be0e5aabd31c855202ebec21b835a251f0af27610260687",
+    "label": "Figura V.15. Filtro de combustible y soporte.",
+    "section_id": "gol-repair-candidate-0137-region-004"
+  },
+  "gol-repair-candidate-0139-region-001": {
+    "page_image_sha256": "b4ded31306623f90544b69cb429bcd674db8900df64f58b9aa614b2f41044764",
+    "label": "Figura V.16. Detalle del conector del filtro de combustible.",
+    "section_id": "gol-repair-candidate-0137-region-004"
   }
 }

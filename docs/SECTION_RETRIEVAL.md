@@ -1,5 +1,7 @@
 # Recuperación por temas y correspondencia de ilustraciones
 
+Actualización vigente: [procedimientos completos, estado conversacional v2 y vistas compactas](COMPLETE_PROCEDURES.md). Los bundles y resultados inferiores documentan las entregas anteriores.
+
 Actualizaciones posteriores: [referencias válidas y procedimientos ilustrados](FIGURE_RELIABILITY.md) y [contexto conversacional con lectura visual limitada al tema](CONVERSATION_RETRIEVAL.md).
 
 Entrega local del 25 de octubre de 2026. Reemplaza la selección de figuras por

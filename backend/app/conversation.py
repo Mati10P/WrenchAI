@@ -10,6 +10,18 @@ from .assistant import normalize
 
 # Narrow subjects precede their parent system. Each family is matched once.
 SUBJECTS = [
+    (
+        "fuel",
+        "filtro de combustible",
+        r"filtro (?:de |del )?(?:combustible|nafta|gasolina)",
+    ),
+    ("air_filter", "filtro de aire", r"filtro (?:de |del )?aire"),
+    ("oil_filter", "filtro de aceite", r"filtro (?:de |del )?aceite"),
+    (
+        "exhaust",
+        "junta entre la bajada y el resto del escape",
+        r"junta.{0,50}(?:bajada|escape)|(?:bajada|escape).{0,35}junta",
+    ),
     ("brakes", "líquido de frenos", r"liquido (?:de )?frenos?|fluido (?:de )?frenos?"),
     ("brakes", "cilindro de freno", r"cilindros? (?:de |del )?frenos?"),
     ("brakes", "pastillas de freno", r"pastillas?"),
@@ -48,7 +60,13 @@ SUBJECTS = [
 AXIS = {"front": r"adelante|delanter[oa]s?", "rear": r"atras|traser[oa]s?"}
 AXIS_WORD = {"front": "delanteros", "rear": "traseros"}
 ROOTS = {"brakes": "frenos", "tires": "neumáticos", "suspension": "suspensión"}
-GENERIC = {"belt": "correa", "oil": "aceite", **ROOTS}
+GENERIC = {
+    "belt": "correa",
+    "oil": "aceite",
+    "fuel": "combustible",
+    "exhaust": "escape",
+    **ROOTS,
+}
 DEPENDENT = r"^(?:y\b|entonces\b|en ese caso\b|eso\b|esa\b|ese\b|lo mismo\b|donde\b)|\b(?:lo|la|los|las) (?:saco|quito|cambio|ajusto|compruebo|reviso|hago)\b|\b(?:cuanto|cuanta|cuantos|cuantas)\b|\b(?:tension|torque|apriete|holgura|capacidad|cantidad|compruebo|comprueba|comprueban|comprobar|verifico|verifica|verificar|con carga|sin carga|en frio|en caliente)\b"
 
 
@@ -74,6 +92,25 @@ def subjects(text):
     return found
 
 
+def intent(text):
+    value = normalize(text)
+    if re.search(
+        r"donde|ubicaci|localiz|no (?:lo|la) encuentro|en que (?:parte|lado)", value
+    ):
+        return "location"
+    if re.search(
+        r"que significa|eso significa|como seria|como seria|a que (?:se )?refiere|no entiendo|desconectar el encendido",
+        value,
+    ):
+        return "explanation"
+    if re.search(
+        r"como.{0,30}(?:cambi|reemplaz|sustitu|ajust|regul|pon|pongo|coloc|mont|instal|sac|retir)",
+        value,
+    ):
+        return "procedure"
+    return "information"
+
+
 def operation(text):
     value = normalize(text)
     for label, pattern in [
@@ -84,6 +121,7 @@ def operation(text):
             r"cuant[oa]s?.{0,18}(?:lleva|entra|necesit|litros)|capacidad|cantidad",
         ),
         ("cambio", r"cambi[ao]|cambiar|reemplaz|sustitu"),
+        ("montaje", r"pongo|poner|coloc|instal|montar"),
         ("ajuste", r"tens[ao]|ajust|regul"),
     ]:
         if re.search(pattern, value):
@@ -126,7 +164,7 @@ def resolve(history, saved=None, modifications=""):
     saved = saved or {}
     for turn in history:
         prior = saved.get(turn["id"])
-        if prior and prior.get("version") == 1:
+        if prior and prior.get("version") == 2:
             state = prior
         else:
             state = advance(state, turn["id"], turn["user"], modifications)
@@ -147,10 +185,50 @@ def axis_of(text):
 def advance(previous, identifier, text, modifications=""):
     value = normalize(text).strip(" ¿?¡!.,\n")
     detected = subjects(text)
+    frame = previous.get("frame") if previous else None
+    # Filter type is a component; mentioning its fluid does not change topics.
+    if "oil_filter" in detected:
+        detected.pop("oil", None)
+    current_intent = intent(text)
+    if frame and not re.search(
+        r"otro tema|otra consulta|otra pregunta|cambiando de tema", value
+    ):
+        if (
+            len(frame["subjects"]) == 1
+            and re.search(r"\bfiltro\b", value)
+            and not detected
+        ):
+            family, subject = next(iter(frame["subjects"].items()))
+            if subject.startswith("filtro de"):
+                detected = {family: subject}
+        if (
+            set(frame["subjects"]) == {"exhaust"}
+            and not detected
+            and re.search(r"junta|dona|bajada", value)
+        ):
+            detected = dict(frame["subjects"])
+        if (
+            current_intent == "explanation"
+            and (
+                not detected
+                or set(detected) - {"ignition", "battery"} <= set(frame["subjects"])
+            )
+            and len(frame["subjects"]) == 1
+        ):
+            detected = {
+                k: v for k, v in detected.items() if k not in {"ignition", "battery"}
+            }
     axis = axis_of(text)
-    op = operation(text)
+    op = (
+        "ubicación"
+        if current_intent == "location"
+        else "aclaración"
+        if current_intent == "explanation"
+        else operation(text)
+    )
     state = {
-        "version": 1,
+        "version": 2,
+        "intent": current_intent,
         "message_id": identifier,
         "query": text,
         "mode": "standalone",
@@ -163,7 +241,12 @@ def advance(previous, identifier, text, modifications=""):
     )
     dependent = (
         bool(
-            re.search(DEPENDENT, value)
+            current_intent in {"location", "explanation"}
+            or re.search(
+                r"no (?:lo|la) encuentro|queda torcid|queda apretad|se (?:mueve|desplaza)",
+                value,
+            )
+            or re.search(DEPENDENT, value)
             or re.fullmatch(
                 r"como (?:se )?(?:hace|regula|ajusta|cambia|saca|retira|instala|monta|revisa|comprueba|verifica)",
                 value,
@@ -208,11 +291,16 @@ def advance(previous, identifier, text, modifications=""):
                 "compruebo",
                 "reviso",
                 "hago",
+                "negativo",
+                "bateria",
+                "encendido",
             }
             for word in new_objects
             if not (word == "motor" and motor_condition)
+            and not (word == "filtro" and current_intent == "location")
         )
         and not detected
+        and current_intent != "explanation"
     ):
         dependent = False  # an unknown named object must not inherit the old one
     frame = previous.get("frame") if previous else None
@@ -241,7 +329,10 @@ def advance(previous, identifier, text, modifications=""):
         if (
             frame
             and set(detected) == set(frame["subjects"])
-            and re.search(r"\b(?:esa|ese|esas|esos|mismo|misma)\b", value)
+            and (
+                detected == frame["subjects"]
+                or re.search(r"\b(?:esa|ese|esas|esos|mismo|misma)\b", value)
+            )
         ):
             family = next(iter(detected))
             if detected[family] == GENERIC.get(family) or detected == frame["subjects"]:
@@ -298,6 +389,12 @@ def advance(previous, identifier, text, modifications=""):
                 )
         elif frame and set(detected) != set(frame["subjects"]):
             state["mode"] = "topic_switch"
+        if (
+            frame
+            and set(detected) == set(frame["subjects"])
+            and detected == frame["subjects"]
+        ):
+            new_frame["anchor_message_id"] = frame["anchor_message_id"]
         state["frame"] = new_frame
         return state
     if dependent:

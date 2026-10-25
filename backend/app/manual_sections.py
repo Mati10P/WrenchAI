@@ -52,6 +52,16 @@ VOCABULARY = [
 ]
 
 QUESTION_WORDS = {
+    "pongo",
+    "poner",
+    "colocar",
+    "queda",
+    "bien",
+    "exactamente",
+    "encuentro",
+    "significa",
+    "dificil",
+    "torcida",
     "indica",
     "indicar",
     "explica",
@@ -120,7 +130,7 @@ def root():
 def load(folder, stamp, library_hash, figure_hash):
     data = json.loads((Path(folder) / "sections.json").read_text(encoding="utf-8"))
     if (
-        data["schema_version"] not in {1, 2}
+        data["schema_version"] not in {1, 2, 3}
         or data["library_sha256"] != library_hash
         or data["figures_sha256"] != figure_hash
         or data["review_status"] != "unreviewed_navigation_only"
@@ -191,6 +201,30 @@ def compatible(query, title):
     rear, front = words("trasero").pop(), words("delantero").pop()
     if (rear in q and front in t) or (front in q and rear in t):
         return False
+    if (
+        "escape" in q
+        and "junta" in q
+        and "escape" not in t
+        and re.search(r"tapa.{0,12}cilindr|culata", manual_library.normalize(title))
+    ):
+        return False
+
+    # Distinct filter media are not interchangeable procedure identities.
+    def filter_types(value):
+        value = manual_library.normalize(value)
+        return {
+            kind
+            for kind, pattern in {
+                "fuel": r"filtro.{0,12}(?:combustible|combustivel|nafta)",
+                "air": r"filtro.{0,12}(?:aire|ar)\b",
+                "oil": r"filtro.{0,12}(?:aceite|oleo)",
+            }.items()
+            if re.search(pattern, value)
+        }
+
+    requested_filters, titled_filters = filter_types(query), filter_types(title)
+    if requested_filters and titled_filters and not requested_filters & titled_filters:
+        return False
     # These components share brake vocabulary but are not interchangeable.
     components = [
         words(v).pop()
@@ -210,6 +244,12 @@ def retrieve(query, ranked_pages, diagnostics):
     data = catalog()
     if data is None:
         return None
+    target = (
+        (diagnostics.get("conversation", {}).get("frame") or {})
+        .get("subjects", {})
+        .get("exhaust", "")
+    )
+    downstream_joint = "resto del escape" in target
     terms = words(query)
     expanded = set(terms)
     for group in manual_library.GROUPS:
@@ -241,6 +281,14 @@ def retrieve(query, ranked_pages, diagnostics):
             ),
             default=0,
         )
+        if downstream_joint and not any(
+            "escape" in manual_library.normalize(title) for title in s["heading_path"]
+        ):
+            continue
+        if downstream_joint and any(
+            "multiple" in manual_library.normalize(title) for title in s["heading_path"]
+        ):
+            continue
         if not compatible(query, s["title"]):
             continue
         vector_score = max(
@@ -272,8 +320,17 @@ def retrieve(query, ranked_pages, diagnostics):
             and (not diagnostics.get("semantic_candidates") or not vector_score)
         ):
             continue
+        topic_bonus = (
+            12
+            if "escape" in terms and "junta" in terms and "escape" in title_terms
+            else 0
+        )
         score = (
-            title_score * 2 + fragment_score * 2 + vector_score * 6 + label_score * 6
+            title_score * 2
+            + fragment_score * 2
+            + vector_score * 6
+            + label_score * 6
+            + topic_bonus
         )
         ranked.append((score, s))
     ranked.sort(key=lambda item: (-item[0], item[1]["id"]))
@@ -298,7 +355,15 @@ def retrieve(query, ranked_pages, diagnostics):
     active = [
         s
         for s in data["sections"]
-        if s["id"] in descendants and compatible(query, s["title"])
+        if s["id"] in descendants
+        and compatible(query, s["title"])
+        and not (
+            downstream_joint
+            and any(
+                "multiple" in manual_library.normalize(title)
+                for title in s["heading_path"]
+            )
+        )
     ]
     # Up to eight original pages, including the topic beginning and figure pages.
     pages = manual_library.library()[0]
@@ -344,6 +409,12 @@ def retrieve(query, ranked_pages, diagnostics):
             }
         elif len(candidates) > 1:
             figure_ids -= set(scores) - numbered
+    figure_ids |= {
+        b["figure_id"]
+        for s in active
+        for b in s.get("response_sequence", [])
+        if b["kind"] == "illustration"
+    }
     for identifier in page_ids:
         source = manual_library.source(by_page[identifier])
         source["sections"] = [
@@ -354,10 +425,25 @@ def retrieve(query, ranked_pages, diagnostics):
                 "bbox": e["bbox"],
                 "page_size": e["page_size"],
                 "review_status": s["review_status"],
+                "evidence_role": s.get("evidence_role"),
+                "location_coverage": s.get("location_coverage"),
+                "location_figure_id": s.get("location_figure_id"),
+                "clarification_limits": s.get("clarification_limits", []),
             }
             for s in active
             for e in s["spans"]
             if e["page_id"] == identifier
+        ]
+        source["reading_order"] = [
+            r
+            for s in active
+            for r in s.get("reading_order", [])
+            if r["page_id"] == identifier
+        ]
+        source["response_sequences"] = [
+            {"section_id": s["id"], "blocks": s["response_sequence"]}
+            for s in active
+            if s.get("response_sequence")
         ]
         source["section_figure_ids"] = sorted(figure_ids)
         source["section_context_complete"] = (

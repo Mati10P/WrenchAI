@@ -137,6 +137,18 @@ def run(base, vehicle_id, cases_file, output):
                             for term in criteria.get("content_excludes", [])
                         ),
                     }
+                    if criteria.get("expected_figure_sequence"):
+                        item["checks"]["complete_figure_sequence"] = [
+                            b["figure_id"]
+                            for b in content.get("blocks", [])
+                            if b["type"] == "illustration"
+                        ] == criteria["expected_figure_sequence"]
+                    if (
+                        criteria.get("allow_abstention")
+                        and reply["model"].startswith("document-coverage")
+                        and not cited
+                    ):
+                        item["checks"]["expected_source"] = True
                     if clarification and criteria.get("clarification_allowed"):
                         item["checks"]["expected_source"] = True
                     for source in reply["sources"]:

@@ -11,7 +11,7 @@ from PIL import Image, UnidentifiedImageError
 from .assistant import AssistantError
 
 
-def focused_image(data, regions):
+def focused_image(data, regions, compact=False):
     try:
         if not regions:
             raise ValueError("Missing topic regions")
@@ -19,6 +19,7 @@ def focused_image(data, regions):
             original.load()
             original = original.convert("RGB")
             focused = Image.new("RGB", original.size, "white")
+            boxes = []
             for region in regions:
                 width, height = region["page_size"]
                 if not all(math.isfinite(v) and v > 0 for v in (width, height)):
@@ -40,6 +41,15 @@ def focused_image(data, regions):
                 if box[0] >= box[2] or box[1] >= box[3]:
                     raise ValueError("Empty topic area")
                 focused.paste(original.crop(box), box[:2])
+                boxes.append(box)
+            if compact:
+                bounds = (
+                    min(b[0] for b in boxes),
+                    min(b[1] for b in boxes),
+                    max(b[2] for b in boxes),
+                    max(b[3] for b in boxes),
+                )
+                focused = focused.crop(bounds)
             result = BytesIO()
             focused.save(result, format="PNG")
             return result.getvalue()

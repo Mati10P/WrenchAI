@@ -7,6 +7,7 @@ The complete original page remains available beside every illustration.
 import argparse
 import hashlib
 import json
+import shutil
 from pathlib import Path
 
 from PIL import Image
@@ -18,8 +19,17 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def prepare(library, output):
+def prepare(library, output, reuse=None):
     data = json.loads((library / "library.json").read_text(encoding="utf-8"))
+    library_digest = sha(library / "library.json")
+    prior_figures = {}
+    if reuse:
+        prior_manifest = json.loads(
+            (reuse / "figures.json").read_text(encoding="utf-8")
+        )
+        if prior_manifest["library_sha256"] != library_digest:
+            raise ValueError("Cannot reuse figures from another library")
+        prior_figures = {f["id"]: f for f in prior_manifest["figures"]}
     output.mkdir(parents=True, exist_ok=False)
     figures = []
     labels = json.loads(
@@ -61,7 +71,17 @@ def prepare(library, output):
                     raise ValueError("Invalid illustration bounds")
                 identifier = p["id"] + "-" + r["id"]
                 destination = output / (identifier + ".jpg")
-                image.crop(box).save(destination, quality=95, subsampling=0)
+                if reuse:
+                    prior = prior_figures[identifier]
+                    if (
+                        prior["page_image_sha256"] != p["image_sha256"]
+                        or prior["bbox"] != box
+                        or sha(reuse / (identifier + ".jpg")) != prior["image_sha256"]
+                    ):
+                        raise ValueError("Cannot reuse a changed original crop")
+                    shutil.copyfile(reuse / (identifier + ".jpg"), destination)
+                else:
+                    image.crop(box).save(destination, quality=95, subsampling=0)
                 figures.append(
                     {
                         "id": identifier,
@@ -113,5 +133,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--library", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--reuse", type=Path)
     args = parser.parse_args()
     prepare(args.library, args.output)

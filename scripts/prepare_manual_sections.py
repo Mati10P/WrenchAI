@@ -8,6 +8,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "backend"))
+from app.manual_flow import compile_flows
 from app.section_structure import compile_sections
 
 
@@ -46,9 +47,18 @@ def prepare(library, figures, layouts, output):
     sections, assignments = compile_sections(
         data["pages"], loaded, figure_data["figures"], annotations
     )
+    compile_flows(
+        sections,
+        loaded,
+        assignments,
+        data["pages"],
+        json.loads(
+            (REPO / "docs/procedure-sequences-v1.json").read_text(encoding="utf-8")
+        ),
+    )
     output.mkdir(parents=True, exist_ok=False)
     manifest = {
-        "schema_version": 2,
+        "schema_version": 3,
         "library_sha256": digest,
         "figures_sha256": sha(figures / "figures.json"),
         "layout_sha256": hashes,

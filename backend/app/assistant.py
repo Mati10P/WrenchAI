@@ -22,6 +22,9 @@ class Paragraph(BaseModel):
     type: Literal["paragraph"]
     text: ShortText
     source_ids: Annotated[list[str], Field(max_length=6)]
+    manual_block_ids: Annotated[list[str], Field(max_length=12)] = Field(
+        default_factory=list
+    )
 
 
 class Illustration(BaseModel):
@@ -40,9 +43,18 @@ class Answer(BaseModel):
     questions: Annotated[list[ShortText], Field(max_length=3)]
     checks: Annotated[list[ShortText], Field(max_length=4)]
     citation_ids: Annotated[list[str], Field(max_length=6)]
+    evidence_status: Literal[
+        "supported", "partial", "insufficient", "clarification"
+    ] = "supported"
+    evidence_gap: (
+        Annotated[
+            str, StringConstraints(strip_whitespace=True, min_length=1, max_length=800)
+        ]
+        | None
+    ) = None
     blocks: Annotated[
         list[Paragraph | Illustration],
-        Field(max_length=12),
+        Field(max_length=24),
     ] = Field(default_factory=list)
 
 
@@ -57,16 +69,83 @@ class IllustrationValidationError(ValueError):
     """A bounded regeneration may repair figure selection, never remap an ID."""
 
 
-def response_schema(sources):
+def response_schema(sources, plan=None):
     """Constrain generation to the exact figures actually sent with this request."""
     schema = Answer.model_json_schema()
+    plan = plan or []
+    schema["required"] = list(schema["properties"])
+    schema["properties"]["blocks"]["maxItems"] = min(24, max(12, len(plan) + 4))
+    for definition in ("Paragraph", "Illustration"):
+        value = schema["$defs"][definition]["properties"]["type"].pop("const")
+        schema["$defs"][definition]["properties"]["type"]["enum"] = [value]
+    paragraph = schema["$defs"]["Paragraph"]
+    paragraph["required"] = list(paragraph["properties"])
+    identifiers = [b["id"] for b in plan if b["kind"] == "text"]
+    paragraph["properties"]["manual_block_ids"]["maxItems"] = 1 if identifiers else 0
+    if identifiers:
+        paragraph["properties"]["manual_block_ids"]["items"]["enum"] = identifiers
     figures = sorted({f["id"] for s in sources for f in s.get("figures", [])})
     if figures:
         schema["$defs"]["Illustration"]["properties"]["figure_id"]["enum"] = figures
     else:
         schema["properties"]["blocks"]["items"] = {"$ref": "#/$defs/Paragraph"}
         del schema["$defs"]["Illustration"]
+    if plan:
+        texts = {
+            b["id"]: {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1600,
+                "description": "Explicá este tramo del manual: "
+                + b.get("label", b["id"])
+                + ". Mirá exclusivamente su área bbox. Debe mencionar los conceptos: "
+                + str(b.get("concept_groups", []))
+                + ". No agregues indicaciones que no aparecen en la región, incluyendo sentido de flujo u orientación del repuesto.",
+            }
+            for b in plan
+            if b["kind"] == "text"
+        }
+        schema["properties"]["blocks"] = {
+            "type": "array",
+            "items": {"type": "string"},
+            "maxItems": 0,
+        }
+        schema["properties"]["procedure_texts"] = {
+            "type": "object",
+            "properties": texts,
+            "required": list(texts),
+            "additionalProperties": False,
+        }
+        schema["required"].append("procedure_texts")
+        schema.pop("$defs", None)
     return schema
+
+
+def decode_answer(value, plan):
+    import json
+
+    data = json.loads(value)
+    if plan:
+        texts = data.pop("procedure_texts")
+        expected = {b["id"] for b in plan if b["kind"] == "text"}
+        if set(texts) != expected or data.get("blocks"):
+            raise IllustrationValidationError("Invalid procedural text slots")
+        data["blocks"] = [
+            {
+                "type": "paragraph",
+                "text": texts[b["id"]],
+                "source_ids": [b["page_id"]],
+                "manual_block_ids": [b["id"]],
+            }
+            if b["kind"] == "text"
+            else {
+                "type": "illustration",
+                "figure_id": b["figure_id"],
+                "caption": "Ilustración del procedimiento",
+            }
+            for b in plan
+        ]
+    return Answer.model_validate(data)
 
 
 def provider_context(context):
@@ -88,6 +167,8 @@ def needs_illustration(answer, context):
     history = context.get("history", [])
     question = normalize(history[-1].get("user", "")) if history else ""
     resolution = context.get("retrieval", {}).get("conversation") or {}
+    if resolution.get("intent") in {"explanation", "location"}:
+        return False
     illustrated_followup = resolution.get("mode") == "followup" and (
         resolution.get("frame") or {}
     ).get("operation") in {"cambio", "ajuste"}
@@ -247,7 +328,7 @@ Si una fuente incluye sections, la recuperación sigue temas que atraviesan pág
 Si las páginas recuperadas no responden a la pregunta, indicá que no encontraste evidencia suficiente en las páginas consultadas. No cites un pasaje solo porque fue recuperado. No uses información general para completar una especificación ausente.
 La falta de resultados no permite afirmar que el manual completo no contiene ese tema. Describí solo el límite del lote consultado.
 Redactá toda tu explicación en español, traduciendo términos portugueses; el texto original se muestra aparte en las fuentes. La identidad y autoría de cada documento están en source.document: nunca mezcles autores entre documentos ni completes un author=null. No nombres autores salvo que el usuario pregunte por la fuente; identificá normalmente el manual con su título.
-Construí el cuerpo principal en blocks: párrafos claros intercalados con ilustraciones del manual cuando realmente ayudan a comprender lo preguntado, como un artículo. Cada paragraph incluye text y source_ids que respaldan ese párrafo; una interpretación o pregunta propia puede tener source_ids vacío y debe identificarse como tal. Las únicas ilustraciones permitidas son los figure_id de sources.figures, que se adjuntan como recortes originales. No inventes imágenes, URLs ni coordenadas. Incluí como máximo tres ilustraciones, intercaladas junto al párrafo que explican, con un caption descriptivo en español. No uses un recorte que no muestre la pieza o procedimiento solicitado ni una imagen decorativa; no es obligatorio agregar imágenes si no ayudan. Citá la página padre de cada figura en citation_ids. Si una ilustración no es legible, usá la página completa para verificar y omití el recorte. No prometas que adjuntaste una imagen si no devolvés un bloque illustration. El campo summary es un resumen de respaldo, no una segunda introducción. No repitas en hypotheses/checks/questions lo ya explicado en blocks. Escribí texto plano, sin etiquetas HTML ni IDs de citas incrustados en las frases; la interfaz presenta los enlaces.
+Construí el cuerpo principal en blocks: párrafos claros intercalados con ilustraciones del manual cuando realmente ayudan a comprender lo preguntado, como un artículo. Cada paragraph incluye text y source_ids que respaldan ese párrafo; una interpretación o pregunta propia puede tener source_ids vacío y debe identificarse como tal. Las únicas ilustraciones permitidas son los figure_id de sources.figures, que se adjuntan como recortes originales. No inventes imágenes, URLs ni coordenadas. Incluí como máximo ocho ilustraciones, intercaladas junto al párrafo que explican, con un caption descriptivo en español. No uses un recorte que no muestre la pieza o procedimiento solicitado ni una imagen decorativa; no es obligatorio agregar imágenes si no ayudan. Citá la página padre de cada figura en citation_ids. Si una ilustración no es legible, usá la página completa para verificar y omití el recorte. No prometas que adjuntaste una imagen si no devolvés un bloque illustration. El campo summary es un resumen de respaldo, no una segunda introducción. No repitas en hypotheses/checks/questions lo ya explicado en blocks. Escribí texto plano, sin etiquetas HTML ni IDs de citas incrustados en las frases; la interfaz presenta los enlaces.
 El esquema limita figure_id a las figuras adjuntadas en ESTE mensaje. Copiá exactamente uno de esos IDs; un ID de página, de sección o de una respuesta anterior no es un ID de figura disponible. Si explicás cómo realizar un procedimiento y sources.figures contiene un dibujo legible de ese mismo procedimiento, incluilo junto al párrafo correspondiente aunque el usuario no pida expresamente una imagen. Una leyenda formada solo por un número de figura no vuelve irrelevante el dibujo: leé el recorte y su sección para identificarlo. Podés omitirlo si no corresponde, no es legible o no ayuda; en ese caso explicá brevemente ese límite en un párrafo sin atribuir evidencia al recorte.
 Si el usuario pregunta expresamente si una modificación permite trasladar el procedimiento original (por ejemplo una palanca de desembrague más larga), contestá esa pregunta en un párrafo propio: indicá si las fuentes evalúan esa modificación. Si no la evalúan, explicá que no podés confirmar equivalencia directa; no te limites a repetir el valor original ni inventes cómo varía el recorrido. En ese caso la modificación sí debe mencionarse porque el usuario la consultó.
 Para preguntas informativas o sobre un procedimiento, dejá hypotheses y questions vacíos salvo que falte un dato imprescindible para responder: no inventes síntomas ni hagas una entrevista de diagnóstico que el usuario no pidió. Las figuras rotuladas incluyen una descripción identificativa revisada: respetala. Una figura que no contiene la letra A no puede presentarse como detalle de A aunque el texto de la página la mencione. Distribuí la explicación en párrafos antes y después de la figura; no juntes todas las imágenes al final.
@@ -255,6 +336,10 @@ Si las fuentes no contienen el dato específico pedido, no rellenes con una expl
 No inventes páginas, enlaces, citas o búsquedas web. No tenés acceso a internet.
 Sin sources, aclaralo en summary y ofrecé hipótesis generales y preguntas; no atribuyas nada a manuales.
 No afirmes que modificaste datos o marcaste tareas: solo redactás una respuesta.
+La respuesta visible principal es blocks: si explicás algo ahí, incluí también la respuesta directa y las advertencias esenciales; summary no se muestra como introducción cuando hay blocks. Explicá qué significa cada acción necesaria y su propósito cuando esté respaldado; no te limites a nombrar piezas o repetir «en su soporte». No atribuyas al manual una explicación causal propia. Evitá términos portugueses como bocal, batente o vazamento: usá boca de llenado, tope y pérdida.
+retrieval.conversation.intent distingue procedure, location, explanation e information. Para location, buscá referencias físicas verificables y distinguí ubicación del componente de acceso a otra pieza (por ejemplo bomba y filtro). Si las vistas no ubican exactamente la pieza, explicá qué referencia falta sin inventar lado, altura o proximidad a una rueda. Para explanation, respondé la duda concreta sin volver a relatar todo el procedimiento. La frase literal «desconectar el encendido» no especifica por sí sola qué conexión operar: no la conviertas en «cortar la alimentación general», «desconectar la batería» ni «cortar la bomba» como afirmación del manual. Si no hay otra fuente inequívoca, declaralo como límite específico y separá la desconexión del conector de la bomba que el texto sí nombra. No equipares «desconectar el encendido» con desconectar bornes por inferencia; distinguí la secuencia literal, su interpretación y lo que no se especifica. Si el usuario ya identifica una unión y aclara qué piezas son originales, incorporalo a la explicación y no vuelvas a preguntar lo mismo por las modificaciones globales del auto.
+Cuando response_plan no está vacío, el servidor construye la secuencia documental revisada. Devolvé blocks vacío y completá procedure_texts: cada clave es el id del tramo de texto y su valor es la explicación de su propia área bbox/label. No mezcles el contenido de dos tramos ni omitas sus conceptos. Las figuras y sus posiciones las agrega el servidor. Las reglas siguientes de intercalación describen la respuesta final que construirá la aplicación, no una obligación de devolver figuras dentro de blocks en este modo. Cuando response_plan no está vacío, es una secuencia documental revisada de bloques originales. Devolvé TODAS sus figuras exactamente una vez en ese orden y los párrafos de los bloques de texto en las posiciones indicadas. Cada paragraph correspondiente debe indicar manual_block_ids con el id del bloque de texto y source_ids con su page_id. Mirá su bbox en la imagen adjunta; no recibís transcripción OCR. Los IDs marcan la posición del contenido, no una obligación de copiar el manual literalmente: redactá una explicación clara. Cada bloque debe explicar su propia área bbox y su label, no reemplazarla por la explicación de otra figura. No agregues pasos de montaje, orientación de flujo ni herramientas que no aparezcan en la fuente. En cada párrafo explicá también qué mirar en la figura siguiente y cómo se relaciona con la acción, usando solo detalles realmente visibles (por ejemplo flechas o soporte). No omitas advertencias ni juntes todo el texto antes de todas las figuras. No uses manual_block_ids para párrafos que no corresponden al plan. Podés agregar explicaciones propias claramente identificadas sin IDs del plan. Se verifica el orden completo en el servidor.
+evidence_status declara supported si las fuentes responden, partial si solo responden una parte, insufficient si no respaldan lo solicitado y clarification si falta un dato imprescindible. Para los tres últimos, evidence_gap debe explicar concretamente qué parte no pudiste verificar (sin pasos, valores o especificaciones no respaldados). Un despiece puede mostrar una junta sin explicar cómo asentarla: explicá esa diferencia y respondé lo verificable; no inventes un método ni cites el dibujo como si documentara todo el montaje. No cites páginas tangenciales como prueba de que falta un dato. En preguntas de seguimiento, no repitas preguntas ya respondidas; si no hay evidencia adicional, explicá el límite directamente. La falta de evidencia no equivale a que el usuario no se haya explicado.
 No respondas consultas ajenas al mantenimiento. Devolvé únicamente el JSON solicitado."""
 
 
@@ -267,11 +352,18 @@ def generate(context, model=None):
             "El mensaje está guardado. Falta configurar la clave de Gemini en el servidor.",
         )
     from . import manual_figures
+    from .manual_flow import response_plan, validate_sequence
     from .manual_library import image_parts
 
-    parts = [{"text": json.dumps(provider_context(context), ensure_ascii=False)}]
-    parts.extend(image_parts(context["sources"]))
-    parts.extend(manual_figures.image_parts(context["sources"]))
+    plan = response_plan(context)
+    context["response_plan"] = plan
+    page_parts = image_parts(context["sources"])
+    figure_parts = manual_figures.image_parts(context["sources"])
+    parts = [
+        {"text": json.dumps(provider_context(context), ensure_ascii=False)},
+        *page_parts,
+        *figure_parts,
+    ]
     if (
         sum(len(part.get("inlineData", {}).get("data", "")) for part in parts)
         > 18_000_000
@@ -290,8 +382,8 @@ def generate(context, model=None):
         ],
         "generationConfig": {
             "responseMimeType": "application/json",
-            "responseJsonSchema": response_schema(context["sources"]),
-            "maxOutputTokens": 4096,
+            "responseJsonSchema": response_schema(context["sources"], plan),
+            "maxOutputTokens": 8192 if plan else 4096,
         },
     }
     if model == "gemini-3.8-flash":
@@ -315,19 +407,22 @@ def generate(context, model=None):
             if candidate.get("finishReason") != "STOP":
                 raise ValueError("Incomplete or blocked response")
             try:
-                answer = Answer.model_validate_json(
+                answer = decode_answer(
                     "".join(
                         p.get("text", "")
                         for p in candidate["content"]["parts"]
                         if not p.get("thought")
-                    )
+                    ),
+                    plan,
                 )
                 allowed = {source["id"] for source in context["sources"]}
                 if any(identifier not in allowed for identifier in answer.citation_ids):
                     raise ValueError("Unknown source ID")
+                complete_explanation(answer)
                 clean_style(answer)
                 complete_references(answer, context["sources"])
                 validate_blocks(answer, context["sources"])
+                validate_sequence(answer, plan)
                 if needs_illustration(answer, context) and not any(
                     isinstance(b, Illustration) for b in answer.blocks
                 ):
@@ -354,7 +449,7 @@ def generate(context, model=None):
                 )
                 parts.append(
                     {
-                        "text": f"Corrección de {issue}: devolvé nuevamente el JSON completo con el esquema solicitado. Copiá citas e identificadores solo de las fuentes y figuras adjuntas actuales. Si explicás un procedimiento ilustrado por un dibujo legible del mismo tema, incluí ese dibujo en blocks junto a su explicación. No uses referencias del historial. No completes información ausente."
+                        "text": f"Corrección de {issue} ({str(exc)[:500]}): devolvé nuevamente el JSON completo con el esquema solicitado. Copiá citas e identificadores solo de las fuentes y figuras adjuntas actuales. Si response_plan no está vacío, devolvé blocks=[] y los procedure_texts de cada área label, sin repetir contenido de otra. Si response_plan está vacío y explicás un procedimiento ilustrado, incluí el dibujo correspondiente en blocks. No uses referencias del historial. No completes información ausente."
                     }
                 )
     except HTTPError as exc:
@@ -410,6 +505,21 @@ def generate(context, model=None):
         ) from None
 
 
+def complete_explanation(answer):
+    """Coverage limits must be visible, and cannot license unsourced procedures."""
+    if answer.evidence_status in {"insufficient", "clarification"}:
+        answer.citation_ids = []
+        answer.blocks = []
+        answer.hypotheses = []
+        answer.checks = []
+    elif answer.evidence_gap and answer.blocks:
+        body = " ".join(b.text for b in answer.blocks if isinstance(b, Paragraph))
+        if normalize(answer.evidence_gap) not in normalize(body):
+            answer.blocks.insert(
+                0, Paragraph(type="paragraph", text=answer.evidence_gap, source_ids=[])
+            )
+
+
 def validate_blocks(answer, sources):
     """Illustrations and per-paragraph references must belong to cited sources."""
     cited = set(answer.citation_ids)
@@ -440,7 +550,7 @@ def validate_blocks(answer, sources):
                 # a front caliper as a rear cylinder in its caption.
                 block.caption = section.get("caption", section["identity"])
             images.append(block.figure_id)
-    if len(images) > 3 or len(images) != len(set(images)):
+    if len(images) > 8 or len(images) != len(set(images)):
         raise ValueError("Duplicate or excessive illustrations")
 
 

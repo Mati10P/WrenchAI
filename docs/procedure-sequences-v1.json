@@ -1,0 +1,126 @@
+{
+  "gol-repair-candidate-0137-region-004": {
+    "page_image_sha256": {
+      "gol-repair-candidate-0137": "1afdc4deb593597ddb3c6bbbae9228afd031802285542071c8e3273f524955b9",
+      "gol-repair-candidate-0138": "10dcf906e06552ed0be0e5aabd31c855202ebec21b835a251f0af27610260687",
+      "gol-repair-candidate-0139": "b4ded31306623f90544b69cb429bcd674db8900df64f58b9aa614b2f41044764"
+    },
+    "blocks": [
+      {
+        "id": "gol-repair-candidate-0137-region-004-preparation",
+        "kind": "text",
+        "region_ids": [
+          "gol-repair-candidate-0137-region-010",
+          "gol-repair-candidate-0137-region-009",
+          "gol-repair-candidate-0137-region-008",
+          "gol-repair-candidate-0137-region-003"
+        ],
+        "label": "Preparación, retirada de los conductos de entrada y salida presionando conectores, advertencia de presión",
+        "concept_groups": [
+          [
+            "presion"
+          ],
+          [
+            "conduct",
+            "tuber",
+            "manguer"
+          ],
+          [
+            "retir",
+            "sac",
+            "desacopl",
+            "desconect"
+          ]
+        ],
+        "unsupported_patterns": [
+          "sentido.{0,45}(?:circul|flujo)",
+          "orientaci.{0,35}(?:flujo|combustible)"
+        ]
+      },
+      {
+        "kind": "illustration",
+        "figure_id": "gol-repair-candidate-0138-region-002"
+      },
+      {
+        "id": "gol-repair-candidate-0137-region-004-support",
+        "kind": "text",
+        "region_ids": [
+          "gol-repair-candidate-0138-region-008"
+        ],
+        "label": "Liberación del filtro junto a su soporte",
+        "concept_groups": [
+          [
+            "liber",
+            "solt",
+            "retir",
+            "sac"
+          ],
+          [
+            "soporte"
+          ]
+        ],
+        "unsupported_patterns": [
+          "sentido.{0,45}(?:circul|flujo)",
+          "orientaci.{0,35}(?:flujo|combustible)"
+        ]
+      },
+      {
+        "kind": "illustration",
+        "figure_id": "gol-repair-candidate-0138-region-001"
+      },
+      {
+        "id": "gol-repair-candidate-0137-region-004-replacement",
+        "kind": "text",
+        "region_ids": [
+          "gol-repair-candidate-0138-region-006",
+          "gol-repair-candidate-0138-region-005"
+        ],
+        "label": "Retirada del filtro del soporte y sustitución",
+        "concept_groups": [
+          [
+            "soporte"
+          ],
+          [
+            "nuev",
+            "repuesto",
+            "reemplaz",
+            "sustitu",
+            "instal"
+          ]
+        ],
+        "unsupported_patterns": [
+          "sentido.{0,45}(?:circul|flujo)",
+          "orientaci.{0,35}(?:flujo|combustible)"
+        ]
+      },
+      {
+        "kind": "illustration",
+        "figure_id": "gol-repair-candidate-0139-region-001"
+      }
+    ],
+    "location_coverage": "component_detail_only",
+    "location_figure_id": "gol-repair-candidate-0138-region-001",
+    "clarification_limits": [
+      {
+        "term": "encendido",
+        "question_terms": [
+          "bateria",
+          "borne",
+          "negativo",
+          "significa",
+          "como seria"
+        ],
+        "page_id": "gol-repair-candidate-0137",
+        "gap": "En estas páginas, la expresión «desconectar el encendido» no se define como una operación concreta sobre la llave o los bornes. No puedo confirmar que indique desconectar el negativo de la batería.",
+        "documented": "El texto nombra primero el encendido y después, por separado, la tapa de acceso y el conector de la bomba de combustible. No conviene presentar esas expresiones como instrucciones equivalentes."
+      }
+    ]
+  },
+  "gol-repair-candidate-0161-region-002": {
+    "page_image_sha256": {
+      "gol-repair-candidate-0161": "be4b19e5348280b6ae0bf942807ffcf5366ef61a362845e80241a4de7d9d655a"
+    },
+    "evidence_role": "parts_diagram",
+    "blocks": []
+  }
+}
