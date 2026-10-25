@@ -1,8 +1,14 @@
 # Casos concretos del MVP
 
-Actualización del criterio, 2026-10-24: el primer recorrido se evalúa bajo la referencia del Gol de fábrica acordada en `IMPLEMENTATION_PLAN.md`. Una modificación registrada no debe bloquear la recuperación base; debe llegar al contexto de Gemini y distinguirse de lo afirmado por el manual. Agregar a la verificación un par de consultas equivalentes con/sin modificaciones, comprobando recuperación base y contextualización. Se conservan la abstención ante falta de cobertura y X02 para impedir atribuir especificaciones de otro motor al vehículo. Los escenarios originales siguen pendientes de ejecución; no se da por probada esta nueva conducta.
+## Estado vigente — 2026-10-25
 
-Fecha: 2026-10-23. Son 20 escenarios sintéticos de diseño, escritos para el proyecto; no son averías reales ni resultados de evaluación. No se ejecutó Gemini ni se implementó el evaluador. Las referencias apuntan a los grupos de [MVP_CORPUS.md](MVP_CORPUS.md), todos pendientes de aprobación para RAG.
+Se ejecutaron los veinte casos, con dos comparaciones adicionales sin modificaciones. Resultado de revisión: **11 cumplen, 5 parciales y 4 fallan**. Los criterios ejecutables están en `mvp-eval-cases-v1.json`; adaptación del alcance, pruebas públicas, ejecución real, fallos y CI en [MVP_EVALUATION.md](MVP_EVALUATION.md). Disponer de una cita o HTTP 200 no aprueba la respuesta.
+
+## Diseño histórico y criterios originales
+
+Actualización del criterio, 2026-10-24: el primer recorrido se evalúa bajo la referencia del Gol de fábrica acordada en `IMPLEMENTATION_PLAN.md`. Una modificación registrada no debe bloquear la recuperación base; debe llegar al contexto de Gemini y distinguirse de lo afirmado por el manual. Agregar a la verificación un par de consultas equivalentes con/sin modificaciones, comprobando recuperación base y contextualización. Se conservan la abstención ante falta de cobertura y X02 para impedir atribuir especificaciones de otro motor al vehículo. Esta era la decisión previa a su ejecución; el resultado actual y sus límites están en la actualización superior.
+
+Fecha: 2026-10-23. Son 20 escenarios sintéticos de diseño, escritos para el proyecto; no son averías reales ni resultados de evaluación. Al redactar este diseño aún no se había ejecutado Gemini ni implementado el evaluador. Las referencias apuntan a los grupos de [MVP_CORPUS.md](MVP_CORPUS.md), todos pendientes de aprobación para RAG.
 
 ## Alcance de las respuestas
 
@@ -42,12 +48,12 @@ La columna de fuentes indica dónde revisar evidencia, no citas ya aprobadas. Pa
 1. Cada caso tendrá entrada estructurada: vehículo conocido/desconocido, síntoma, estado del motor, condiciones de medición y hechos disponibles. No completar los campos desconocidos en silencio.
 2. La respuesta deberá separar prioridad/advertencias, hipótesis, evidencia, comprobaciones y datos faltantes. Las pruebas sugeridas deben mantenerse dentro del alcance aprobado.
 3. Comprobar que cada cita existe, pertenece a un fragmento aprobado y compatible y respalda la afirmación. Tener una cita real no basta si no dice lo que la respuesta afirma. Los grupos de esta tabla son alternativas de búsqueda, no una obligación de citar todas sus páginas.
-4. Para O01, C01, C03, B02 y E03, comprobar que un resultado del modelo no reduce la prioridad exigida por las reglas determinísticas. Para O02, B01 y E02, comprobar que no se inventa una avería a partir de la secuencia normal descrita. El catálogo de reglas todavía debe implementarse.
-5. Ejecutar cada escenario también sin fragmentos aprobados: indicar falta de evidencia, omitir especificaciones y conservar las advertencias propias del producto que correspondan. En el estado actual esta es la única variante documental disponible.
+4. Para O01, C01, C03, B02 y E03, comprobar que un resultado del modelo no reduce la prioridad exigida por las reglas determinísticas. Para O02, B01 y E02, comprobar que no se inventa una avería a partir de la secuencia normal descrita. El catálogo de precauciones ya se implementó y amplió; su alcance probado figura en la evaluación vigente.
+5. Ejecutar cada escenario también sin fragmentos aprobados: indicar falta de evidencia, omitir especificaciones y conservar las advertencias propias del producto que correspondan. Esta variante se ejecuta con datos públicos sintéticos, además de la ronda real con la biblioteca completa.
 6. En X02 inyectar un fragmento didáctico incompatible para probar el filtro. No agregar páginas privadas no seleccionadas solo para ejecutar la prueba pública.
 7. Guardar resultado por criterio y versión de corpus/modelo/prompt. Separar tests con respuestas simuladas de ejecuciones reales del proveedor. No presentar «20 casos definidos» como «20 casos aprobados» ni la simulación como evaluación clínica o mecánica.
 
-Los criterios son semánticos, no coincidencias obligatorias de redacción. El evaluador y las respuestas de referencia siguen pendientes. Las citas y traducciones del portugués deberán conservar el vínculo al texto original; no reemplazarlo por una traducción sin trazabilidad.
+Los criterios son semánticos, no coincidencias obligatorias de redacción. El evaluador y la primera ronda ya están registrados; los fallos no se consideran aceptados por haber sido ejecutados. Las citas y traducciones del portugués deberán conservar el vínculo al texto original; no reemplazarlo por una traducción sin trazabilidad.
 
 ## Demostración del flujo completo
 

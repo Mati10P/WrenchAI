@@ -89,7 +89,7 @@ def reply_to(db, message_id, requested_model=None):
         modifications=vehicle.modifications or "",
     )
     warning = assistant.safety_warning(
-        incident.description + " " + " ".join(m.content for m in history)
+        "\n".join([incident.description, *(m.content for m in history)])
     )
     retrieval = {"conversation": resolution}
     equipment_scope = document_scope.requires_equipment_document(resolution)
@@ -149,7 +149,12 @@ def reply_to(db, message_id, requested_model=None):
             summary=warning,
             hypotheses=[],
             checks=[],
-            questions=["¿El vehículo está detenido en un lugar seguro?"],
+            questions=["¿El vehículo está detenido en un lugar seguro?"]
+            + (
+                ["¿Qué nivel observaste y qué cambios notaste en el pedal?"]
+                if "freno" in warning
+                else []
+            ),
             citation_ids=[],
         )
         model = "safety-rules-v1"

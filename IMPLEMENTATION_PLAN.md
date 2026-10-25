@@ -1,5 +1,21 @@
 # Plan de implementación
 
+## Entrega vigente — veinte escenarios y CI, 2026-10-25
+
+- [x] Versionar los veinte casos ejecutables, adaptados a manuales completos, con criterios previos y comparación con/sin modificaciones.
+- [x] Ejecutar los veinte por API: 22 consultas contando las dos comparaciones; siete respuestas locales de seguridad y quince solicitudes a Gemini. Preservar respuestas, tiempos, modelos, hashes y modificaciones originales.
+- [x] Separar controles automáticos de revisión semántica: 22/22 pasan estructura/persistencia; sobre veinte casos, **11 cumplen, 5 parciales y 4 fallan**. No equivale a veinte respuestas aprobadas ni a validación mecánica profesional.
+- [x] Ejecutar cada caso sin evidencia y con pasajes sintéticos: cuarenta pruebas públicas, incluyendo exclusión de un pasaje diésel incompatible antes del proveedor.
+- [x] Ampliar precauciones de frenos, temperatura y carga; distinguir la secuencia normal de arranque y evitar que un testigo normal cancele otro aviso. No depender del proveedor para esas prioridades.
+- [x] Verificar en Linux sin secretos ni manuales: 208 pruebas backend, 30 de herramientas, formato/build frontend, actionlint y comprobación documental.
+- [x] Preparar GitHub Actions con PostgreSQL/pgvector, Python 3.11, Node 24, permisos de lectura y actions oficiales fijadas por SHA.
+- [ ] Comprobar la primera corrida remota de Actions después del commit/push del propietario.
+- [ ] Corregir C04, B01, X01 y X03: citas tangenciales, epígrafes/variante de tablero y aclaraciones insuficientes. Cerrar también los cinco casos parciales O03/O04/O05/C05/X04.
+- [ ] Repetir regresiones y agregar preguntas independientes antes de presentar una tasa de calidad o ampliar a búsqueda web.
+
+Detalle, rúbricas y resultados: [MVP_EVALUATION.md](docs/MVP_EVALUATION.md).
+**Próximo bloque:** corregir los fallos de fidelidad encontrados. La búsqueda web y la demo siguen pendientes. Las entregas inferiores conservan el historial.
+
 ## Entrega vigente — seguimiento conversacional y alcance de equipos, 2026-10-25
 
 - [x] Resolver seguimientos con el tema del usuario antes de buscar: cantidad de aceite, comprobación de tensión y condiciones del motor.
@@ -167,7 +183,7 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [x] Manejo de errores, reintento manual sin duplicar mensajes y control de concurrencia.
 - [x] Selector de modelo en el chat, validado en backend y conservado por navegador.
 - [x] Pruebas reales de conectividad y generación registradas; mejora puntual de latencia con Flash-Lite. No equivalen a evaluación mecánica.
-- [x] Cuatro reglas determinísticas de advertencia y validación de identificadores de citas.
+- [x] Precauciones determinísticas de frenos, combustible, aceite, temperatura y carga, con distinción de secuencias normales y validación de identificadores de citas.
 - [x] Ingesta administrativa transaccional con aprobación explícita y comprobación SHA-256.
 - [x] Recuperación textual en PostgreSQL, filtrado de compatibilidad y consulta de fuentes sin Gemini.
 - [x] Citas de varias páginas en ingesta, recuperación, contexto, respuestas persistentes e interfaz; lectura compatible con citas antiguas de una página.
@@ -188,12 +204,13 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 
 ### D — Pruebas y evaluación (parcial)
 - [x] Definir 20 escenarios y sus criterios en `docs/MVP_CASES.md`.
-- [x] Suite automatizada de backend con proveedor simulado y PostgreSQL real: última ejecución de 159 pruebas correctas en el bloque conversacional.
-- [x] Herramientas documentales: 24 pruebas pasan en esta revisión.
+- [x] Suite automatizada de backend con proveedor simulado y PostgreSQL real: última ejecución de 208 pruebas correctas en Linux, con proveedor simulado cuando corresponde.
+- [x] Herramientas documentales y evaluador: última ejecución de 30 pruebas correctas en Linux.
 - [x] Compilación TypeScript/Vite y formato del frontend correctos.
-- [ ] Ejecutar los 20 escenarios de extremo a extremo; evaluar por separado citas, abstención, seguridad y recuperación.
+- [x] Ejecutar los veinte escenarios por API y revisar por separado citas, abstención, seguridad y recuperación; resultados y fallos abiertos en `docs/MVP_EVALUATION.md`.
+- [ ] Cerrar los cuatro fallos y cinco parciales, repetir regresión y añadir evaluación independiente.
 - [ ] Evaluación mecánica real de Gemini y comparación de calidad/latencia entre modelos con casos representativos.
-- [ ] Configurar CI con GitHub Actions.
+- [x] Configurar CI con GitHub Actions y verificar sus comandos localmente en Linux. Primera corrida remota pendiente del push del propietario.
 - [ ] Revisar las 72 observaciones de Ruff detectadas con la configuración actual al ejecutar `python -m ruff check backend scripts` (48 C408, 18 I001 y seis restantes). No se corrigieron durante esta revisión documental.
 
 ### E — Demo y entrega (pendiente)

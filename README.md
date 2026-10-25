@@ -8,7 +8,7 @@ Proyecto de portfolio para conseguir una primera experiencia laboral: una aplica
 
 La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. **Mi auto** reúne los datos del vehículo, modificaciones, trabajos y costos. Gemini responde con citas y figuras de los manuales, usando el Gol original como referencia documental y considerando las modificaciones pertinentes. La recuperación combina BM25, pgvector y secciones del manual; conserva el tema en preguntas de seguimiento y pide aclaración si la referencia es ambigua. Ver [contexto conversacional y límites de equipos instalados](docs/CONVERSATION_RETRIEVAL.md).
 
-La revisión mecánica completa, los veinte escenarios, CI, búsqueda web y demo siguen pendientes. El avance verificado está en la [checklist del plan](IMPLEMENTATION_PLAN.md).
+Se ejecutaron los veinte escenarios y dos comparaciones: la revisión encontró 11 casos que cumplen, 5 parciales y 4 fallidos. La CI está preparada y verificada localmente en Linux con 208 pruebas backend, 30 de herramientas y build/formato frontend; su primera ejecución remota queda pendiente del push. Ver [resultados y límites de la evaluación](docs/MVP_EVALUATION.md). La prioridad es corregir esos fallos; revisión mecánica profesional, búsqueda web y demo siguen pendientes. El avance está en la [checklist del plan](IMPLEMENTATION_PLAN.md).
 
 El prototipo de consola `maintenance_demo.py` se conserva como antecedente educativo con SQLite. Sus datos no se migran automáticamente a la API.
 
