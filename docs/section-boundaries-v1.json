@@ -1,0 +1,17 @@
+{
+  "gol-repair-candidate-0210-region-009": {
+    "level": 2,
+    "page_image_sha256": "c0dc23d8de2070415262415454985897f62473de3640e5a4c307809ec9e8b771",
+    "review": "Visual boundary: brake caliper topic, peer of rear cylinder and servo."
+  },
+  "gol-repair-candidate-0211-region-012": {
+    "level": 2,
+    "page_image_sha256": "45c681d976a32d41a2e8cdbb9453eadb09bf460ebfd9b12f6a317008547e121b",
+    "review": "Visual boundary: Fig. VI.16 belongs to this topic; procedure continues above Servofreno on PDF 212."
+  },
+  "gol-repair-candidate-0212-region-010": {
+    "level": 2,
+    "page_image_sha256": "92932ca5bdb9e360f120afc473ed47d1dfba91e7007d8b3352e9a51e85d2f20f",
+    "review": "Visual boundary: ends rear cylinder topic and starts servo topic, Fig. VI.17."
+  }
+}

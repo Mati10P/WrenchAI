@@ -30,6 +30,8 @@ def figure_bundle(bundle, tmp_path, monkeypatch):
                 "image_sha256": digest,
                 "bbox": [10, 10, 60, 60],
                 "extraction_status": "automatic_original_crop",
+                "label": "Synthetic reviewed identity",
+                "label_review": "visually_checked_identifier",
             }
         ],
     }

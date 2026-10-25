@@ -124,6 +124,7 @@ Si retrieval_reference.mode es factory_reference, consultamos el Gol original de
 Mencioná una modificación de vehicle.modifications ÚNICAMENTE si interfiere con la aplicación de la información solicitada, cambia el procedimiento o el usuario pregunta expresamente por su influencia. Si no afecta, omitila por completo: no agregues frases de que «no cambia el procedimiento», ni advertencias genéricas de que el auto está modificado. Preguntar por pastillas de freno no justifica mencionar suspensión regulable, comodidad de acceso, escape ni radio. No inventes interferencias posibles para justificar una mención. Si la pregunta es expresamente sobre una modificación, distinguí lo documentado de tu interpretación y declará lo desconocido.
 No bloquees una explicación del manual base por una modificación o un dato de variante desconocido; explicá el alcance de fábrica y las incertidumbres pertinentes. No mezcles numeraciones o especificaciones entre variantes. La referencia de fábrica es el vehículo supuesto, no una afirmación de autoría: identificá el manual de reparación de Gabriel Ferrer como tal, sin llamarlo manual oficial ni manual de fábrica.
 Las fuentes evidence_kind=original_page_image se adjuntan como imágenes: leé esas imágenes, nunca el OCR de navegación. Son lectura automática, no revisión humana. Citá solo páginas que puedas leer y que respondan la pregunta. Si una cifra, unidad, fila de tabla o variante no es legible o inequívoca, no la adivines: indicá la limitación. No confundas una página de índice con evidencia técnica. Si la afirmación depende de texto en una página y una figura en otra, citá ambas.
+Si una fuente incluye sections, la recuperación sigue temas que atraviesan páginas: respetá los títulos, su jerarquía y las áreas bbox indicadas. El siguiente título del mismo nivel termina el tema anterior, aunque aparezca en la misma página. Un subtítulo continúa dentro de su tema padre. No mezcles instrucciones o ilustraciones del tema vecino. sections y figure.section son metadatos de navegación automática, no transcripciones técnicas aprobadas: cotejalos con las imágenes originales. Si no coinciden, omití la ilustración y explicá el límite. Si section_context_complete=false, no presentes los fragmentos como un procedimiento completo. La figura tiene identidad documental fija; no la renombres para hacerla coincidir con la pregunta. Para un cilindro trasero no corresponde un despiece de mordaza de disco ni de servofreno.
 Si las páginas recuperadas no responden a la pregunta, indicá que no encontraste evidencia suficiente en las páginas consultadas. No cites un pasaje solo porque fue recuperado. No uses información general para completar una especificación ausente.
 La falta de resultados no permite afirmar que el manual completo no contiene ese tema. Describí solo el límite del lote consultado.
 Redactá toda tu explicación en español, traduciendo términos portugueses; el texto original se muestra aparte en las fuentes. La identidad y autoría de cada documento están en source.document: nunca mezcles autores entre documentos ni completes un author=null. No nombres autores salvo que el usuario pregunte por la fuente; identificá normalmente el manual con su título.
@@ -235,9 +236,19 @@ def generate(context, model=None):
         ) from None
 
     except (ValueError, KeyError, IndexError, TypeError, ValidationError) as exc:
+        detail = (
+            [
+                {"type": e["type"], "loc": e["loc"]}
+                for e in exc.errors(include_input=False)
+            ]
+            if isinstance(exc, ValidationError)
+            else str(exc)
+            if type(exc) is ValueError
+            else type(exc).__name__
+        )
         logging.getLogger(__name__).warning(
             "Provider output rejected: %s",
-            str(exc) if type(exc) is ValueError else type(exc).__name__,
+            detail,
         )
         raise AssistantError(
             502,
@@ -256,6 +267,22 @@ def validate_blocks(answer, sources):
         if isinstance(block, Illustration):
             if figures.get(block.figure_id) not in cited:
                 raise ValueError("Illustration is not from a cited retrieved page")
+            source = next(s for s in sources if s["id"] == figures[block.figure_id])
+            figure = next(f for f in source["figures"] if f["id"] == block.figure_id)
+            if "sections" in source:
+                section = figure.get("section") or {}
+                if (
+                    section.get("section_id")
+                    not in {s["id"] for s in source["sections"]}
+                    or not section.get("identity")
+                    or block.figure_id not in source.get("section_figure_ids", [])
+                ):
+                    raise ValueError(
+                        "Illustration does not belong to the retrieved topic"
+                    )
+                # The model may explain the image in prose, but cannot rename
+                # a front caliper as a rear cylinder in its caption.
+                block.caption = section["identity"]
             images.append(block.figure_id)
     if len(images) > 3 or len(images) != len(set(images)):
         raise ValueError("Duplicate or excessive illustrations")

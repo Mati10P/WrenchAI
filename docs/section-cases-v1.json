@@ -1,0 +1,40 @@
+[
+  {
+    "id": "rear-cylinder",
+    "question": "¿Cómo cambio los cilindros de freno de atrás? Mostrame el despiece del cilindro.",
+    "expected_any": ["gol-repair-candidate-0211", "gol-repair-candidate-0212"],
+    "expected_all": ["gol-repair-candidate-0211", "gol-repair-candidate-0212"],
+    "allowed_figures": ["gol-repair-candidate-0211-region-001"],
+    "forbidden": ["castor", "suspensi[oó]n", "escape"],
+    "figure_expected": true,
+    "review": "Figura VI.16, texto PDF 212 antes de Servofreno y leyenda de piezas. No mezclar mordaza VI.15 ni servo VI.17; no completar instalación o purgado sin fuente."
+  },
+  {
+    "id": "rear-cylinder-explicit",
+    "question": "Me refiero al cilindro de freno que está en las ruedas traseras, en el freno tambor. ¿Cómo lo saco? Incluí la ilustración correspondiente.",
+    "expected_any": ["gol-repair-candidate-0211", "gol-repair-candidate-0212"],
+    "expected_all": ["gol-repair-candidate-0211", "gol-repair-candidate-0212"],
+    "allowed_figures": ["gol-repair-candidate-0211-region-001"],
+    "forbidden": ["castor", "suspensi[oó]n", "escape"],
+    "figure_expected": true,
+    "review": "Mismo componente con vocabulario explícito. Conservar páginas distintas para figura y procedimiento y no renombrar ilustraciones."
+  },
+  {
+    "id": "servo-topic",
+    "question": "Mostrame el despiece del servofreno que aparece en el manual e identificá qué conjunto representa.",
+    "expected_any": ["gol-repair-candidate-0212"],
+    "allowed_figures": ["gol-repair-candidate-0212-region-001"],
+    "forbidden": ["castor", "suspensi[oó]n", "escape"],
+    "figure_expected": true,
+    "review": "Figura VI.17. No usar la figura VI.16 del cilindro trasero aunque comparta página con su procedimiento."
+  },
+  {
+    "id": "caliper-topic",
+    "question": "Mostrame el despiece de la mordaza del freno a disco del manual. ¿Dónde se ven las pastillas?",
+    "expected_any": ["gol-repair-candidate-0210"],
+    "allowed_figures": ["gol-repair-candidate-0210-region-001"],
+    "forbidden": ["castor", "suspensi[oó]n", "escape"],
+    "figure_expected": true,
+    "review": "Figura VI.15 y leyenda PDF 211: las pastillas son la referencia 2. No atribuir el cilindro trasero a la mordaza."
+  }
+]

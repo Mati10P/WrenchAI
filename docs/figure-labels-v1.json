@@ -1,15 +1,39 @@
 {
+  "gol-repair-candidate-0210-region-001": {
+    "page_image_sha256": "c0dc23d8de2070415262415454985897f62473de3640e5a4c307809ec9e8b771",
+    "label": "Figura VI.15. Despiece del freno a disco.",
+    "context_pages": [
+      211
+    ]
+  },
+  "gol-repair-candidate-0211-region-001": {
+    "page_image_sha256": "45c681d976a32d41a2e8cdbb9453eadb09bf460ebfd9b12f6a317008547e121b",
+    "label": "Figura VI.16. Despiece del cilindro del freno de rueda trasera.",
+    "context_pages": [
+      212
+    ]
+  },
+  "gol-repair-candidate-0212-region-001": {
+    "page_image_sha256": "92932ca5bdb9e360f120afc473ed47d1dfba91e7007d8b3352e9a51e85d2f20f",
+    "label": "Figura VI.17. Despiece del servofreno.",
+    "context_pages": [
+      213
+    ]
+  },
   "gol-owner-candidate-0095-region-004": {
     "page_image_sha256": "b71c6efe1a3e6a2e49ab872738ddb091e92936ca822de906ad1a6cfaf314ce44",
-    "label": "Detalle de la traba A de la escobilla: se ve la letra A y la flecha azul."
+    "label": "Detalle de la traba A de la escobilla: se ve la letra A y la flecha azul.",
+    "section_id": "gol-owner-candidate-0095-region-008"
   },
   "gol-owner-candidate-0095-region-001": {
     "page_image_sha256": "b71c6efe1a3e6a2e49ab872738ddb091e92936ca822de906ad1a6cfaf314ce44",
-    "label": "Escobilla montada junto al parabrisas; esta figura no muestra la traba A."
+    "label": "Escobilla montada junto al parabrisas; esta figura no muestra la traba A.",
+    "section_id": "gol-owner-candidate-0095-region-008"
   },
   "gol-owner-candidate-0095-region-002": {
     "page_image_sha256": "b71c6efe1a3e6a2e49ab872738ddb091e92936ca822de906ad1a6cfaf314ce44",
-    "label": "Antena electrónica del techo; no representa una escobilla."
+    "label": "Antena electrónica del techo; no representa una escobilla.",
+    "section_id": "gol-owner-candidate-0095-region-010"
   },
   "gol-repair-candidate-0083-region-002": {
     "page_image_sha256": "a219c441f6a78eff973ce607e916489567a4b0ea2e796ab1433e201605eac23a",
@@ -26,11 +50,13 @@
   "gol-owner-candidate-0100-region-001": {
     "page_image_sha256": "231181dd47838bcedfd14c39507a0518f41914da0011d1a8eae29fa0468194d0",
     "label": "Faro antiniebla: A cofia de sellado, B traba y C referencias de montaje de la lámpara.",
-    "context_pages": []
+    "context_pages": [],
+    "section_id": "gol-owner-candidate-0100-region-009"
   },
   "gol-owner-candidate-0100-region-002": {
     "page_image_sha256": "231181dd47838bcedfd14c39507a0518f41914da0011d1a8eae29fa0468194d0",
     "label": "Indicador de giro delantero; no es el faro antiniebla.",
-    "context_pages": []
+    "context_pages": [],
+    "section_id": "gol-owner-candidate-0100-region-007"
   }
 }

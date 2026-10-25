@@ -107,6 +107,12 @@ def run(base, vehicle_id, cases_file, output):
                 if case["figure_expected"]
                 else True,
                 "image_integrity": True,
+                "all_expected_sources": set(case.get("expected_all", [])) <= cited,
+                "correct_figure_identity": all(
+                    b["figure_id"] in case["allowed_figures"] for b in figures
+                )
+                if "allowed_figures" in case
+                else True,
             }
             for block in figures:
                 f = next(

@@ -47,6 +47,20 @@ function ManualFigure({
 }
 
 export function AssistantMessage({ reply }: { reply: Reply }) {
+  const groups = new Map<
+    string,
+    { source: Reply["sources"][number]; ids: string[] }
+  >();
+  for (const source of reply.sources) {
+    const key = `${source.document?.id ?? source.title}:${(source.pages ?? [source.page]).join(",")}`;
+    const group = groups.get(key);
+    if (group) {
+      group.ids.push(source.id);
+      if (source.evidence_kind === "original_page_image") group.source = source;
+    } else groups.set(key, { source, ids: [source.id] });
+  }
+  const references = [...groups.values()];
+  const shownReferences = new Set<number>();
   return (
     <article
       className={`assistant-message ${reply.safety_warning ? "safety-message" : ""}`}
@@ -64,27 +78,35 @@ export function AssistantMessage({ reply }: { reply: Reply }) {
               <div className="answer-paragraph" key={index}>
                 <p>{block.text}</p>
                 {block.source_ids.map((id) => {
-                  const source = reply.sources.find((s) => s.id === id);
-                  if (!source) return null;
+                  const reference = references.findIndex((r) =>
+                    r.ids.includes(id),
+                  );
+                  if (reference < 0 || shownReferences.has(reference))
+                    return null;
+                  shownReferences.add(reference);
+                  const source = references[reference].source;
                   return (
                     <a
                       className="paragraph-source"
                       key={id}
-                      href={
-                        source.evidence_kind === "original_page_image"
-                          ? `/api/manual-pages/${encodeURIComponent(id)}`
-                          : `#source-${reply.message_id}-${id}`
-                      }
-                      target={
-                        source.evidence_kind === "original_page_image"
-                          ? "_blank"
-                          : undefined
-                      }
-                      rel="noreferrer"
+                      href={`#source-${reply.message_id}-${source.id}`}
+                      aria-label={`Fuente ${reference + 1}: ${source.title}, página PDF ${source.page}`}
+                      title={`${source.title} · página PDF ${source.page}`}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        const details = document.getElementById(
+                          `source-${reply.message_id}-${source.id}`,
+                        );
+                        if (details instanceof HTMLDetailsElement) {
+                          details.open = true;
+                          details.scrollIntoView({
+                            block: "nearest",
+                            behavior: "smooth",
+                          });
+                        }
+                      }}
                     >
-                      {source.evidence_kind === "original_page_image"
-                        ? `Ver página PDF ${source.page}`
-                        : `Fuente: ${source.title}`}
+                      [{reference + 1}]
                     </a>
                   );
                 })}
@@ -135,14 +157,14 @@ export function AssistantMessage({ reply }: { reply: Reply }) {
             : "Sin respaldo documental recuperado. Orientación general; no confirma una causa ni que sea seguro circular."}
         </small>
       )}
-      {reply.sources.map((source) => (
+      {references.map(({ source }, index) => (
         <details
           className="source"
           key={source.id}
           id={`source-${reply.message_id}-${source.id}`}
         >
           <summary>
-            {source.title} ·{" "}
+            [{index + 1}] {source.title} ·{" "}
             {(source.pages?.length ?? 1) > 1 ? "páginas PDF" : "página PDF"}{" "}
             {(source.pages ?? [source.page]).join(", ")}
           </summary>

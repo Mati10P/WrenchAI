@@ -52,6 +52,8 @@ def catalog():
 
 
 def attach(sources):
+    from . import manual_sections
+
     figures = (
         catalog()
         if any(s.get("evidence_kind") == "original_page_image" for s in sources)
@@ -62,13 +64,19 @@ def attach(sources):
         if s.get("evidence_kind") != "original_page_image":
             continue
         candidates = [f for f in figures.values() if f["page_id"] == s["id"]]
-        # Largest three diagrams per page; preserve their original reading order.
-        candidates.sort(
-            key=lambda f: -(f["bbox"][2] - f["bbox"][0]) * (f["bbox"][3] - f["bbox"][1])
-        )
-        selected = sorted(
-            candidates[: min(3, remaining)], key=lambda f: (f["bbox"][1], f["bbox"][0])
-        )
+        if "sections" in s:
+            candidates = [f for f in candidates if f["id"] in s["section_figure_ids"]]
+        else:
+            # Without a structural association only reviewed identities may be
+            # offered. An arbitrary picture on a relevant page is insufficient.
+            candidates = [
+                f
+                for f in candidates
+                if f.get("label_review") == "visually_checked_identifier"
+            ]
+        selected = sorted(candidates, key=lambda f: (f["bbox"][1], f["bbox"][0]))[
+            : min(3, remaining)
+        ]
         s["figures"] = [
             {
                 "id": f["id"],
@@ -85,6 +93,11 @@ def attach(sources):
                     for identifier in f.get("context_page_ids", [])
                     if any(s2["id"] == identifier for s2 in sources)
                 ],
+                **(
+                    {"section": manual_sections.figure_metadata(f["id"])}
+                    if "sections" in s
+                    else {}
+                ),
             }
             for f in selected
         ]
@@ -135,7 +148,7 @@ def image_parts(sources):
             parts.extend(
                 [
                     {
-                        "text": f"Ilustración original figure_id={f['id']}, source_id={source['id']}. Descripción identificativa: {f.get('label') or 'sin rotulado revisado; comprobar la imagen'}. Seleccionala solo si ayuda a esta consulta. La página completa conserva el contexto."
+                        "text": f"Ilustración original figure_id={f['id']}, source_id={source['id']}. Identidad documental: {f.get('section', {}).get('identity') or f.get('label') or 'sin identidad revisada'}. Seleccionala solo si la imagen confirma esa identidad y ayuda a esta consulta. No cambies su identidad mediante el epígrafe. La página completa conserva el contexto."
                     },
                     {
                         "inlineData": {

@@ -8,7 +8,14 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from . import assistant, corpus, manual_figures, manual_library, vector_search
+from . import (
+    assistant,
+    corpus,
+    manual_figures,
+    manual_library,
+    manual_sections,
+    vector_search,
+)
 from .database import database_url, session_factory
 from .models import AssistantReply, Incident, Measurement, Message, Vehicle
 from .references import retrieval_reference
@@ -318,18 +325,22 @@ def create_app(url=None):
     def assistant_status(db: DB):
         count = corpus.count_passages(db)
         library_status = manual_library.status()
+        section_status = manual_sections.status()
         vector_status = (
             vector_search.index_status(db)
             if library_status["available"]
             else {"enabled": vector_search.enabled(), "available": False, "chunks": 0}
         )
-        corpus_valid = not library_status.get("error", False)
+        corpus_valid = not library_status.get(
+            "error", False
+        ) and not section_status.get("error", False)
         return {
             "configured": assistant.configured(),
             "models": assistant.MODEL_OPTIONS,
             "default_model": assistant.model_name(),
             "approved_passages": count,
             "manual_library": library_status,
+            "manual_sections": section_status,
             "vector_search": vector_status,
             "corpus_valid": corpus_valid,
             "web_search": False,

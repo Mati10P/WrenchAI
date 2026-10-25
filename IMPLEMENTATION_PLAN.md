@@ -1,5 +1,22 @@
 # Plan de implementación
 
+## Entrega vigente — recuperación por temas e ilustraciones correspondientes, 2026-10-25
+
+- [x] Reconstruir títulos, subtítulos, columnas y límites entre temas, conservando las páginas originales y el OCR como navegación sin aprobación técnica.
+- [x] Recuperar fragmentos dentro de una sección y expandir sus continuaciones en ambas direcciones; combinar esa estructura con los candidatos de BM25/pgvector existentes.
+- [x] Vincular figuras con su tema e identidad; excluir asociaciones inciertas y fijar epígrafes para impedir que una mordaza se presente como cilindro trasero.
+- [x] Revisar el caso concreto: VI.16 y título en PDF 211, procedimiento en PDF 212 hasta «Servofreno»; separar VI.15 y VI.17.
+- [x] Resolver cinco relaciones revisadas de dibujos anteriores al título o que abarcan columnas en el manual del propietario; conservar hashes y originales.
+- [x] Reemplazar enlaces largos repetidos por referencias compactas y una entrada por fuente equivalente, sin perder acceso a la página completa.
+- [x] Activar bundles privados: 572 secciones y 597 asignaciones, con exclusión de las que no tienen identidad suficiente. Los 598 recortes originales siguen disponibles.
+- [x] Añadir once pruebas de estructura/selección; suite completa de 106 pruebas, build/formato frontend, Ruff y comprobación documental.
+- [x] Ejecutar cuatro consultas de frenos y doce regresiones con Gemini. Dos respuestas iniciales de frenos fallaron el esquema; ambos reintentos respondieron correctamente. Las doce regresiones respondieron HTTP 200 y pasaron sus comprobaciones automáticas.
+- [x] Verificar en el navegador el cilindro trasero correcto, las referencias compactas y la apertura de una fuente sin salir del chat; conservar captura privada.
+- [ ] Ampliar revisión de jerarquías/columnas y diagramas sin leyenda, y evaluación independiente. La preparación automática no valida todo el manual.
+
+Detalle, reproducción, evidencia y límites: [SECTION_RETRIEVAL.md](docs/SECTION_RETRIEVAL.md).
+Próximo bloque: contexto de preguntas de seguimiento («¿y atrás?», «¿cuánto lleva?»), sin arrastrar el tema anterior cuando cambie la consulta. Luego ampliar escenarios y CI. Las entregas siguientes conservan el registro histórico.
+
 ## Entrega vigente — tono profesional, fidelidad e ilustraciones, 2026-10-25
 
 - [x] Responder con voseo natural y tono profesional/directo; retirar «che» y saludos iniciales, sin alterar valores ni unidades.

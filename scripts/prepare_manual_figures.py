@@ -85,6 +85,8 @@ def prepare(library, output):
                         for n in annotation.get("context_pages", [])
                     ]
                     figures[-1]["label_review"] = "visually_checked_identifier"
+                    if annotation.get("section_id"):
+                        figures[-1]["section_id"] = annotation["section_id"]
     (output / "figures.json").write_text(
         json.dumps(
             {

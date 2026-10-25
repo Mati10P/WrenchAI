@@ -20,6 +20,7 @@ services:
     environment:
       MANUAL_LIBRARY_PATH: ${MANUAL_LIBRARY_PATH:-}
       MANUAL_FIGURES_PATH: ${MANUAL_FIGURES_PATH:-}
+      MANUAL_SECTIONS_PATH: ${MANUAL_SECTIONS_PATH:-}
       HYBRID_RETRIEVAL: ${HYBRID_RETRIEVAL:-false}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
@@ -27,6 +28,7 @@ services:
     volumes:
       - ./data/private/manuals/library-v1:/manual-library:ro
       - ${MANUAL_FIGURES_DIRECTORY:-./data/private/manuals/figures-v1}:/manual-figures:ro
+      - ${MANUAL_SECTIONS_DIRECTORY:-./data/private/manuals/sections-v1}:/manual-sections:ro
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
