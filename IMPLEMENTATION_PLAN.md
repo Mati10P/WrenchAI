@@ -1,5 +1,21 @@
 # Plan de implementación
 
+## Bloque vigente — búsqueda híbrida con vectores, 2026-10-25
+
+La biblioteca completa incorpora recuperación semántica multilingüe con Gemini Embedding y pgvector, combinada con BM25. Los vectores sirven para localizar páginas: la respuesta sigue apoyándose en las imágenes originales y el contexto real del vehículo.
+
+- [x] Migración 0008 y almacenamiento de embeddings separado de los pasajes aprobados.
+- [x] Particionado con solapamiento, hashes, caché privada y reconstrucción transaccional del índice.
+- [x] Ranking por coseno, fusión con BM25 y comprobación de versión/completitud antes de usar vectores.
+- [x] Fallback léxico por proveedor indisponible o índice ausente/desactualizado; mantener prioridad de seguridad.
+- [x] Pruebas de integración con PostgreSQL y vectores reales de prueba, validación del proveedor y reintentos.
+- [x] Completar la indexación: 546 vectores de 768 dimensiones para 530 páginas con OCR; las dos páginas sin texto conservan sus imágenes.
+- [x] Comparar recuperación y calibrar con diez consultas: BM25 final 9/10, híbrida final 10/10; la página de escobillas se recupera solo con el aporte semántico. Estos son casos de calibración, no una estimación general de precisión.
+- [x] Activar el índice en Docker y verificar por HTTP una respuesta con cita PDF 95 y un caso sin cobertura, conservando las modificaciones en el snapshot.
+- [ ] Ampliar la evaluación con consultas nuevas y variantes; afinar la generación de Gemini, que todavía puede mezclar autorías o mencionar modificaciones irrelevantes aunque recupere y cite la página correcta.
+
+Instalación y detalles: [VECTOR_RETRIEVAL.md](docs/VECTOR_RETRIEVAL.md). Las secciones siguientes conservan el historial de los bloques anteriores.
+
 ## Ampliación vigente — manuales completos, 2026-10-24
 
 Por pedido del propietario se amplía la cobertura a los dos PDF completos: 532 páginas. El OCR sin revisar solo localiza páginas; Gemini lee las imágenes originales recuperadas y sus continuaciones. Esto amplía el acceso documental sin aprobar las transcripciones pendientes. Los cinco fragmentos revisados siguen activos y las modificaciones reales se conservan.
@@ -10,7 +26,7 @@ Por pedido del propietario se amplía la cobertura a los dos PDF completos: 532 
 - [x] Mantener referencia de fábrica, modificaciones y reglas de seguridad incluso si la biblioteca falla.
 - [x] Probar respuestas reales sobre neumáticos, embrague y fusibles. La primera consulta de fusibles agotó el timeout; el reintento respondió con cita. Registro privado conservado.
 - [ ] Revisar técnicamente todo el OCR y las tablas; disponer de los PDF completos no equivale a validar todo su contenido.
-- [ ] Añadir recuperación semántica y evaluar más preguntas y variantes.
+- [x] Añadir recuperación semántica y realizar la primera calibración; ampliación de casos y variantes pendiente en el bloque vigente.
 - [ ] Completar recorrido visual de la interfaz en navegador.
 
 Detalle reproducible, pruebas y límites: [FULL_MANUAL_LIBRARY.md](docs/FULL_MANUAL_LIBRARY.md). La sección siguiente conserva el alcance del MVP anterior.

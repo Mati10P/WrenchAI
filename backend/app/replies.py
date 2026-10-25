@@ -68,10 +68,13 @@ def reply_to(db, message_id, requested_model=None):
     warning = assistant.safety_warning(
         incident.description + " " + " ".join(m.content for m in history)
     )
+    retrieval = {}
     try:
         sources = [] if warning else corpus.search(db, vehicle, message.content)
         if not warning:
-            sources += manual_library.search(vehicle, message.content)
+            sources += manual_library.search(
+                vehicle, message.content, db=db, diagnostics=retrieval
+            )
     except assistant.AssistantError as exc:
         raise HTTPException(exc.status, exc.message) from None
     previous = {
@@ -89,6 +92,7 @@ def reply_to(db, message_id, requested_model=None):
         .limit(12)
     ).all()
     context = {
+        "retrieval": retrieval,
         "vehicle": facts,
         "retrieval_reference": retrieval_reference(vehicle),
         "problem": {

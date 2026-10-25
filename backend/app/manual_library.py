@@ -90,7 +90,7 @@ GROUPS = [
     "embrague embreagem",
     "fusible fusibles fusivel fusiveis",
     "bujia bujias vela velas",
-    "neumatico neumaticos pneu pneus rueda ruedas roda rodas",
+    "neumatico neumaticos cubierta cubiertas pneu pneus rueda ruedas roda rodas",
     "correa correia distribucion distribuicao",
     "direccion direcao",
     "suspension suspensao amortiguador amortecedor",
@@ -188,7 +188,11 @@ def source(p):
     }
 
 
-def search(vehicle, query):
+def search(vehicle, query, db=None, diagnostics=None):
+    from . import embeddings, vector_search
+
+    diagnostics = diagnostics if diagnostics is not None else {}
+    diagnostics.update(method="bm25", fallback_reason=None)
     if getattr(vehicle, "manual_reference", None) != FACTORY_REFERENCE["id"]:
         return []
     pages, counts, frequencies = library()
@@ -213,9 +217,32 @@ def search(vehicle, query):
         )
         if score:
             ranked.append((score, p))
-    best = [
-        p for _, p in sorted(ranked, key=lambda item: (-item[0], item[1]["id"]))[:4]
+    lexical = [
+        p["id"]
+        for _, p in sorted(ranked, key=lambda item: (-item[0], item[1]["id"]))[:20]
     ]
+    identifiers = lexical
+    if db is not None and vector_search.enabled():
+        index = vector_search.index_status(db)
+        if index["available"]:
+            try:
+                semantic = vector_search.rank(db, query, vector_search.bundle_hash())
+                identifiers = vector_search.shortlist(
+                    lexical, [identifier for identifier, _ in semantic]
+                )
+                diagnostics.update(
+                    method="hybrid_bm25_pgvector",
+                    semantic_candidates=len(semantic),
+                    embedding_model=embeddings.MODEL,
+                    bundle_sha256=vector_search.bundle_hash(),
+                    minimum_similarity=vector_search.MIN_SIMILARITY,
+                )
+            except embeddings.EmbeddingError as exc:
+                diagnostics["fallback_reason"] = str(exc)
+        else:
+            diagnostics["fallback_reason"] = "vector_index_missing_or_stale"
+    by_id = {p["id"]: p for p in pages}
+    best = [by_id[identifier] for identifier in identifiers if identifier in by_id][:4]
     # Include continuations without allowing neighbors to displace ranked pages.
     selected = {p["id"]: p for p in best}
     lookup = {(p["manual"], p["page"]): p for p in pages}

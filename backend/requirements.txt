@@ -4,3 +4,4 @@ alembic==1.20.1
 psycopg[binary]==3.3.6
 pydantic==2.14.1
 uvicorn==0.54.0
+pgvector==0.5.1

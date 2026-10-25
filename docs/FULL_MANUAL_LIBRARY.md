@@ -1,5 +1,7 @@
 # Biblioteca de manuales completos
 
+Actualización 2026-10-25: se incorpora [recuperación híbrida con pgvector](VECTOR_RETRIEVAL.md). La descripción de BM25 que sigue conserva la base léxica; al habilitar `HYBRID_RETRIEVAL`, se combina con el ranking semántico. El circuito de lectura de imágenes y la separación de OCR pendiente siguen vigentes.
+
 La biblioteca privada incorpora las 144 páginas del manual del propietario y las 388 del manual de reparación de Gabriel Ferrer. Este último no se presenta como un manual oficial Volkswagen. La identidad exacta de edición y la aplicabilidad de cada variante siguen requiriendo comprobación.
 
 ## Flujo y límites

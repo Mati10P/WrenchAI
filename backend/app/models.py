@@ -2,6 +2,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     JSON,
     CheckConstraint,
@@ -140,3 +141,15 @@ class DocumentPassage(Base):
     payload: Mapped[dict] = mapped_column(JSON)
     search_text: Mapped[str] = mapped_column(Text)
     corpus_sha256: Mapped[str] = mapped_column(String(64))
+
+
+class ManualEmbedding(Base):
+    """Navigation vectors only; these rows are not approved evidence."""
+
+    __tablename__ = "manual_embeddings"
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    page_id: Mapped[str] = mapped_column(String(80))
+    bundle_sha256: Mapped[str] = mapped_column(String(64))
+    text_sha256: Mapped[str] = mapped_column(String(64))
+    model: Mapped[str] = mapped_column(String(100))
+    embedding: Mapped[list[float]] = mapped_column(Vector(768))
