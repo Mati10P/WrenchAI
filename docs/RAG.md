@@ -1,5 +1,9 @@
 # RAG documental: ingesta y recuperación local
 
+## Actualización funcional — 2026-10-24
+
+Estado vigente: cinco fragmentos reales de dos manuales están importados. La referencia de fábrica se selecciona explícitamente por vehículo en manual_reference; los fragmentos con reference_profile se filtran contra los hechos de esa referencia, conservando los datos reales y modificaciones en el contexto. Los fragmentos sin perfil conservan el filtro anterior. search_terms contiene etiquetas españolas revisadas para recuperar el lote portugués sin modificar su texto. Se consulta el mensaje actual para evitar arrastrar fuentes de otro tema. Es búsqueda textual OR acotada, con posibles resultados secundarios irrelevantes; no es recuperación vectorial ni traducción general. Gemini debe citar únicamente fuentes pertinentes. Detalle, reproducción y pruebas: [MVP_REAL_CORPUS.md](MVP_REAL_CORPUS.md). Los apartados anteriores a esta implementación se conservan como historial.
+
 ## Estado de este bloque
 
 La API recupera fragmentos persistidos en PostgreSQL antes de pedir una respuesta a Gemini. La consulta documental funciona sin clave ni llamadas externas. Este bloque implementa ingesta y recuperación textual; no incorpora todavía embeddings ni búsqueda semántica con pgvector. Tampoco habilita los manuales por defecto.

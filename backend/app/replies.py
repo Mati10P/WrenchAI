@@ -8,6 +8,7 @@ from sqlalchemy.exc import OperationalError
 
 from . import assistant, corpus
 from .models import AssistantReply, Incident, Message, Vehicle
+from .references import retrieval_reference
 
 
 def reply_to(db, message_id, requested_model=None):
@@ -63,7 +64,8 @@ def reply_to(db, message_id, requested_model=None):
         "notes",
     )
     facts = {name: getattr(vehicle, name) for name in fields}
-    sources = corpus.search(db, vehicle, incident.description + " " + message.content)
+    # Search the current question: a new topic must not inherit unrelated sources.
+    sources = corpus.search(db, vehicle, message.content)
     previous = {
         r.message_id: r.content
         for r in db.scalars(
@@ -80,6 +82,7 @@ def reply_to(db, message_id, requested_model=None):
     ).all()
     context = {
         "vehicle": facts,
+        "retrieval_reference": retrieval_reference(vehicle),
         "problem": {
             "description": incident.description,
             "symptoms": incident.symptoms,
@@ -99,7 +102,7 @@ def reply_to(db, message_id, requested_model=None):
             for t in tasks
         ],
         "sources": sources,
-        "limits": "Últimos 20 mensajes y 12 tareas; evidencia solo aprobada y compatible. Sin búsqueda web.",
+        "limits": "Últimos 20 mensajes y 12 tareas; fuentes revisadas bajo retrieval_reference, con alcance indicado en scope. Sin búsqueda web.",
     }
     # Bound context size and avoid silently clipping away safety-critical text.
     if len(json.dumps(context, ensure_ascii=False)) > 80000:
@@ -119,6 +122,15 @@ def reply_to(db, message_id, requested_model=None):
             citation_ids=[],
         )
         model = "safety-rules-v1"
+    elif not sources and context["retrieval_reference"]["mode"] == "factory_reference":
+        answer = assistant.Answer(
+            summary="No encontré información relevante en los fragmentos del manual cargados para esta consulta. Esto no determina qué contiene el manual completo; el lote del MVP cubre aceite, refrigerante, líquido de frenos y componentes de refrigeración.",
+            hypotheses=[],
+            checks=[],
+            questions=["¿Querés reformular la consulta sobre alguno de esos temas?"],
+            citation_ids=[],
+        )
+        model = "document-coverage-v1"
     else:
         try:
             answer = (

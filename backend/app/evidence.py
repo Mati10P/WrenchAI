@@ -9,6 +9,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from .assistant import normalize
+from .references import FACTORY_REFERENCE, ManualReference
 
 Text = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=6000)
@@ -28,6 +29,18 @@ class Passage(BaseModel):
     approved_by: Text
     review_reference: Text
     source_sha256: Annotated[str, StringConstraints(pattern=r"^[a-f0-9]{64}$")]
+    language: Literal["es", "pt"] = "es"
+    reference_profile: ManualReference | None = None
+    scope: Text | None = None
+    search_terms: Annotated[
+        list[
+            Annotated[
+                str,
+                StringConstraints(strip_whitespace=True, min_length=1, max_length=100),
+            ]
+        ],
+        Field(max_length=40),
+    ] = Field(default_factory=list)
     # Every requirement must match an explicitly recorded vehicle fact.
     requirements: dict[
         Literal["make", "model", "year", "fuel", "engine_code", "market"], str | int
@@ -54,7 +67,22 @@ class Passage(BaseModel):
             raise ValueError("Pages must be unique and in ascending PDF order")
         if self.page != self.pages[0]:
             raise ValueError("Legacy page must equal the first citation page")
+        if self.reference_profile and not self.scope:
+            raise ValueError("Factory-reference sources require explicit scope")
         return self
+
+
+def compatible(passage, vehicle):
+    if passage.reference_profile:
+        if getattr(vehicle, "manual_reference", None) != passage.reference_profile:
+            return False
+        facts = FACTORY_REFERENCE["facts"]
+    else:
+        facts = {k: getattr(vehicle, k, None) for k in passage.requirements}
+    return all(
+        facts.get(k) is not None and normalize(str(facts[k])) == normalize(str(v))
+        for k, v in passage.requirements.items()
+    )
 
 
 def load_passages(path=None):
@@ -82,11 +110,7 @@ def retrieve(passages, vehicle, query):
     terms = {t for t in re.findall(r"\w+", normalize(query)) if len(t) >= 4}
     ranked = []
     for p in passages:
-        if any(
-            getattr(vehicle, k) is None
-            or normalize(str(getattr(vehicle, k))) != normalize(str(v))
-            for k, v in p.requirements.items()
-        ):
+        if not compatible(p, vehicle):
             continue
         words = set(re.findall(r"\w+", normalize(p.title + " " + p.text)))
         score = len(terms & words)

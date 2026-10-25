@@ -1,5 +1,9 @@
 # Asistente: integración preparada
 
+## Actualización funcional — 2026-10-24
+
+Estado vigente: el asistente ya usa cinco fragmentos reales, con referencia de fábrica y modificaciones separadas en el contexto. Se verificaron respuestas reales con citas y falta de cobertura. No hay pgvector ni búsqueda web. Ver [MVP_REAL_CORPUS.md](MVP_REAL_CORPUS.md); los estados de clave/prueba/corpus pendientes descritos abajo corresponden a bloques anteriores.
+
 ## Activar Gemini después
 
 El propietario decidió configurar la clave más adelante. Agregar en `.env` de la raíz (excluido de Git):

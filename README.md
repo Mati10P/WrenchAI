@@ -4,7 +4,7 @@ Proyecto de portfolio para conseguir una primera experiencia laboral: una aplica
 
 ## Estado actual
 
-La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. El menú **Mi auto** reúne marca, modelo, año, kilometraje, modificaciones y un **To-do** con pendientes, trabajos realizados y costos. Gemini usa el contexto del auto y conserva las respuestas; el chat permite elegir modelo. Requiere una clave en el servidor y ya se registraron pruebas reales de generación. La evaluación mecánica completa sigue pendiente. Hay ingesta y recuperación documental textual, pero todavía no hay manuales reales aprobados habilitados, búsqueda semántica con pgvector ni búsqueda web. El avance verificado y los pendientes están en la [checklist del plan](IMPLEMENTATION_PLAN.md).
+La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. El menú **Mi auto** reúne marca, modelo, año, kilometraje, modificaciones y un **To-do** con pendientes, trabajos realizados y costos. Gemini usa el contexto del auto y conserva las respuestas; el chat permite elegir modelo. Requiere una clave en el servidor y ya se registraron pruebas reales de generación. La evaluación mecánica completa sigue pendiente. Hay cinco fragmentos reales de los manuales habilitados mediante recuperación textual, con citas y referencia del Gol de fábrica. Gemini conserva el contexto de modificaciones. Falta búsqueda semántica con pgvector y búsqueda web. El avance verificado y los pendientes están en la [checklist del plan](IMPLEMENTATION_PLAN.md).
 
 El prototipo de consola `maintenance_demo.py` se conserva como antecedente educativo con SQLite. Sus datos no se migran automáticamente a la API.
 
@@ -22,7 +22,7 @@ Uso, desarrollo y verificación de la interfaz en [docs/FRONTEND.md](docs/FRONTE
 
 ## MVP acordado
 
-La próxima entrega habilitará algunas partes revisadas de los manuales y usará el Gol original de fábrica como referencia de búsqueda. Gemini responderá con esas fuentes y luego contextualizará las modificaciones registradas, distinguiendo el contenido del manual de su interpretación. Los datos reales del auto se conservan. Primero se demostrará este circuito con citas reales y aviso de falta de cobertura; después se ampliarán los manuales y se incorporará búsqueda vectorial. Este flujo es el objetivo acordado, todavía pendiente de implementación según el [plan](IMPLEMENTATION_PLAN.md).
+La entrega actual habilita cinco fragmentos revisados de los manuales y usa el Gol original de fábrica como referencia de búsqueda. Gemini responderá con esas fuentes y luego contextualizará las modificaciones registradas, distinguiendo el contenido del manual de su interpretación. Los datos reales del auto se conservan. Primero se demostrará este circuito con citas reales y aviso de falta de cobertura; después se ampliarán los manuales y se incorporará búsqueda vectorial. El circuito ya se comprobó con Gemini real por HTTP; el recorrido visual está pendiente. Ver [cobertura y pruebas del lote](docs/MVP_REAL_CORPUS.md).
 
 - Crear y editar vehículos e incidencias con síntomas y mediciones.
 - Estados OPEN, IN_PROGRESS y RESOLVED, con registro de la solución aplicada.

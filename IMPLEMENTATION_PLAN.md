@@ -12,13 +12,13 @@ Esta decisión reemplaza los bloqueos anteriores basados en modificaciones del v
 
 ### Próximo bloque y criterio de cierre
 
-- [ ] Preparar y aprobar para referencia de fábrica un lote pequeño de pasajes ya cotejados, con texto, páginas y alcance explícitos; comenzar por niveles y depósitos y ampliar a otros temas revisados según las preguntas de prueba.
-- [ ] Incorporar la referencia de búsqueda de fábrica separada de los hechos reales; conservar modificaciones en el contexto de Gemini y registrar la referencia usada con la respuesta.
-- [ ] Importar el lote real a PostgreSQL y comprobar recuperación para preguntas en español, incluyendo los pasajes portugueses. Resolver lo necesario para esa cobertura acotada; la implementación vectorial completa sigue en un bloque posterior.
+- [x] Preparar y aprobar para referencia de fábrica un lote pequeño de pasajes ya cotejados, con texto, páginas y alcance explícitos; comenzar por niveles y depósitos y ampliar a otros temas revisados según las preguntas de prueba.
+- [x] Incorporar la referencia de búsqueda de fábrica separada de los hechos reales; conservar modificaciones en el contexto de Gemini y registrar la referencia usada con la respuesta.
+- [x] Importar el lote real a PostgreSQL y comprobar recuperación para preguntas en español, incluyendo los pasajes portugueses. Resolver lo necesario para esa cobertura acotada; la implementación vectorial completa sigue en un bloque posterior.
 - [ ] Verificar respuestas reales con Gemini y desde el chat: fuentes relevantes, páginas correctas, distinción entre manual e interpretación de modificaciones y aviso cuando el tema no esté cubierto.
-- [ ] Demostrar que una modificación registrada no bloquea la consulta base, que se conserva en el contexto y que un fragmento de otro motor no se usa como especificación del vehículo.
+- [x] Demostrar que una modificación registrada no bloquea la consulta base, que se conserva en el contexto y que un fragmento de otro motor no se usa como especificación del vehículo.
 
-El bloque se cierra con un corpus real no vacío y preguntas de ejemplo respondidas usando sus fuentes. La ampliación al contenido de los manuales completos se hará después, por lotes revisados. Cambiar este plan no habilita por sí solo el corpus: la importación y estas verificaciones siguen pendientes.
+El bloque se cierra con un corpus real no vacío y preguntas de ejemplo respondidas usando sus fuentes. La ampliación al contenido de los manuales completos se hará después, por lotes revisados. El lote v1 ya está importado y probado con Gemini real por HTTP. Sigue pendiente el recorrido visual en navegador, bloqueado por las herramientas disponibles.
 
 ## Checklist consolidada — revisión 2026-10-24
 
@@ -34,7 +34,7 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [x] Cotejar 22 pasajes y 41 tramos del conjunto seleccionado; conservar evidencia y bloqueos. Esto no aprueba páginas completas ni aplicabilidad.
 - [x] Crear un corpus didáctico propio redistribuible para probar ingesta y recuperación: `backend/examples/rag`, exclusivo del vehículo ficticio RAG-DEMO.
 - [ ] Ampliar el corpus didáctico para cubrir los 20 escenarios y la demo pública.
-- [ ] Aceptar e importar un subconjunto revisado como referencia del Gol de fábrica según la decisión vigente; las modificaciones se contextualizan en la respuesta. La última comprobación del corpus activo registró cero fragmentos.
+- [x] Aceptar e importar un subconjunto revisado como referencia del Gol de fábrica según la decisión vigente; las modificaciones se contextualizan en la respuesta. El corpus activo contiene cinco fragmentos reales; ver docs/MVP_REAL_CORPUS.md.
 - [x] Verificar nuevamente la integridad de los 22 pasajes y preparar una matriz de aceptación por fragmento: `docs/MVP_ACCEPTANCE_MATRIX.md`. El propietario confirmó el vehículo objetivo; sus modificaciones y selección se conservan en privado. La exclusión automática por instrumental modificado fue reemplazada por la referencia de fábrica del MVP.
 
 ### A — API y persistencia (completo para el alcance acordado)

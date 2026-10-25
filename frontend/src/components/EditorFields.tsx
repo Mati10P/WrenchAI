@@ -84,6 +84,22 @@ export function EditorFields({
           </label>
           <details>
             <summary>Datos técnicos opcionales</summary>
+            <label>
+              Manual de referencia
+              <select
+                name="manual_reference"
+                defaultValue={editor.vehicle?.manual_reference || ""}
+              >
+                <option value="">Usar los datos registrados del auto</option>
+                <option value="gol-g2-1600-mi-1998-factory">
+                  Gol G2 1.6 MI 1998 de fábrica
+                </option>
+              </select>
+              <small>
+                El manual describe el auto original. Las modificaciones se
+                tienen en cuenta al responder.
+              </small>
+            </label>
             <div className="form-grid">
               <label>
                 Combustible <small>Opcional</small>

@@ -1,5 +1,9 @@
 # Aceptación documental y prioridad del MVP
 
+## Actualización funcional — 2026-10-24
+
+Lote v1 habilitado: cinco fragmentos delimitados de los dos manuales, aceptados como referencia de fábrica. Las transcripciones originales mantienen su estado histórico; la aprobación está en un registro privado separado con hashes y offsets. No se aprobaron los manuales completos. Ver [MVP_REAL_CORPUS.md](MVP_REAL_CORPUS.md).
+
 ## Estado de aceptación — 2026-10-24
 
 La decisión vigente está en [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md): para el MVP se consultan los manuales con el Gol de fábrica como referencia de trabajo, y Gemini contextualiza las modificaciones reales después de recuperar las fuentes. Las modificaciones, incluido el instrumental, dejan de ser bloqueos de recuperación. No se necesita modelar cada montaje real antes de probar este circuito.

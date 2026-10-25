@@ -26,6 +26,10 @@ class Vehicle(Base):
             "mileage IS NULL OR mileage BETWEEN 0 AND 10000000",
             name="vehicle_mileage_range",
         ),
+        CheckConstraint(
+            "manual_reference IS NULL OR manual_reference = 'gol-g2-1600-mi-1998-factory'",
+            name="vehicle_manual_reference",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
@@ -39,6 +43,7 @@ class Vehicle(Base):
     notes: Mapped[str | None] = mapped_column(Text)
     mileage: Mapped[int | None]
     modifications: Mapped[str | None] = mapped_column(Text)
+    manual_reference: Mapped[str | None] = mapped_column(String(80))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

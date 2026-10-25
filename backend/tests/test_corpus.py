@@ -240,3 +240,142 @@ def test_legacy_reply_remains_readable_without_rewriting(db, snapshot, client):
     assert client.post(f"/messages/{mid}/reply").json() == reply
     db.expire_all()
     assert db.get(AssistantReply, mid).sources == [source]
+
+
+def factory_passage(p):
+    from app.references import FACTORY_REFERENCE
+
+    return {
+        **p,
+        "reference_profile": FACTORY_REFERENCE["id"],
+        "scope": "Synthetic factory reference; no claim about physical modifications.",
+        "requirements": FACTORY_REFERENCE["facts"],
+        "language": "pt",
+        "title": "Documento ficticio de teste",
+        "text": "Verifique o oleo com a vareta. Texto ficticio para testes.",
+        "search_terms": ["aceite", "varilla", "medir"],
+    }
+
+
+def test_factory_reference_spanish_search_and_incompatible_sources(db, snapshot):
+    from app.references import FACTORY_REFERENCE
+
+    path, sources, p = snapshot
+    p = factory_passage(p)
+    other_engine = {**p, "id": "other-engine", "requirements": {"fuel": "Diesel"}}
+    unknown_mount = {
+        **p,
+        "id": "unknown-engine",
+        "requirements": {"engine_code": "UNKNOWN"},
+    }
+    path.write_text(json.dumps([p, other_engine, unknown_mount]), encoding="utf-8")
+    corpus.import_corpus(db, path, sources)
+    vehicle = SimpleNamespace(
+        manual_reference=FACTORY_REFERENCE["id"], modifications="Changed dashboard"
+    )
+    found = corpus.search(db, vehicle, "Como medir el aceite segun el manual del Gol?")
+    assert [s["id"] for s in found] == [p["id"]]
+    assert found[0]["text"] == p["text"]
+    vehicle.modifications = None
+    assert (
+        corpus.search(db, vehicle, "Como medir el aceite segun el manual del Gol?")
+        == found
+    )
+    assert not corpus.search(db, vehicle, "Que dice el manual del Gol sobre bluetooth?")
+    vehicle.manual_reference = None
+    assert not corpus.search(db, vehicle, "aceite")
+
+
+def test_factory_profile_is_explicit_and_modifications_survive_reply(
+    db, snapshot, client, monkeypatch
+):
+    from uuid import uuid4
+
+    from app import assistant
+    from app.models import AssistantReply
+    from app.references import FACTORY_REFERENCE
+
+    path, sources, p = snapshot
+    p = factory_passage(p)
+    path.write_text(json.dumps([p]), encoding="utf-8")
+    corpus.import_corpus(db, path, sources)
+    facts = {
+        "name": "Synthetic factory test",
+        "model": "User-entered model",
+        "manual_reference": FACTORY_REFERENCE["id"],
+        "modifications": "Changed dashboard and air filter",
+    }
+    vehicle = client.post("/vehicles", json=facts).json()
+    fetched = client.get(f"/vehicles/{vehicle['id']}").json()
+    assert fetched["modifications"] == facts["modifications"]
+    assert fetched["model"] == facts["model"]
+    assert fetched["engine_code"] is None
+    result = client.get(
+        f"/vehicles/{vehicle['id']}/sources", params={"q": "medir aceite"}
+    ).json()
+    assert result["reference"]["mode"] == "factory_reference"
+    assert result["sources"][0]["id"] == p["id"]
+    mid = uuid4()
+    message = client.post(
+        f"/vehicles/{vehicle['id']}/chats",
+        json={"id": str(mid), "content": "Como mido el aceite?"},
+    ).json()
+
+    def generate(context):
+        assert context["vehicle"]["modifications"] == facts["modifications"]
+        assert context["vehicle"]["model"] == facts["model"]
+        assert context["retrieval_reference"]["id"] == FACTORY_REFERENCE["id"]
+        return assistant.Answer(
+            summary="Synthetic response",
+            hypotheses=[],
+            checks=[],
+            questions=[],
+            citation_ids=[s["id"] for s in context["sources"]],
+        )
+
+    monkeypatch.setattr(assistant, "generate", generate)
+    response = client.post(f"/messages/{mid}/reply")
+    assert response.status_code == 200, response.text
+    assert response.json()["sources"][0]["reference_profile"] == FACTORY_REFERENCE["id"]
+    assert (
+        db.get(AssistantReply, mid).context_snapshot["retrieval_reference"]["mode"]
+        == "factory_reference"
+    )
+    # A new question about an uncovered topic must not reuse oil sources.
+    followup = uuid4()
+    client.post(
+        f"/incidents/{message['incident_id']}/messages",
+        json={
+            "id": str(followup),
+            "content": "Que dice el manual del Gol sobre bluetooth?",
+        },
+    )
+    response = client.post(f"/messages/{followup}/reply")
+    assert response.status_code == 200
+    assert response.json()["sources"] == []
+    assert (
+        client.put(
+            f"/vehicles/{vehicle['id']}", json={**facts, "manual_reference": None}
+        ).status_code
+        == 200
+    )
+    assert (
+        client.get(f"/vehicles/{vehicle['id']}/sources", params={"q": "aceite"}).json()[
+            "sources"
+        ]
+        == []
+    )
+
+
+def test_unknown_factory_reference_is_rejected(client, snapshot):
+    assert (
+        client.post(
+            "/vehicles", json={"name": "Fixture", "manual_reference": "invented"}
+        ).status_code
+        == 422
+    )
+    _, _, p = snapshot
+    p = factory_passage(p)
+    p["scope"] = None
+    with pytest.raises(ValueError):
+        parse_passages(json.dumps([p]).encode())

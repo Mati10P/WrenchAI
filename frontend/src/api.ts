@@ -10,6 +10,7 @@ export type VehicleInput = {
   notes: string | null;
   mileage: number | null;
   modifications: string | null;
+  manual_reference: "gol-g2-1600-mi-1998-factory" | null;
 };
 export type Vehicle = VehicleInput & { id: string; created_at: string };
 export type IncidentInput = {
@@ -65,6 +66,9 @@ export type Reply = {
     page: number;
     pages?: number[];
     text: string;
+    scope?: string | null;
+    reference_profile?: string | null;
+    language?: "es" | "pt";
   }[];
 };
 export type AssistantStatus = {

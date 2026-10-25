@@ -1,5 +1,9 @@
 # Matriz de aceptación del corpus inicial
 
+## Actualización funcional — 2026-10-24
+
+Lote v1 implementado: se habilitaron extractos de owner-oil-level, owner-oil-topup, owner-coolant-level, owner-brake-fluid y repair-cooling-overview como referencia de fábrica. El inventario siguiente conserva los hallazgos previos; las decisiones concretas, exclusiones y pruebas actuales están en [MVP_REAL_CORPUS.md](MVP_REAL_CORPUS.md).
+
 Revisión: 2026-10-24. Esta matriz distingue integridad de evidencia, cotejo de transcripción y aceptación para responder sobre un vehículo. El propietario ya seleccionó el registro objetivo y aclaró que los demás eran pruebas del mismo auto. La selección, los datos declarados y sus modificaciones se conservan en `data/private/manuals/acceptance-target.json`, fuera de Git. El código de motor continúa desconocido; los datos declarados no prueban por sí solos cobertura del manual.
 
 Decisión vigente: se usa el Gol de fábrica como referencia de búsqueda para el MVP. Los ocho pasajes de testigos y el contexto de tablero pueden seleccionarse como referencia del manual original; no quedan excluidos por las modificaciones. Se mantiene explícita la variante descrita por cada fuente, sin mezclar numeraciones. Gemini recibe las modificaciones reales y distingue su interpretación del texto documentado. No se requiere confirmar equivalencias de sensores o cableado antes de probar la recuperación base.

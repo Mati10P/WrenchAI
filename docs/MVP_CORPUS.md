@@ -1,5 +1,9 @@
 # Corpus documental de la primera versión
 
+## Actualización funcional — 2026-10-24
+
+Estado vigente: cinco fragmentos reales están habilitados para referencia de fábrica. Las cifras de pasajes pendientes de este documento describen la selección histórica, no el corpus activo. Ver [MVP_REAL_CORPUS.md](MVP_REAL_CORPUS.md).
+
 ## Decisión de alcance
 
 Actualización 2026-10-24: rige la referencia de fábrica definida en [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md). Las modificaciones reales se contextualizan con Gemini y no bloquean la consulta del manual base. El primer lote conserva texto cotejado, páginas y alcance de cada variante documental. Las exigencias posteriores sobre confirmar el montaje físico describen la auditoría original; se posponen como requisito de habilitación del MVP bajo esta referencia explícita. Las exclusiones por ambigüedad del texto y por contenido fuera del alcance siguen vigentes. La ampliación a los manuales completos se hará por lotes después de demostrar respuestas con fuentes reales.

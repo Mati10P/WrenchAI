@@ -14,7 +14,7 @@ from sqlalchemy import delete, func, select, text
 
 from .assistant import normalize
 from .database import database_url, session_factory
-from .evidence import Passage, parse_passages
+from .evidence import Passage, compatible, parse_passages
 from .models import DocumentPassage
 
 
@@ -43,7 +43,9 @@ def import_corpus(db, path, sources):
             DocumentPassage(
                 id=p.id,
                 payload=p.model_dump(),
-                search_text=normalize(p.title + " " + p.text),
+                search_text=normalize(
+                    p.title + " " + " ".join(p.search_terms) + " " + p.text
+                ),
                 corpus_sha256=snapshot,
             )
             for p in passages
@@ -59,8 +61,30 @@ def count_passages(db):
 
 def search(db, vehicle, query):
     # Safe OR query: tokens come only from this allowlisted character pattern.
-    # Spanish stemming handles inflections; no translation or semantic inference.
-    terms = re.findall(r"[a-z0-9]+", normalize(query))[:100]
+    # Curated Spanish search terms bridge the small Portuguese MVP corpus.
+    # Boilerplate document/vehicle words must not retrieve unrelated chapters.
+    ignored = {
+        "manual",
+        "manuales",
+        "dice",
+        "dicen",
+        "segun",
+        "gol",
+        "auto",
+        "vehiculo",
+        "original",
+        "fabrica",
+        "saber",
+        "quiero",
+        "prueba",
+        "sintetica",
+        "ejemplo",
+    }
+    terms = [
+        word
+        for word in re.findall(r"[a-z0-9]+", normalize(query))[:100]
+        if word not in ignored
+    ]
     if not terms:
         return []
     vector = func.to_tsvector(text("'spanish'::regconfig"), DocumentPassage.search_text)
@@ -76,11 +100,7 @@ def search(db, vehicle, query):
     # Apply all compatibility requirements BEFORE top-k, including unknown facts.
     for row in rows:
         p = Passage.model_validate(row.payload)
-        if all(
-            getattr(vehicle, k, None) is not None
-            and normalize(str(getattr(vehicle, k))) == normalize(str(v))
-            for k, v in p.requirements.items()
-        ):
+        if compatible(p, vehicle):
             result.append(p.model_dump())
             if len(result) == 4:
                 break

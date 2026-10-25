@@ -277,6 +277,8 @@ export default function App() {
           name: str("name"),
           mileage: str("mileage") ? Number(str("mileage")) : null,
           modifications: str("modifications") || null,
+          manual_reference: (str("manual_reference") ||
+            null) as VehicleInput["manual_reference"],
           notes: str("notes") || null,
           make: str("make") || null,
           model: str("model") || null,
@@ -553,7 +555,9 @@ export default function App() {
                   ? "La configuración documental necesita revisión."
                   : assistantStatus.approved_passages === 0
                     ? "Gemini configurado. Aún no hay manuales habilitados: las respuestas serán orientación general, sin búsqueda web."
-                    : "Gemini configurado. Las fuentes compatibles utilizadas aparecen junto a cada respuesta."}
+                    : active?.manual_reference
+                      ? "Consultamos los manuales del Gol de fábrica. Gemini tiene en cuenta tus modificaciones; las fuentes utilizadas aparecen en cada respuesta."
+                      : "Gemini configurado. Las fuentes compatibles utilizadas aparecen junto a cada respuesta."}
           </p>
           {notice && (
             <p className="form-error" role="alert">
@@ -702,6 +706,12 @@ export default function App() {
                     <dd>
                       {active.modifications ||
                         "Todavía no registraste modificaciones."}
+                    </dd>
+                    <dt>Referencia documental</dt>
+                    <dd>
+                      {active.manual_reference
+                        ? "Gol G2 1.6 MI 1998 de fábrica"
+                        : "Datos registrados del vehículo"}
                     </dd>
                     <dt>Notas</dt>
                     <dd>{active.notes || "Sin notas."}</dd>

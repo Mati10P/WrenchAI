@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from . import assistant, corpus
 from .database import database_url, session_factory
 from .models import AssistantReply, Incident, Measurement, Message, Vehicle
+from .references import retrieval_reference
 from .replies import reply_to
 from .schemas import (
     IncidentDetail,
@@ -333,6 +334,7 @@ def create_app(url=None):
         vehicle = get(db, Vehicle, vehicle_id)
         return {
             "method": "postgresql_full_text",
+            "reference": retrieval_reference(vehicle),
             "sources": corpus.search(db, vehicle, q),
         }
 

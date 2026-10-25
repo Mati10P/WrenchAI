@@ -6,6 +6,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
+from .references import ManualReference
+
 Name = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)
 ]
@@ -54,6 +56,7 @@ class VehicleInput(Schema):
     notes: Description | None = None
     mileage: Annotated[int, Field(strict=True, ge=0, le=10000000)] | None = None
     modifications: Description | None = None
+    manual_reference: ManualReference | None = None
 
 
 class VehicleOut(VehicleInput):

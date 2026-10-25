@@ -46,6 +46,10 @@ export function AssistantMessage({ reply }: { reply: Reply }) {
             {(source.pages ?? [source.page]).join(", ")}
           </summary>
           <p>{source.text}</p>
+          {source.language === "pt" && (
+            <small>Texto original en portugués.</small>
+          )}
+          {source.scope && <p className="muted">Alcance: {source.scope}</p>}
         </details>
       ))}
     </article>
