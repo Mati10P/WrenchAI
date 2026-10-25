@@ -2,6 +2,8 @@
 
 ## Decisión de alcance
 
+Actualización 2026-10-24: rige la referencia de fábrica definida en [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md). Las modificaciones reales se contextualizan con Gemini y no bloquean la consulta del manual base. El primer lote conserva texto cotejado, páginas y alcance de cada variante documental. Las exigencias posteriores sobre confirmar el montaje físico describen la auditoría original; se posponen como requisito de habilitación del MVP bajo esta referencia explícita. Las exclusiones por ambigüedad del texto y por contenido fuera del alcance siguen vigentes. La ampliación a los manuales completos se hará por lotes después de demostrar respuestas con fuentes reales.
+
 Aquí, **corpus** significa el conjunto de documentos o fragmentos que WrenchAI podrá consultar como fuentes. Los manuales procesados son material candidato; el corpus habilitado para respuestas incluirá únicamente fragmentos revisados y compatibles, con sus referencias al original.
 
 La primera versión de WrenchAI usará un conjunto acotado de páginas bien revisadas de los dos manuales candidatos. No se requiere completar la revisión profunda de ambos manuales antes de construir el MVP. Esa revisión completa queda pendiente para una etapa posterior.

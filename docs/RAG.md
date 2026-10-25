@@ -8,6 +8,12 @@ Se inventariaron los 22 pasajes privados cotejados y sus 30 vínculos a figuras:
 
 ## Importación administrativa
 
+### Próximo bloque acordado: referencia de fábrica
+
+El MVP usará un subconjunto real revisado del manual y una referencia explícita del Gol de fábrica para recuperar fuentes. Las modificaciones del auto se conservarán en el contexto de Gemini para interpretar la respuesta después de la recuperación. Este cambio de criterio está planificado, todavía no implementado: el filtro descrito en «Recuperación y límites» refleja el código actual. No se debe convertir la suposición de fábrica en datos físicos confirmados ni presentar una interpretación de modificaciones como texto del manual.
+
+La primera demostración debe recuperar fuentes para preguntas en español, responder con Gemini y mostrar páginas correctas; si el tema no aparece en el lote, debe indicar falta de cobertura. pgvector y la cobertura completa de ambos manuales se implementarán después de ese recorrido inicial. Ver el bloque de cierre en [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md).
+
 La migración 0006 agrega document_passages. Un archivo JSON representa el conjunto completo activo, con el contrato de Passage en app/evidence.py. Cada fragmento requiere aprobación explícita, responsable, referencia de revisión, páginas PDF, texto, requisitos del vehículo y SHA-256 del original. Un PDF cotejado no queda aprobado automáticamente.
 
 ### Citas de varias páginas

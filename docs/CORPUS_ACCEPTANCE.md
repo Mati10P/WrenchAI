@@ -2,11 +2,15 @@
 
 ## Estado de aceptación — 2026-10-24
 
-La [matriz por fragmento](MVP_ACCEPTANCE_MATRIX.md) cubre los 22 pasajes y delimita candidatos, identificación, contexto y exclusiones. Se verificó nuevamente la integridad de toda su evidencia. El propietario confirmó el registro objetivo y aclaró que los otros eran pruebas. Sus modificaciones se conservan en el registro privado de aceptación; una modificación del instrumental impide asumir correspondencia con el tablero original del manual. Sigue pendiente resolver aplicabilidad; no se habilitó ningún fragmento. Las citas de varias páginas ya están implementadas según `RAG.md`. El contrato de ingesta todavía no representa condiciones de tablero/montaje, que deben resolverse antes de aceptar contenido dependiente de ellas.
+La decisión vigente está en [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md): para el MVP se consultan los manuales con el Gol de fábrica como referencia de trabajo, y Gemini contextualiza las modificaciones reales después de recuperar las fuentes. Las modificaciones, incluido el instrumental, dejan de ser bloqueos de recuperación. No se necesita modelar cada montaje real antes de probar este circuito.
+
+La [matriz por fragmento](MVP_ACCEPTANCE_MATRIX.md) cubre los 22 pasajes cotejados. La aceptación del primer lote verifica fidelidad de transcripción, contexto, páginas y alcance como referencia de fábrica; no certifica la configuración física del auto. Se conservan exclusiones por unidades ambiguas y contenido fuera de alcance. La referencia asumida se mantendrá separada de los datos reales y los requisitos propios de cada fuente. Las citas de varias páginas están implementadas. Sigue pendiente preparar/importar el lote y comprobar respuestas reales con fuentes.
 
 Ya existe material didáctico redistribuible en `backend/examples/rag`, limitado al vehículo ficticio RAG-DEMO. Falta ampliarlo para los 20 escenarios; el párrafo histórico sobre su ausencia describe el estado anterior a la ingesta documental.
 
 ## Decisión del propietario - 2026-10-23
+
+Los apartados siguientes son históricos. Sus bloqueos por configuración exacta o modificaciones quedan sustituidos por la decisión vigente de referencia de fábrica; los hallazgos de transcripción y ambigüedad documental se conservan.
 
 El propietario indicó que no conoce los datos de variante solicitados y pidió priorizar usos mecánicos y arreglos. No se deducen combustible, mercado, código de motor, tablero ni aire acondicionado a partir del modelo declarado. El Gol G2 1.6 MI 1998 continúa siendo una referencia declarada del proyecto, no una ficha técnica confirmada.
 

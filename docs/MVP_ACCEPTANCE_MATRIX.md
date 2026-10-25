@@ -2,7 +2,7 @@
 
 Revisión: 2026-10-24. Esta matriz distingue integridad de evidencia, cotejo de transcripción y aceptación para responder sobre un vehículo. El propietario ya seleccionó el registro objetivo y aclaró que los demás eran pruebas del mismo auto. La selección, los datos declarados y sus modificaciones se conservan en `data/private/manuals/acceptance-target.json`, fuera de Git. El código de motor continúa desconocido; los datos declarados no prueban por sí solos cobertura del manual.
 
-Una modificación registrada del instrumental impide asumir el tablero original del manual. Los ocho pasajes de testigos y el contexto de tablero quedan fuera del primer lote para este vehículo mientras no exista evidencia específica de correspondencia. Las reglas determinísticas propias de la aplicación siguen siendo independientes de esos pasajes. No se infieren equivalencias de sensores, cableado, numeración ni funcionamiento a partir del cambio declarado.
+Decisión vigente: se usa el Gol de fábrica como referencia de búsqueda para el MVP. Los ocho pasajes de testigos y el contexto de tablero pueden seleccionarse como referencia del manual original; no quedan excluidos por las modificaciones. Se mantiene explícita la variante descrita por cada fuente, sin mezclar numeraciones. Gemini recibe las modificaciones reales y distingue su interpretación del texto documentado. No se requiere confirmar equivalencias de sensores o cableado antes de probar la recuperación base.
 
 ## Comprobación ejecutada
 
@@ -10,7 +10,9 @@ Se ejecutó `validate_passage` sobre los 22 artefactos privados actuales. Pasaro
 
 Resultado: 22 pasajes con integridad comprobada, cero habilitados para RAG. Esta ejecución no vuelve a revisar visualmente las páginas ni confirma compatibilidad, vigencia o exactitud técnica. El cotejo visual anterior está documentado en `MVP_REVIEW_LOG.md`.
 
-## Decisión por grupo
+## Inventario de revisión por grupo
+
+La tabla conserva las comprobaciones de aplicabilidad exacta identificadas en la auditoría anterior. Para la entrega inmediata, las condiciones sobre el montaje real se tratan como límites de aplicación que Gemini debe contextualizar, no como requisitos que bloqueen toda consulta. La aceptación se realiza como referencia de fábrica conforme a `CORPUS_ACCEPTANCE.md`. Siguen vigentes las exclusiones por texto ambiguo y la necesidad de identificar la variante que describe cada fragmento.
 
 P = manual de propietario; R = manual de reparación. Las páginas son las del PDF.
 
@@ -34,12 +36,12 @@ Los grupos cubren los 22 IDs una sola vez: tres de identificación, uno de conte
 ## Preparación de la ingesta
 
 1. Usar el registro objetivo confirmado en el archivo privado y mantener explícitos los datos desconocidos. No combinar hechos de registros de prueba. Mercado de fabricación y mercado de comercialización no se intercambian por inferencia.
-2. Resolver la cobertura y los requisitos específicos del primer lote; registrar la evidencia de cada decisión. No exigir tablero para un fragmento que no dependa de él, ni omitir montaje/varilla cuando sí condicionen el contenido.
+2. Seleccionar un lote pequeño de pasajes cotejados y registrar su alcance como referencia de fábrica. Conservar las condiciones de variante impresas en la fuente; las modificaciones reales se contextualizan en la respuesta sin impedir la búsqueda base.
 3. Delimitar fragmentos con páginas, texto original, advertencias y vínculo al pasaje cotejado. El contrato admite `pages` con la lista completa de páginas PDF y conserva compatibilidad con `page` singular. Las nuevas citas deben declarar todas las páginas utilizadas, sin inferir las de citas históricas. Ver `RAG.md`.
-4. Registrar aprobación, responsable, referencia de revisión y requisitos compatibles. El contrato actual solo filtra marca, modelo, año, combustible, código de motor y mercado: no permite representar tablero, varilla o montaje. Antes de habilitar un fragmento condicionado por esos datos, ampliar el contrato y registrar esos hechos, o mantenerlo pendiente. No ocultar esos requisitos en notas libres.
+4. Registrar aprobación para referencia de fábrica, responsable, referencia de revisión y alcance. Implementar una referencia de búsqueda separada de los hechos reales, conservando modificaciones en el contexto de Gemini. No es requisito ampliar primero el modelo de datos para cada tablero, varilla o montaje; sí preservar qué configuración describe la fuente y evitar atribuirla como hecho comprobado del auto.
 5. Validar el conjunto y sus originales; conservar una copia del corpus activo antes de reemplazarlo mediante el importador administrativo.
-6. Probar recuperación compatible, rechazo de variantes incompatibles/desconocidas y citas persistentes en una base temporal. Para fuentes portuguesas, evaluar también la recuperación con consultas españolas antes de considerar completo el circuito.
+6. Probar recuperación bajo la referencia de fábrica, conservación del contexto de modificaciones, rechazo de especificaciones de otros motores y citas persistentes. Comprobar preguntas españolas sobre las fuentes portuguesas del lote y respuestas reales en el chat. La falta de cobertura debe quedar explícita.
 
 ## Resultado de este bloque
 
-La integridad de los 22 pasajes queda verificada, el vehículo objetivo está seleccionado y el primer lote se concentra en niveles y depósitos, conservando sus requisitos pendientes. La aceptación/importación real sigue pendiente de aplicabilidad y delimitación de fragmentos. No se modificaron hechos del auto, transcripciones, aprobaciones ni el corpus de la aplicación.
+La integridad de los 22 pasajes está verificada y el vehículo objetivo está seleccionado. El primer lote parte de niveles y depósitos, con posibilidad de incorporar otros pasajes cotejados como referencia de fábrica. Continúan pendientes delimitación, importación y prueba real del circuito. Esta actualización del plan no modifica hechos del auto, transcripciones, aprobaciones ni el corpus de la aplicación.

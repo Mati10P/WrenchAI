@@ -1,5 +1,7 @@
 # Casos concretos del MVP
 
+Actualización del criterio, 2026-10-24: el primer recorrido se evalúa bajo la referencia del Gol de fábrica acordada en `IMPLEMENTATION_PLAN.md`. Una modificación registrada no debe bloquear la recuperación base; debe llegar al contexto de Gemini y distinguirse de lo afirmado por el manual. Agregar a la verificación un par de consultas equivalentes con/sin modificaciones, comprobando recuperación base y contextualización. Se conservan la abstención ante falta de cobertura y X02 para impedir atribuir especificaciones de otro motor al vehículo. Los escenarios originales siguen pendientes de ejecución; no se da por probada esta nueva conducta.
+
 Fecha: 2026-10-23. Son 20 escenarios sintéticos de diseño, escritos para el proyecto; no son averías reales ni resultados de evaluación. No se ejecutó Gemini ni se implementó el evaluador. Las referencias apuntan a los grupos de [MVP_CORPUS.md](MVP_CORPUS.md), todos pendientes de aprobación para RAG.
 
 ## Alcance de las respuestas

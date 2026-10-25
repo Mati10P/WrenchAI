@@ -1,5 +1,25 @@
 # Plan de implementación
 
+## Decisión vigente del MVP — referencia de fábrica, 2026-10-24
+
+Por indicación del propietario, la búsqueda documental usará el Gol G2 1.6 MI 1998 en configuración original de fábrica como referencia de trabajo. Las modificaciones no bloquearán la recuperación de los manuales base. Esta referencia es una suposición explícita de búsqueda: los datos reales y las modificaciones del auto se conservan y se entregan a Gemini para contextualizar la respuesta.
+
+Flujo objetivo: pregunta → consulta del subconjunto revisado de manuales usando la referencia de fábrica → fragmentos con páginas y procedencia → Gemini responde apoyándose en esas fuentes y explica cómo las modificaciones conocidas podrían afectar su aplicación. La interpretación de modificaciones debe distinguirse del contenido del manual. Sin evidencia suficiente, se declara el límite de cobertura y no se inventan citas.
+
+La entrega inmediata debe demostrar este circuito con algunas partes revisadas del manual. No requiere resolver cada modificación ni incorporar todos los manuales, pgvector o búsqueda web primero. Se conservan el cotejo del texto, las advertencias y las unidades originales; las ambigüedades documentales no se corrigen por inferencia. Los fragmentos para otros motores o variantes no se presentan como especificaciones confirmadas del auto.
+
+Esta decisión reemplaza los bloqueos anteriores basados en modificaciones del vehículo, incluida la exclusión automática de pasajes del tablero original. Las entradas históricas se conservan como registro del trabajo anterior.
+
+### Próximo bloque y criterio de cierre
+
+- [ ] Preparar y aprobar para referencia de fábrica un lote pequeño de pasajes ya cotejados, con texto, páginas y alcance explícitos; comenzar por niveles y depósitos y ampliar a otros temas revisados según las preguntas de prueba.
+- [ ] Incorporar la referencia de búsqueda de fábrica separada de los hechos reales; conservar modificaciones en el contexto de Gemini y registrar la referencia usada con la respuesta.
+- [ ] Importar el lote real a PostgreSQL y comprobar recuperación para preguntas en español, incluyendo los pasajes portugueses. Resolver lo necesario para esa cobertura acotada; la implementación vectorial completa sigue en un bloque posterior.
+- [ ] Verificar respuestas reales con Gemini y desde el chat: fuentes relevantes, páginas correctas, distinción entre manual e interpretación de modificaciones y aviso cuando el tema no esté cubierto.
+- [ ] Demostrar que una modificación registrada no bloquea la consulta base, que se conserva en el contexto y que un fragmento de otro motor no se usa como especificación del vehículo.
+
+El bloque se cierra con un corpus real no vacío y preguntas de ejemplo respondidas usando sus fuentes. La ampliación al contenido de los manuales completos se hará después, por lotes revisados. Cambiar este plan no habilita por sí solo el corpus: la importación y estas verificaciones siguen pendientes.
+
 ## Checklist consolidada — revisión 2026-10-24
 
 Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` indica alcance implementado; los bloques con pendientes permanecen abiertos. Las entradas posteriores conservan el historial y pueden describir estados anteriores.
@@ -14,8 +34,8 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [x] Cotejar 22 pasajes y 41 tramos del conjunto seleccionado; conservar evidencia y bloqueos. Esto no aprueba páginas completas ni aplicabilidad.
 - [x] Crear un corpus didáctico propio redistribuible para probar ingesta y recuperación: `backend/examples/rag`, exclusivo del vehículo ficticio RAG-DEMO.
 - [ ] Ampliar el corpus didáctico para cubrir los 20 escenarios y la demo pública.
-- [ ] Aceptar y recortar fragmentos de manuales compatibles con el vehículo, e importarlos explícitamente. Actualmente hay cero fragmentos aprobados cargados.
-- [x] Verificar nuevamente la integridad de los 22 pasajes y preparar una matriz de aceptación por fragmento: `docs/MVP_ACCEPTANCE_MATRIX.md`. El propietario confirmó el vehículo objetivo; sus modificaciones y selección se conservan en privado. La aplicabilidad sigue pendiente y los pasajes de instrumental original quedan fuera del primer lote por una modificación registrada.
+- [ ] Aceptar e importar un subconjunto revisado como referencia del Gol de fábrica según la decisión vigente; las modificaciones se contextualizan en la respuesta. La última comprobación del corpus activo registró cero fragmentos.
+- [x] Verificar nuevamente la integridad de los 22 pasajes y preparar una matriz de aceptación por fragmento: `docs/MVP_ACCEPTANCE_MATRIX.md`. El propietario confirmó el vehículo objetivo; sus modificaciones y selección se conservan en privado. La exclusión automática por instrumental modificado fue reemplazada por la referencia de fábrica del MVP.
 
 ### A — API y persistencia (completo para el alcance acordado)
 - [x] FastAPI/Pydantic, SQLAlchemy, PostgreSQL y migraciones Alembic 0001–0006.
@@ -34,7 +54,7 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [x] Ingesta administrativa transaccional con aprobación explícita y comprobación SHA-256.
 - [x] Recuperación textual en PostgreSQL, filtrado de compatibilidad y consulta de fuentes sin Gemini.
 - [x] Citas de varias páginas en ingesta, recuperación, contexto, respuestas persistentes e interfaz; lectura compatible con citas antiguas de una página.
-- [ ] Habilitar manuales reales aprobados y verificar el circuito completo con evidencia compatible.
+- [ ] Habilitar el lote real de referencia de fábrica y verificar el circuito completo, con modificaciones como contexto para Gemini.
 - [ ] Embeddings y recuperación semántica con pgvector; hoy se usa búsqueda textual.
 - [ ] Estrategia multilingüe y evaluación de relevancia para consultas en español y fuentes en portugués.
 - [ ] Búsqueda web complementaria con fuentes explícitas cuando falte evidencia documental.
@@ -70,7 +90,7 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - `git diff --check`: sin errores de whitespace; Git avisa de futuras conversiones LF/CRLF.
 - No se repitieron llamadas pagas a Gemini, reinicios de servicios ni recorridos de navegador en esta revisión. Las pruebas reales y visuales anteriores se distinguen de las ejecutadas hoy. Hay cambios locales previos sin commit; esta checklist incluye el estado del checkout.
 
-Orden recomendado: aceptación e importación del subconjunto documental → recuperación semántica/multilingüe → búsqueda web → evaluación de 20 casos y recorrido completo → CI y demo. La corrección de Ruff puede hacerse como bloque independiente.
+Orden recomendado: lote real revisado + referencia de fábrica + recuperación de preguntas españolas + respuestas con citas y contexto de modificaciones → recuperación semántica/multilingüe con pgvector → ampliación por lotes de los manuales → búsqueda web → evaluación completa de 20 casos → CI y demo. El primer recorrido del chat con fuentes reales se comprueba en el primer bloque. La corrección de Ruff puede hacerse como bloque independiente.
 
 ## Decisiones
 - Monolito modular y RAG propio; sin agentes ni frameworks de orquestación.

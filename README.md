@@ -22,6 +22,8 @@ Uso, desarrollo y verificación de la interfaz en [docs/FRONTEND.md](docs/FRONTE
 
 ## MVP acordado
 
+La próxima entrega habilitará algunas partes revisadas de los manuales y usará el Gol original de fábrica como referencia de búsqueda. Gemini responderá con esas fuentes y luego contextualizará las modificaciones registradas, distinguiendo el contenido del manual de su interpretación. Los datos reales del auto se conservan. Primero se demostrará este circuito con citas reales y aviso de falta de cobertura; después se ampliarán los manuales y se incorporará búsqueda vectorial. Este flujo es el objetivo acordado, todavía pendiente de implementación según el [plan](IMPLEMENTATION_PLAN.md).
+
 - Crear y editar vehículos e incidencias con síntomas y mediciones.
 - Estados OPEN, IN_PROGRESS y RESOLVED, con registro de la solución aplicada.
 - Diagnóstico estructurado mediante Gemini, con hipótesis, evidencia, pruebas sugeridas, advertencias e información faltante.
