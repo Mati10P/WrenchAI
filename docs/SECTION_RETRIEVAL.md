@@ -1,5 +1,7 @@
 # Recuperación por temas y correspondencia de ilustraciones
 
+Actualización posterior: [referencias válidas y procedimientos ilustrados](FIGURE_RELIABILITY.md).
+
 Entrega local del 25 de octubre de 2026. Reemplaza la selección de figuras por
 tamaño de página cuando está instalado el bundle de secciones.
 

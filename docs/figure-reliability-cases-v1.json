@@ -1,0 +1,32 @@
+[
+  {
+    "id": "belt-short",
+    "question": "como tenso la correa?",
+    "expected_any": ["gol-repair-candidate-0059"],
+    "expected_figures": ["gol-repair-candidate-0059-region-001"],
+    "allowed_figures": ["gol-repair-candidate-0059-region-001", "gol-repair-candidate-0060-region-002"],
+    "forbidden": ["castor", "suspensi[oó]n", "escape"],
+    "figure_expected": true,
+    "review": "Regresión literal de la consulta del usuario: si explica el ajuste de la correa dentada, mostrar su polea tensora (Fig. II.60, PDF 59). La comprobación de torsión puede acompañarse de la figura siguiente; no usar Fig. II.59 de puesta a punto ni ilustraciones de válvulas."
+  },
+  {
+    "id": "belt-adjustment",
+    "question": "¿Cómo ajusto la tensión de la correa dentada según el manual?",
+    "expected_any": ["gol-repair-candidate-0059"],
+    "expected_figures": ["gol-repair-candidate-0059-region-001"],
+    "allowed_figures": ["gol-repair-candidate-0059-region-001", "gol-repair-candidate-0060-region-002"],
+    "forbidden": ["castor", "suspensi[oó]n", "escape"],
+    "figure_expected": true,
+    "review": "Consulta de procedimiento sin pedir explícitamente imagen: incluir dibujo pertinente del ajuste. Conservar literales y reconocer la referencia documental sin inventar variante."
+  },
+  {
+    "id": "belt-tensioner-figure",
+    "question": "Mostrame el dibujo de la polea tensora para ajustar la correa dentada.",
+    "expected_any": ["gol-repair-candidate-0059"],
+    "expected_figures": ["gol-repair-candidate-0059-region-001"],
+    "allowed_figures": ["gol-repair-candidate-0059-region-001", "gol-repair-candidate-0060-region-002"],
+    "forbidden": ["castor", "suspensi[oó]n", "escape"],
+    "figure_expected": true,
+    "review": "La imagen de accionamiento del excéntrico es Fig. II.60. No confundir con la ilustración superior de la misma página."
+  }
+]

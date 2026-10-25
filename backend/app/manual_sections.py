@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from collections import Counter
 from functools import lru_cache
 from pathlib import Path
@@ -88,9 +89,16 @@ def words(text):
 def identity(text):
     # Reviewed labels sometimes include explicit exclusions for disambiguation.
     # Those exclusions must not become positive search matches.
-    import re
-
     return re.split(r";|\.\s+[Nn]o\b", text, maxsplit=1)[0].strip()
+
+
+def numbered_caption(text):
+    """A figure number alone cannot distinguish diagrams in the same topic."""
+    return bool(
+        re.fullmatch(
+            r"(?:fig(?:ura)?|fis)\.?\s*[0-9IVXLCDM.,:\s-]+", text.strip(), re.IGNORECASE
+        )
+    )
 
 
 def root():
@@ -309,13 +317,18 @@ def retrieve(query, ranked_pages, diagnostics):
         scores = {
             f["id"]: len(terms & words(identity(f["identity"]))) for f in candidates
         }
+        # Number-only captions inherit their bounded topic for navigation.
+        # Keep them for visual selection instead of excluding all zero matches.
+        numbered = {f["id"] for f in candidates if numbered_caption(f["identity"])}
         best = max(scores.values(), default=0)
         if best:
             figure_ids -= {
-                identifier for identifier, score in scores.items() if score < best * 0.7
+                identifier
+                for identifier, score in scores.items()
+                if score < best * 0.7 and identifier not in numbered
             }
         elif len(candidates) > 1:
-            figure_ids -= set(scores)  # cannot distinguish pictures reliably
+            figure_ids -= set(scores) - numbered
     for identifier in page_ids:
         source = manual_library.source(by_page[identifier])
         source["sections"] = [
@@ -342,8 +355,17 @@ def retrieve(query, ranked_pages, diagnostics):
 
 def figure_metadata(identifier):
     data = catalog()
-    return (
+    figure = (
         next((f for f in data["figures"] if f["id"] == identifier), None)
         if data
         else None
     )
+    if figure is None:
+        return None
+    section = next(s for s in data["sections"] if s["id"] == figure["section_id"])
+    return figure | {
+        "section_title": section["title"],
+        "caption": section["title"]
+        if numbered_caption(figure["identity"])
+        else figure["identity"],
+    }

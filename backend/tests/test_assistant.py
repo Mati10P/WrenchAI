@@ -158,7 +158,7 @@ def test_gemini_transport_and_unknown_citations(monkeypatch):
 
     def transport(request, timeout):
         seen.append(json.loads(request.data))
-        assert timeout == 60
+        assert 0 < timeout <= 60
         assert "test-only-key" not in request.full_url
         return Response(
             {

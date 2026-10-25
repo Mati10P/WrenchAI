@@ -1,5 +1,19 @@
 # Plan de implementación
 
+## Entrega vigente — referencias válidas y figuras en procedimientos, 2026-10-25
+
+- [x] Limitar `figure_id` en el esquema de Gemini a los recortes realmente adjuntados; eliminar la alternativa de imagen cuando no hay candidatos.
+- [x] Corregir una sola vez errores de formato/referencias u omisiones de una figura en un procedimiento ilustrado, conservando las fuentes y un presupuesto total de 60 segundos del proveedor.
+- [x] Mantener el rechazo de IDs inventados, figuras de otros temas e integridad inválida; devolver un aviso específico ante fallo persistente de ilustración.
+- [x] Conservar dibujos con leyendas únicamente numéricas dentro de su tema: PDF 59/60 de «Ajuste de la correa dentada», sin incluir la figura superior del tema anterior.
+- [x] Añadir ocho pruebas y ejecutar la suite completa: 114 correctas.
+- [x] Ejecutar tres consultas reales sobre la correa, incluyendo «como tenso la correa?»: todas con HTTP 200, figura de la polea tensora y hashes válidos; verificar en navegador.
+- [x] Repetir las cuatro consultas del bloque de frenos: todas correctas, con figuras correspondientes y comprobación de persistencia.
+- [x] Ejecutar doce regresiones: todas HTTP 200, once con todas sus comprobaciones correctas. Conservar el caso del PIN Bluetooth con una cita innecesaria al equipo original como pendiente de fidelidad.
+- [ ] Corregir la selección de fuentes ante consultas sobre equipos instalados cuya documentación no está disponible y ampliar la revisión independiente de figuras.
+
+Detalle y reproducción: [FIGURE_RELIABILITY.md](docs/FIGURE_RELIABILITY.md). El contexto de seguimientos y la evaluación ampliada/CI permanecen en la cola del plan. Las entregas siguientes conservan el registro histórico.
+
 ## Entrega vigente — recuperación por temas e ilustraciones correspondientes, 2026-10-25
 
 - [x] Reconstruir títulos, subtítulos, columnas y límites entre temas, conservando las páginas originales y el OCR como navegación sin aprobación técnica.

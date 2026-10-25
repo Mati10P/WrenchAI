@@ -5,6 +5,7 @@ import logging
 import os
 import re
 import unicodedata
+from time import monotonic
 from typing import Annotated, Literal
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -50,6 +51,60 @@ class AssistantError(Exception):
         self.status = status
         self.message = message
         super().__init__(message)
+
+
+class IllustrationValidationError(ValueError):
+    """A bounded regeneration may repair figure selection, never remap an ID."""
+
+
+def response_schema(sources):
+    """Constrain generation to the exact figures actually sent with this request."""
+    schema = Answer.model_json_schema()
+    figures = sorted({f["id"] for s in sources for f in s.get("figures", [])})
+    if figures:
+        schema["$defs"]["Illustration"]["properties"]["figure_id"]["enum"] = figures
+    else:
+        schema["properties"]["blocks"]["items"] = {"$ref": "#/$defs/Paragraph"}
+        del schema["$defs"]["Illustration"]
+    return schema
+
+
+def provider_context(context):
+    # Search may consider more figures than are actually attached. Do not expose
+    # those IDs as output choices, or allow previous answers to introduce them.
+    sources = [
+        {k: v for k, v in s.items() if k != "section_figure_ids"}
+        for s in context["sources"]
+    ]
+    return context | {"sources": sources}
+
+
+def needs_illustration(answer, context):
+    """Require visual selection for illustrated procedures supported by a topic.
+
+    A figure from another retrieved topic or an uncited page is not sufficient.
+    Coverage/clarification answers must remain free to abstain.
+    """
+    history = context.get("history", [])
+    question = normalize(history[-1].get("user", "")) if history else ""
+    if not re.search(
+        r"\bcomo\b|\bmostra\w*|\bilustr\w*|\bdibujo\w*|\besquema\w*", question
+    ):
+        return False
+    cited = set(answer.citation_ids)
+    if not cited or answer.questions:
+        return False
+    topics = {
+        topic["id"]
+        for s in context["sources"]
+        if s["id"] in cited
+        for topic in s.get("sections", [])
+    }
+    return any(
+        f.get("section", {}).get("section_id") in topics
+        for s in context["sources"]
+        for f in s.get("figures", [])
+    )
 
 
 MODEL_OPTIONS = [
@@ -129,6 +184,7 @@ Si las páginas recuperadas no responden a la pregunta, indicá que no encontras
 La falta de resultados no permite afirmar que el manual completo no contiene ese tema. Describí solo el límite del lote consultado.
 Redactá toda tu explicación en español, traduciendo términos portugueses; el texto original se muestra aparte en las fuentes. La identidad y autoría de cada documento están en source.document: nunca mezcles autores entre documentos ni completes un author=null. No nombres autores salvo que el usuario pregunte por la fuente; identificá normalmente el manual con su título.
 Construí el cuerpo principal en blocks: párrafos claros intercalados con ilustraciones del manual cuando realmente ayudan a comprender lo preguntado, como un artículo. Cada paragraph incluye text y source_ids que respaldan ese párrafo; una interpretación o pregunta propia puede tener source_ids vacío y debe identificarse como tal. Las únicas ilustraciones permitidas son los figure_id de sources.figures, que se adjuntan como recortes originales. No inventes imágenes, URLs ni coordenadas. Incluí como máximo tres ilustraciones, intercaladas junto al párrafo que explican, con un caption descriptivo en español. No uses un recorte que no muestre la pieza o procedimiento solicitado ni una imagen decorativa; no es obligatorio agregar imágenes si no ayudan. Citá la página padre de cada figura en citation_ids. Si una ilustración no es legible, usá la página completa para verificar y omití el recorte. No prometas que adjuntaste una imagen si no devolvés un bloque illustration. El campo summary es un resumen de respaldo, no una segunda introducción. No repitas en hypotheses/checks/questions lo ya explicado en blocks. Escribí texto plano, sin etiquetas HTML ni IDs de citas incrustados en las frases; la interfaz presenta los enlaces.
+El esquema limita figure_id a las figuras adjuntadas en ESTE mensaje. Copiá exactamente uno de esos IDs; un ID de página, de sección o de una respuesta anterior no es un ID de figura disponible. Si explicás cómo realizar un procedimiento y sources.figures contiene un dibujo legible de ese mismo procedimiento, incluilo junto al párrafo correspondiente aunque el usuario no pida expresamente una imagen. Una leyenda formada solo por un número de figura no vuelve irrelevante el dibujo: leé el recorte y su sección para identificarlo. Podés omitirlo si no corresponde, no es legible o no ayuda; en ese caso explicá brevemente ese límite en un párrafo sin atribuir evidencia al recorte.
 Si el usuario pregunta expresamente si una modificación permite trasladar el procedimiento original (por ejemplo una palanca de desembrague más larga), contestá esa pregunta en un párrafo propio: indicá si las fuentes evalúan esa modificación. Si no la evalúan, explicá que no podés confirmar equivalencia directa; no te limites a repetir el valor original ni inventes cómo varía el recorrido. En ese caso la modificación sí debe mencionarse porque el usuario la consultó.
 Para preguntas informativas o sobre un procedimiento, dejá hypotheses y questions vacíos salvo que falte un dato imprescindible para responder: no inventes síntomas ni hagas una entrevista de diagnóstico que el usuario no pidió. Las figuras rotuladas incluyen una descripción identificativa revisada: respetala. Una figura que no contiene la letra A no puede presentarse como detalle de A aunque el texto de la página la mencione. Distribuí la explicación en párrafos antes y después de la figura; no juntes todas las imágenes al final.
 Si las fuentes no contienen el dato específico pedido, no rellenes con una explicación de un equipo distinto: explicá el límite y pedí el dato que falta. Para un PIN de radio Bluetooth instalada no sirven las instrucciones del autoradio original; no sugieras PIN genéricos ni cites esa página ni muestres una figura ajena. Ante falta de respaldo, citation_ids debe estar vacío y los párrafos sin source_ids.
@@ -149,7 +205,7 @@ def generate(context, model=None):
     from . import manual_figures
     from .manual_library import image_parts
 
-    parts = [{"text": json.dumps(context, ensure_ascii=False)}]
+    parts = [{"text": json.dumps(provider_context(context), ensure_ascii=False)}]
     parts.extend(image_parts(context["sources"]))
     parts.extend(manual_figures.image_parts(context["sources"]))
     if (
@@ -170,41 +226,73 @@ def generate(context, model=None):
         ],
         "generationConfig": {
             "responseMimeType": "application/json",
-            "responseJsonSchema": Answer.model_json_schema(),
+            "responseJsonSchema": response_schema(context["sources"]),
             "maxOutputTokens": 4096,
         },
     }
     if model == "gemini-3.8-flash":
         payload["generationConfig"]["thinkingConfig"] = {"thinkingLevel": "low"}
-    request = Request(
-        f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-        data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json", "x-goog-api-key": key},
-        method="POST",
-    )
+    deadline = monotonic() + 60
     try:
-        with urlopen(request, timeout=60) as response:
-            raw = response.read(200001)
-        if len(raw) > 200000:
-            raise ValueError("Oversized provider response")
-        body = json.loads(raw)
-        candidate = body["candidates"][0]
-        if candidate.get("finishReason") != "STOP":
-            raise ValueError("Incomplete or blocked response")
-        answer = Answer.model_validate_json(
-            "".join(
-                p.get("text", "")
-                for p in candidate["content"]["parts"]
-                if not p.get("thought")
+        for attempt in range(2):
+            request = Request(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+                data=json.dumps(payload).encode(),
+                headers={"Content-Type": "application/json", "x-goog-api-key": key},
+                method="POST",
             )
-        )
-        allowed = {source["id"] for source in context["sources"]}
-        if any(identifier not in allowed for identifier in answer.citation_ids):
-            raise ValueError("Unknown source ID")
-        clean_style(answer)
-        complete_references(answer, context["sources"])
-        validate_blocks(answer, context["sources"])
-        return answer
+            timeout = 60 if attempt == 0 else max(0.1, deadline - monotonic())
+            with urlopen(request, timeout=timeout) as response:
+                raw = response.read(200001)
+            if len(raw) > 200000:
+                raise ValueError("Oversized provider response")
+            body = json.loads(raw)
+            candidate = body["candidates"][0]
+            if candidate.get("finishReason") != "STOP":
+                raise ValueError("Incomplete or blocked response")
+            try:
+                answer = Answer.model_validate_json(
+                    "".join(
+                        p.get("text", "")
+                        for p in candidate["content"]["parts"]
+                        if not p.get("thought")
+                    )
+                )
+                allowed = {source["id"] for source in context["sources"]}
+                if any(identifier not in allowed for identifier in answer.citation_ids):
+                    raise ValueError("Unknown source ID")
+                clean_style(answer)
+                complete_references(answer, context["sources"])
+                validate_blocks(answer, context["sources"])
+                if needs_illustration(answer, context) and not any(
+                    isinstance(b, Illustration) for b in answer.blocks
+                ):
+                    raise IllustrationValidationError("Missing procedure illustration")
+                return answer
+            except (
+                ValueError,
+                KeyError,
+                IndexError,
+                TypeError,
+                ValidationError,
+            ) as exc:
+                if attempt or deadline - monotonic() < 5:
+                    raise
+                # Regenerate once using the exact same evidence and constraints.
+                # Never guess a replacement ID or silently drop an invalid image.
+                issue = (
+                    "selección de ilustraciones"
+                    if isinstance(exc, IllustrationValidationError)
+                    else "formato o referencias"
+                )
+                logging.getLogger(__name__).info(
+                    "Regenerating rejected answer: %s", issue
+                )
+                parts.append(
+                    {
+                        "text": f"Corrección de {issue}: devolvé nuevamente el JSON completo con el esquema solicitado. Copiá citas e identificadores solo de las fuentes y figuras adjuntas actuales. Si explicás un procedimiento ilustrado por un dibujo legible del mismo tema, incluí ese dibujo en blocks junto a su explicación. No uses referencias del historial. No completes información ausente."
+                    }
+                )
     except HTTPError as exc:
         if exc.code == 429:
             raise AssistantError(
@@ -243,7 +331,7 @@ def generate(context, model=None):
             ]
             if isinstance(exc, ValidationError)
             else str(exc)
-            if type(exc) is ValueError
+            if type(exc) in {ValueError, IllustrationValidationError}
             else type(exc).__name__
         )
         logging.getLogger(__name__).warning(
@@ -252,7 +340,9 @@ def generate(context, model=None):
         )
         raise AssistantError(
             502,
-            "La respuesta de Gemini no pasó la validación. Tu mensaje está guardado; podés reintentar.",
+            "No se pudo verificar la ilustración del manual. Tu mensaje está guardado; podés reintentar."
+            if isinstance(exc, IllustrationValidationError)
+            else "No se pudo verificar el formato o las fuentes de la respuesta. Tu mensaje está guardado; podés reintentar.",
         ) from None
 
 
@@ -266,7 +356,9 @@ def validate_blocks(answer, sources):
             raise ValueError("Paragraph references an uncited source")
         if isinstance(block, Illustration):
             if figures.get(block.figure_id) not in cited:
-                raise ValueError("Illustration is not from a cited retrieved page")
+                raise IllustrationValidationError(
+                    "Illustration is not from a cited retrieved page"
+                )
             source = next(s for s in sources if s["id"] == figures[block.figure_id])
             figure = next(f for f in source["figures"] if f["id"] == block.figure_id)
             if "sections" in source:
@@ -277,12 +369,12 @@ def validate_blocks(answer, sources):
                     or not section.get("identity")
                     or block.figure_id not in source.get("section_figure_ids", [])
                 ):
-                    raise ValueError(
+                    raise IllustrationValidationError(
                         "Illustration does not belong to the retrieved topic"
                     )
                 # The model may explain the image in prose, but cannot rename
                 # a front caliper as a rear cylinder in its caption.
-                block.caption = section["identity"]
+                block.caption = section.get("caption", section["identity"])
             images.append(block.figure_id)
     if len(images) > 3 or len(images) != len(set(images)):
         raise ValueError("Duplicate or excessive illustrations")
@@ -298,7 +390,7 @@ def complete_references(answer, sources):
             identifiers.extend(block.source_ids)
         else:
             if block.figure_id not in figures:
-                raise ValueError("Unknown illustration ID")
+                raise IllustrationValidationError("Unknown illustration ID")
             identifiers.append(figures[block.figure_id])
             linked = next(
                 f
