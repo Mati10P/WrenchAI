@@ -80,6 +80,9 @@ export type Reply = {
     text: string;
     image_url?: string;
     evidence_kind?: string;
+    url?: string;
+    retrieved_at?: string;
+    search_suggestions?: string;
     scope?: string | null;
     reference_profile?: string | null;
     language?: "es" | "pt";

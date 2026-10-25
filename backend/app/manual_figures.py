@@ -75,8 +75,9 @@ def attach(sources):
                 if f.get("label_review") == "visually_checked_identifier"
             ]
         selected = sorted(candidates, key=lambda f: (f["bbox"][1], f["bbox"][0]))[
-            : min(3, remaining)
+            : min(12 if s.get("visual_review_candidates") else 3, remaining)
         ]
+        s["figures_truncated"] = len(selected) != len(candidates)
         s["figures"] = [
             {
                 "id": f["id"],

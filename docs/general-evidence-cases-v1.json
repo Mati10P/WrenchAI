@@ -1,0 +1,15 @@
+[
+  {"id": "ignition-completeness", "turns": [
+    {"question": "como pongo a punto el auto?", "expected_any": ["gol-repair-candidate-0173"], "figure_expected": true, "expected_figure_sequence": ["gol-repair-candidate-0173-region-001", "gol-repair-candidate-0173-region-002"]},
+    {"question": "y cómo se usa la pistola estroboscópica? qué tengo que mirar?", "expected_any": ["gol-repair-candidate-0173"], "query_contains": ["encendido"]}
+  ]},
+  {"id": "fuel-without-special-sequence", "turns": [
+    {"question": "Cómo cambio el filtro de combustible? Mostrá las ilustraciones pertinentes y explicá cada paso.", "expected_any": ["gol-repair-candidate-0137"], "figure_expected": true, "expected_figure_sequence": ["gol-repair-candidate-0138-region-002", "gol-repair-candidate-0138-region-001", "gol-repair-candidate-0139-region-001"]}
+  ]},
+  {"id": "belt-adjustment-and-check", "turns": [
+    {"question": "Cómo ajusto la correa dentada y cómo compruebo que quedó bien tensada?", "expected_any": ["gol-repair-candidate-0059", "gol-repair-candidate-0060"], "figure_expected": true}
+  ]},
+  {"id": "rear-cylinder-topic-boundary", "turns": [
+    {"question": "Cómo cambio el cilindro de freno de la rueda trasera?", "expected_any": ["gol-repair-candidate-0211", "gol-repair-candidate-0212"], "figure_expected": true, "allowed_figures": ["gol-repair-candidate-0211-region-001"], "content_excludes": ["desmontar el servofreno"]}
+  ]}
+]

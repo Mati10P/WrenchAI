@@ -1,6 +1,12 @@
 import type { Reply } from "../api";
 import { useState } from "react";
 
+function sourceLabel(source: Reply["sources"][number]) {
+  return source.evidence_kind === "verified_web_page"
+    ? `${source.title} · Fuente web del fabricante`
+    : `${source.title} · ${(source.pages?.length ?? 1) > 1 ? "páginas PDF" : "página PDF"} ${(source.pages ?? [source.page]).join(", ")}`;
+}
+
 function ManualFigure({
   figureId,
   caption,
@@ -90,8 +96,8 @@ export function AssistantMessage({ reply }: { reply: Reply }) {
                       className="paragraph-source"
                       key={id}
                       href={`#source-${reply.message_id}-${source.id}`}
-                      aria-label={`Fuente ${reference + 1}: ${source.title}, página PDF ${source.page}`}
-                      title={`${source.title} · página PDF ${source.page}`}
+                      aria-label={`Fuente ${reference + 1}: ${sourceLabel(source)}`}
+                      title={sourceLabel(source)}
                       onClick={(event) => {
                         event.preventDefault();
                         const details = document.getElementById(
@@ -165,9 +171,7 @@ export function AssistantMessage({ reply }: { reply: Reply }) {
           id={`source-${reply.message_id}-${source.id}`}
         >
           <summary>
-            [{index + 1}] {source.title} ·{" "}
-            {(source.pages?.length ?? 1) > 1 ? "páginas PDF" : "página PDF"}{" "}
-            {(source.pages ?? [source.page]).join(", ")}
+            [{index + 1}] {sourceLabel(source)}
           </summary>
           <p>{source.text}</p>
           {source.document && (
@@ -187,12 +191,39 @@ export function AssistantMessage({ reply }: { reply: Reply }) {
               Ver página original
             </a>
           )}
+          {source.evidence_kind === "verified_web_page" &&
+            source.url?.startsWith("https://") && (
+              <p>
+                <a href={source.url} target="_blank" rel="noreferrer">
+                  Abrir fuente web consultada
+                </a>
+                {source.retrieved_at && (
+                  <small>
+                    {" "}
+                    · Consultada el{" "}
+                    {new Date(source.retrieved_at).toLocaleDateString("es-UY")}
+                  </small>
+                )}
+              </p>
+            )}
           {source.language === "pt" && (
             <small>Texto original en portugués.</small>
           )}
           {source.scope && <p className="muted">Alcance: {source.scope}</p>}
         </details>
       ))}
+      {reply.sources.find((s) => s.search_suggestions)?.search_suggestions && (
+        <iframe
+          title="Sugerencias de búsqueda de Google"
+          sandbox="allow-popups allow-popups-to-escape-sandbox"
+          referrerPolicy="no-referrer"
+          style={{ border: 0, width: "100%", height: 160 }}
+          srcDoc={
+            "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src https: data:;\">" +
+            reply.sources.find((s) => s.search_suggestions)!.search_suggestions
+          }
+        />
+      )}
     </article>
   );
 }

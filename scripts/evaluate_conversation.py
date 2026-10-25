@@ -22,7 +22,7 @@ def normalized(value):
 
 def run(base, vehicle_id, cases_file, output):
     cases = json.loads(cases_file.read_text(encoding="utf-8"))
-    with httpx.Client(base_url=base, timeout=85) as client:
+    with httpx.Client(base_url=base, timeout=175) as client:
         original = client.get(f"/vehicles/{vehicle_id}")
         original.raise_for_status()
         payload = {

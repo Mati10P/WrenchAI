@@ -555,7 +555,7 @@ export default function App() {
                   ? "La configuración documental necesita revisión."
                   : assistantStatus.manual_library?.available &&
                       active?.manual_reference
-                    ? `Consultamos ${assistantStatus.manual_library.pages} páginas de ${assistantStatus.manual_library.manuals} manuales. Gemini lee las páginas originales y considera tus modificaciones.`
+                    ? `${assistantStatus.manual_library.pages} páginas disponibles en ${assistantStatus.manual_library.manuals} manuales. Consultamos los temas pertinentes${assistantStatus.web_search ? " y buscamos documentación del fabricante cuando falta información" : ""}.`
                     : assistantStatus.approved_passages === 0
                       ? "Gemini configurado. Aún no hay manuales habilitados: las respuestas serán orientación general, sin búsqueda web."
                       : active?.manual_reference

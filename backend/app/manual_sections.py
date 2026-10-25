@@ -379,16 +379,40 @@ def retrieve(query, ranked_pages, diagnostics):
         ]
         page_ids = list(dict.fromkeys(priorities + page_ids))[:8]
     sources = []
+    visual_review = os.getenv(
+        "VISUAL_EVIDENCE_REVIEW", "true"
+    ).lower() == "true" and any(s.get("reading_order") for s in active)
     figure_ids = {
         f["id"]
         for f in data["figures"]
         if f["section_id"] in {s["id"] for s in active}
-        and f["identity"]
-        and compatible(query, identity(f["identity"]))
+        and (
+            visual_review
+            or (f["identity"] and compatible(query, identity(f["identity"])))
+        )
     }
+    if visual_review:
+        # A missing OCR caption is not a missing figure. Only geometrically
+        # contained candidates go to the visual reviewer; overlapping drawings
+        # still require a reviewed cross-topic association.
+        figure_ids = {
+            identifier
+            for identifier in figure_ids
+            if any(
+                e["page_id"] == figures[identifier]["page_id"]
+                and e["bbox"][0] - 10 <= figures[identifier]["bbox"][0]
+                and e["bbox"][1] - 10 <= figures[identifier]["bbox"][1]
+                and e["bbox"][2] + 10 >= figures[identifier]["bbox"][2]
+                and e["bbox"][3] + 10 >= figures[identifier]["bbox"][3]
+                for s in active
+                for e in s["spans"]
+            )
+        }
     # Select illustrations within a topic by their own identity, not merely by
     # topic membership. A page may contain a wiper clip, an antenna and a blade.
     for section_id in {s["id"] for s in active}:
+        if visual_review:
+            continue
         candidates = [
             f
             for f in data["figures"]
@@ -446,6 +470,7 @@ def retrieve(query, ranked_pages, diagnostics):
             if s.get("response_sequence")
         ]
         source["section_figure_ids"] = sorted(figure_ids)
+        source["visual_review_candidates"] = visual_review
         source["section_context_complete"] = (
             len({e["page_id"] for s in active for e in s["spans"]}) <= 8
         )

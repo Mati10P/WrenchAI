@@ -11,6 +11,11 @@ from .assistant import normalize
 # Narrow subjects precede their parent system. Each family is matched once.
 SUBJECTS = [
     (
+        "ignition",
+        "punto de encendido",
+        r"puesta a punto|pon(?:go|er).{0,5}a punto|punto (?:de |del )?encendido|pistola estroboscopica|lampara estroboscopica",
+    ),
+    (
         "fuel",
         "filtro de combustible",
         r"filtro (?:de |del )?(?:combustible|nafta|gasolina)",

@@ -21,7 +21,7 @@ class Paragraph(BaseModel):
     model_config = ConfigDict(extra="forbid")
     type: Literal["paragraph"]
     text: ShortText
-    source_ids: Annotated[list[str], Field(max_length=6)]
+    source_ids: Annotated[list[str], Field(max_length=12)]
     manual_block_ids: Annotated[list[str], Field(max_length=12)] = Field(
         default_factory=list
     )
@@ -42,7 +42,7 @@ class Answer(BaseModel):
     hypotheses: Annotated[list[ShortText], Field(max_length=4)]
     questions: Annotated[list[ShortText], Field(max_length=3)]
     checks: Annotated[list[ShortText], Field(max_length=4)]
-    citation_ids: Annotated[list[str], Field(max_length=6)]
+    citation_ids: Annotated[list[str], Field(max_length=12)]
     evidence_status: Literal[
         "supported", "partial", "insufficient", "clarification"
     ] = "supported"
@@ -54,7 +54,7 @@ class Answer(BaseModel):
     ) = None
     blocks: Annotated[
         list[Paragraph | Illustration],
-        Field(max_length=24),
+        Field(max_length=48),
     ] = Field(default_factory=list)
 
 
@@ -344,6 +344,12 @@ No respondas consultas ajenas al mantenimiento. Devolvé únicamente el JSON sol
 
 
 def generate(context, model=None):
+    from . import evidence_review
+
+    if evidence_review.enabled(context):
+        return evidence_review.generate(
+            context, selected_model(model) if model is not None else model_name()
+        )
     model = selected_model(model) if model is not None else model_name()
     key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not key:
@@ -540,7 +546,11 @@ def validate_blocks(answer, sources):
                 if (
                     section.get("section_id")
                     not in {s["id"] for s in source["sections"]}
-                    or not section.get("identity")
+                    or not (
+                        section.get("identity")
+                        or figure.get("visual_assessment", {}).get("status")
+                        == "model_checked"
+                    )
                     or block.figure_id not in source.get("section_figure_ids", [])
                 ):
                     raise IllustrationValidationError(
@@ -548,9 +558,14 @@ def validate_blocks(answer, sources):
                     )
                 # The model may explain the image in prose, but cannot rename
                 # a front caliper as a rear cylinder in its caption.
-                block.caption = section.get("caption", section["identity"])
+                if (
+                    figure.get("label_review") == "visually_checked_identifier"
+                    or figure.get("visual_assessment", {}).get("status")
+                    != "model_checked"
+                ):
+                    block.caption = section.get("caption", section["identity"])
             images.append(block.figure_id)
-    if len(images) > 8 or len(images) != len(set(images)):
+    if len(images) > 12 or len(images) != len(set(images)):
         raise ValueError("Duplicate or excessive illustrations")
 
 
@@ -574,7 +589,7 @@ def complete_references(answer, sources):
             )
             identifiers.extend(linked.get("context_source_ids", []))
     identifiers = list(dict.fromkeys(identifiers))
-    if not set(identifiers) <= allowed or len(identifiers) > 6:
+    if not set(identifiers) <= allowed or len(identifiers) > 12:
         raise ValueError("Unknown or excessive source references")
     answer.citation_ids = identifiers
 

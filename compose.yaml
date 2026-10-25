@@ -24,6 +24,8 @@ services:
       HYBRID_RETRIEVAL: ${HYBRID_RETRIEVAL:-false}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
+      VISUAL_EVIDENCE_REVIEW: ${VISUAL_EVIDENCE_REVIEW:-true}
+      WEB_SEARCH_ENABLED: ${WEB_SEARCH_ENABLED:-true}
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-wrenchai}:${POSTGRES_PASSWORD:-wrenchai_local}@db:5432/${POSTGRES_DB:-wrenchai}
     volumes:
       - ./data/private/manuals/library-v1:/manual-library:ro

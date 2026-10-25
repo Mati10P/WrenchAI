@@ -2,6 +2,8 @@
 
 
 def compile_flows(sections, layouts, figures, pages, annotations):
+    from .section_structure import ordered_regions
+
     page_index = {p["id"]: p for p in pages}
     by_figure = {f["id"]: f for f in figures}
     for section in sections:
@@ -14,16 +16,13 @@ def compile_flows(sections, layouts, figures, pages, annotations):
                 e["bbox"][1],
             ),
         ):
-            for region in sorted(
-                layouts[span["page_id"]]["regions"],
-                key=lambda r: (r["bbox"][1], r["bbox"][0]),
-            ):
+            for region in ordered_regions(layouts[span["page_id"]]):
                 key = span["page_id"] + "-" + region["id"]
                 x1, y1, x2, y2 = span["bbox"]
                 box = region["bbox"]
                 if (
                     key in seen
-                    or region["type"] not in {"text", "list_item", "picture"}
+                    or region["type"] not in {"text", "list_item", "picture", "table"}
                     or not (
                         x1 <= (box[0] + box[2]) / 2 < x2
                         and y1 <= (box[1] + box[3]) / 2 < y2

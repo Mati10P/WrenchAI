@@ -1,5 +1,18 @@
 # Plan de implementación
 
+## Entrega actual — revisión visual general y complemento web, 2026-10-25
+
+Este bloque reemplaza la secuencia especial del filtro por una revisión general de temas. Detalle y límites en [GENERAL_EVIDENCE.md](docs/GENERAL_EVIDENCE.md). Los bloques inferiores conservan el historial.
+
+- [x] Revisar todas las figuras candidatas, incluso sin epígrafe, y conservar texto/figuras en orden documental sin depender del nombre del procedimiento.
+- [x] Entregar a Gemini cada fragmento de texto como recorte original identificado; ensamblar la respuesta en el servidor entre las figuras correspondientes.
+- [x] Evaluar herramientas, condiciones, acciones, comprobación y aplicabilidad; buscar otra vez en los manuales ante faltantes y conservar el tema en seguimientos de encendido.
+- [x] Integrar búsqueda Google y lectura URL de fuentes de fabricantes, con procedencia, fecha, alcance general y manejo explícito de cuota. No atribuir información web al manual.
+- [x] Ejecutar 255 pruebas backend, 30 de herramientas, build Docker/frontend, Ruff y git diff --check. Dos rondas de cinco turnos reales: imágenes y fuentes esperadas correctas; la segunda conserva el texto entre las dos figuras de encendido y las tres del filtro.
+- [ ] Validar una búsqueda web real completa: el proveedor devuelve HTTP 429 por cuota. El camino exitoso tiene pruebas simuladas de admisión de fuentes; no se declara verificado en producción.
+- [ ] Completar y volver a evaluar la explicación mecánica del encendido con fuentes adicionales compatibles. Las respuestas actuales reconocen los datos faltantes; no se declara resuelta la puesta a punto del vehículo.
+- [ ] Reevaluar los nueve hallazgos semánticos previos, ubicación del filtro y junta del escape. Ingreso de fotos y primera corrida CI remota siguen pendientes.
+
 ## Entrega vigente — procedimientos ilustrados, explicaciones y seguimientos, 2026-10-25
 
 Se implementó el bloque priorizado a partir del filtro de combustible y la junta del escape. Evidencia y reproducción en [COMPLETE_PROCEDURES.md](docs/COMPLETE_PROCEDURES.md). Las mejoras se aplican a nuevas generaciones; las respuestas guardadas conservan su contenido.

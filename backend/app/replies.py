@@ -140,7 +140,7 @@ def reply_to(db, message_id, requested_model=None):
             for t in tasks
         ],
         "sources": sources,
-        "limits": "Últimos 20 mensajes y 12 tareas; fuentes revisadas y páginas originales de lectura automática bajo retrieval_reference, con alcance indicado en scope. OCR solo para localizar páginas; nunca evidencia validada. Sin búsqueda web.",
+        "limits": "Últimos 20 mensajes y 12 tareas; fuentes revisadas y páginas originales de lectura automática bajo retrieval_reference. OCR solo para localizar páginas. La revisión puede buscar fuentes públicas adicionales; únicamente sources de tipo verified_web_page aportan ese complemento, con alcance general explícito.",
     }
     # Bound context size and avoid silently clipping away safety-critical text.
     if len(json.dumps(context, ensure_ascii=False)) > 80000:
@@ -186,9 +186,12 @@ def reply_to(db, message_id, requested_model=None):
         model = "document-coverage-v1"
     else:
         try:
+            from . import evidence_review
             from .manual_flow import diagram_scope
 
-            scoped = diagram_scope(context)
+            scoped = (
+                None if evidence_review.enabled(context) else diagram_scope(context)
+            )
             answer = (
                 scoped
                 if scoped is not None

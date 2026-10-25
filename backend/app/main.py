@@ -323,6 +323,8 @@ def create_app(url=None):
 
     @app.get("/assistant/status")
     def assistant_status(db: DB):
+        from . import web_evidence
+
         count = corpus.count_passages(db)
         library_status = manual_library.status()
         section_status = manual_sections.status()
@@ -343,7 +345,7 @@ def create_app(url=None):
             "manual_sections": section_status,
             "vector_search": vector_status,
             "corpus_valid": corpus_valid,
-            "web_search": False,
+            "web_search": web_evidence.enabled(),
         }
 
     @app.get("/vehicles/{vehicle_id}/sources")
