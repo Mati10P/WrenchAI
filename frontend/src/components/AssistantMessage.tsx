@@ -68,7 +68,7 @@ export function AssistantMessage({ reply }: { reply: Reply }) {
       <strong>
         {reply.safety_warning ? "Aviso de seguridad de WrenchAI" : "WrenchAI"}
       </strong>
-      {!reply.safety_warning && (
+      {!reply.safety_warning && reply.model.startsWith("gemini-") && (
         <small className="reply-model">{reply.model}</small>
       )}
       {!reply.safety_warning && reply.content.blocks?.length ? (
@@ -150,13 +150,14 @@ export function AssistantMessage({ reply }: { reply: Reply }) {
             </section>
           ),
       )}
-      {!reply.safety_warning && (
-        <small>
-          {reply.sources.length
-            ? "Fuentes utilizadas"
-            : "Sin respaldo documental recuperado. Orientación general; no confirma una causa ni que sea seguro circular."}
-        </small>
-      )}
+      {!reply.safety_warning &&
+        (reply.sources.length > 0 || reply.model.startsWith("gemini-")) && (
+          <small>
+            {reply.sources.length
+              ? "Fuentes utilizadas"
+              : "Sin respaldo documental recuperado. Orientación general; no confirma una causa ni que sea seguro circular."}
+          </small>
+        )}
       {references.map(({ source }, index) => (
         <details
           className="source"

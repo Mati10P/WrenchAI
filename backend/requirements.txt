@@ -5,3 +5,4 @@ psycopg[binary]==3.3.6
 pydantic==2.14.1
 uvicorn==0.54.0
 pgvector==0.5.1
+Pillow==13.0.0

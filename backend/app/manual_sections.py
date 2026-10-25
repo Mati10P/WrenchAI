@@ -27,6 +27,7 @@ VOCABULARY = [
     {"cilindro", "cilindros"},
     {"freno", "frenos", "freio", "freios"},
     {"pastilla", "pastillas", "pastilha", "pastilhas"},
+    {"zapata", "zapatas", "cinta", "cintas"},
     {"tambor", "tambores"},
     {"mordaza", "mordazas", "caliper", "pinza", "pinzas"},
     {"liquido", "fluido"},
@@ -39,6 +40,15 @@ VOCABULARY = [
         "reabastecimento",
     },
     {"descenso", "baja", "baixa", "bajar"},
+    {
+        "cantidad",
+        "cantidades",
+        "capacidad",
+        "capacidades",
+        "quantidade",
+        "quantidades",
+        "capacidade",
+    },
 ]
 
 QUESTION_WORDS = {
@@ -110,7 +120,7 @@ def root():
 def load(folder, stamp, library_hash, figure_hash):
     data = json.loads((Path(folder) / "sections.json").read_text(encoding="utf-8"))
     if (
-        data["schema_version"] != 1
+        data["schema_version"] not in {1, 2}
         or data["library_sha256"] != library_hash
         or data["figures_sha256"] != figure_hash
         or data["review_status"] != "unreviewed_navigation_only"
@@ -123,6 +133,8 @@ def load(folder, stamp, library_hash, figure_hash):
             raise ValueError("Invalid or duplicate section")
         ids.add(s["id"])
         for span in s["spans"]:
+            if len(span.get("page_size", [])) != 2:
+                raise ValueError("Sections must include original page geometry")
             p = pages[span["page_id"]]
             if p["manual"] != s["manual"] or not 0 <= span["bbox"][1] < span["bbox"][3]:
                 raise ValueError("Invalid topic span")
@@ -180,7 +192,10 @@ def compatible(query, title):
     if (rear in q and front in t) or (front in q and rear in t):
         return False
     # These components share brake vocabulary but are not interchangeable.
-    components = [words(v).pop() for v in ("cilindro", "mordaza", "servofreno")]
+    components = [
+        words(v).pop()
+        for v in ("cilindro", "mordaza", "servofreno", "pastilla", "zapata")
+    ]
     requested = q & set(components)
     identified = t & set(components)
     return not requested or not identified or bool(requested & identified)
@@ -337,6 +352,7 @@ def retrieve(query, ranked_pages, diagnostics):
                 "title": s["title"],
                 "heading_path": s["heading_path"],
                 "bbox": e["bbox"],
+                "page_size": e["page_size"],
                 "review_status": s["review_status"],
             }
             for s in active

@@ -2,9 +2,12 @@
 
 import hashlib
 import json
+from io import BytesIO
 from types import SimpleNamespace
 
 import pytest
+from PIL import Image
+
 from app import assistant, manual_figures, manual_library, manual_sections
 from app.references import FACTORY_REFERENCE
 from app.section_structure import columns, compile_sections
@@ -67,6 +70,16 @@ def structure(pages):
 
 @pytest.fixture
 def section_bundle(bundle, tmp_path, monkeypatch):
+    pages = manual_library.library()[0]
+    manifest = json.loads((bundle / "library.json").read_text(encoding="utf-8"))
+    for page in manifest["pages"]:
+        image = BytesIO()
+        Image.new("RGB", (1000, 1400), "gray").save(image, format="JPEG")
+        data = image.getvalue()
+        (bundle / (page["id"] + ".jpg")).write_bytes(data)
+        page["image_sha256"] = hashlib.sha256(data).hexdigest()
+    (bundle / "library.json").write_text(json.dumps(manifest), encoding="utf-8")
+    manual_library.load.cache_clear()
     pages = manual_library.library()[0]
     layouts, figures = structure(pages)
     sections, assignments = compile_sections(pages, layouts, figures)

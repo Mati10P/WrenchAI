@@ -48,7 +48,7 @@ def prepare(library, figures, layouts, output):
     )
     output.mkdir(parents=True, exist_ok=False)
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "library_sha256": digest,
         "figures_sha256": sha(figures / "figures.json"),
         "layout_sha256": hashes,

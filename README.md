@@ -6,7 +6,9 @@ Proyecto de portfolio para conseguir una primera experiencia laboral: una aplica
 
 ## Estado actual
 
-La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. El menú **Mi auto** reúne marca, modelo, año, kilometraje, modificaciones y un **To-do** con pendientes, trabajos realizados y costos. Gemini usa el contexto del auto y conserva las respuestas; el chat permite elegir modelo. Requiere una clave en el servidor y ya se registraron pruebas reales de generación. La evaluación mecánica completa sigue pendiente. Hay cinco fragmentos reales de los manuales habilitados mediante recuperación textual, con citas y referencia del Gol de fábrica. Gemini conserva el contexto de modificaciones. Falta búsqueda semántica con pgvector y búsqueda web. El avance verificado y los pendientes están en la [checklist del plan](IMPLEMENTATION_PLAN.md).
+La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. **Mi auto** reúne los datos del vehículo, modificaciones, trabajos y costos. Gemini responde con citas y figuras de los manuales, usando el Gol original como referencia documental y considerando las modificaciones pertinentes. La recuperación combina BM25, pgvector y secciones del manual; conserva el tema en preguntas de seguimiento y pide aclaración si la referencia es ambigua. Ver [contexto conversacional y límites de equipos instalados](docs/CONVERSATION_RETRIEVAL.md).
+
+La revisión mecánica completa, los veinte escenarios, CI, búsqueda web y demo siguen pendientes. El avance verificado está en la [checklist del plan](IMPLEMENTATION_PLAN.md).
 
 El prototipo de consola `maintenance_demo.py` se conserva como antecedente educativo con SQLite. Sus datos no se migran automáticamente a la API.
 
@@ -24,7 +26,7 @@ Uso, desarrollo y verificación de la interfaz en [docs/FRONTEND.md](docs/FRONTE
 
 ## MVP acordado
 
-La entrega actual habilita cinco fragmentos revisados de los manuales y usa el Gol original de fábrica como referencia de búsqueda. Gemini responderá con esas fuentes y luego contextualizará las modificaciones registradas, distinguiendo el contenido del manual de su interpretación. Los datos reales del auto se conservan. Primero se demostrará este circuito con citas reales y aviso de falta de cobertura; después se ampliarán los manuales y se incorporará búsqueda vectorial. El circuito ya se comprobó con Gemini real por HTTP; el recorrido visual está pendiente. Ver [cobertura y pruebas del lote](docs/MVP_REAL_CORPUS.md).
+El circuito inicial con cinco fragmentos revisados se amplió a los dos manuales completos: 532 páginas disponibles para lectura visual automática, con fuentes y acceso a los originales. Las modificaciones reales del auto se conservan y se mencionan cuando afectan la consulta. Disponer de los PDF completos no equivale a validar todas sus cifras, procedimientos o variantes. El lote inicial y sus pruebas quedan registrados en [MVP_REAL_CORPUS.md](docs/MVP_REAL_CORPUS.md).
 
 - Crear y editar vehículos e incidencias con síntomas y mediciones.
 - Estados OPEN, IN_PROGRESS y RESOLVED, con registro de la solución aplicada.
@@ -34,7 +36,7 @@ La entrega actual habilita cinco fragmentos revisados de los manuales y usa el G
 - Reglas determinísticas de seguridad que el modelo no puede reducir.
 - Evaluación reproducible sobre 20 casos, separando tests simulados de pruebas con Gemini real.
 
-El chat es la entrada principal y conserva el contexto del auto. Antes de generar una respuesta, recupera fragmentos aprobados y compatibles desde PostgreSQL mediante búsqueda textual. Falta habilitar los manuales reales, incorporar recuperación semántica y completar la búsqueda en internet cuando la evidencia resulte insuficiente, mostrando origen y límites. Se usa recuperación documental (RAG), no entrenamiento de un modelo con los PDF. La ingesta documental ya funciona como comando administrativo.
+El chat recupera pasajes revisados de PostgreSQL y secciones de las páginas originales. El OCR se usa para navegación; las imágenes son la evidencia de lectura automática. La búsqueda híbrida con pgvector ya funciona. La búsqueda web complementaria sigue pendiente. Se usa recuperación documental (RAG), sin entrenar un modelo con los PDF.
 
 ## Stack previsto
 
@@ -44,9 +46,9 @@ SQLite pertenece únicamente al prototipo anterior. No se migrarán automáticam
 
 ## Documentación técnica
 
-Se descargaron dos manuales candidatos y se procesaron sus 532 páginas con OCR y separación por regiones. Para la primera versión se usará un conjunto acotado de páginas bien revisadas, seleccionado según los casos del MVP. La revisión profunda de ambos manuales completos queda pendiente para una etapa posterior; no es un requisito para comenzar la aplicación.
+Se procesaron los dos manuales privados con OCR y separación por regiones. Hay cinco pasajes revisados habilitados y una biblioteca completa para lectura visual automática. El resto del OCR mantiene el estado de navegación sin revisión técnica. Los originales, páginas, cifras y unidades se conservan; las dudas y variantes no se completan por inferencia.
 
-Cada página seleccionada deberá tener texto, cifras, unidades, tablas, ilustraciones y aplicabilidad cotejados, con trazabilidad al original y dudas registradas. Todavía no hay páginas habilitadas como evidencia para RAG. El contenido pendiente o dudoso no respaldará respuestas técnicas. Los manuales privados permanecerán fuera de Git; las pruebas públicas usarán un corpus didáctico redistribuible. Ver [criterios del corpus inicial](docs/MVP_CORPUS.md).
+Los manuales privados permanecen fuera de Git. Las pruebas públicas usan datos sintéticos redistribuibles. La revisión profunda del contenido y su aplicabilidad sigue pendiente. Ver [criterios del corpus inicial](docs/MVP_CORPUS.md) y [biblioteca completa](docs/FULL_MANUAL_LIBRARY.md).
 
 La selección inicial comprende 22 páginas y [20 escenarios concretos](docs/MVP_CASES.md) de lubricación, refrigeración, frenos, carga y límites de evidencia. Son alcance y criterios de aceptación documentados; su revisión técnica y evaluación real siguen pendientes.
 
@@ -93,4 +95,4 @@ El OCR y su revisión se ejecutan con herramientas locales documentadas en [docs
 
 ### Ingesta y consulta documental sin Gemini
 
-Ya se puede importar un conjunto aprobado y consultar sus fuentes desde PostgreSQL sin clave de IA. Incluye un ejemplo didáctico propio, aislado por modelo de vehículo ficticio. Es recuperación textual; la búsqueda semántica con pgvector y la habilitación de los manuales reales continúan pendientes. Instrucciones en [docs/RAG.md](docs/RAG.md).
+Se puede importar un conjunto aprobado y consultar sus fuentes desde PostgreSQL sin clave de IA. Incluye un ejemplo didáctico propio, aislado por vehículo ficticio. La biblioteca real y la recuperación híbrida se configuran por separado; generar respuestas con lectura visual requiere Gemini. Instrucciones en [RAG.md](docs/RAG.md), [FULL_MANUAL_LIBRARY.md](docs/FULL_MANUAL_LIBRARY.md) y [VECTOR_RETRIEVAL.md](docs/VECTOR_RETRIEVAL.md).

@@ -1,5 +1,23 @@
 # Plan de implementación
 
+## Entrega vigente — seguimiento conversacional y alcance de equipos, 2026-10-25
+
+- [x] Resolver seguimientos con el tema del usuario antes de buscar: cantidad de aceite, comprobación de tensión y condiciones del motor.
+- [x] Renovar las fuentes al cambiar de tema; no usar texto del asistente como evidencia ni heredar temas de otros chats.
+- [x] Pedir precisión ante referencias sin antecedente, cantidades ambiguas y cambios de pieza al pasar de frenos delanteros a traseros; continuar tras la aclaración.
+- [x] Persistir estado de navegación por chat y retomarlo al reiniciar o superar la ventana de veinte mensajes; interpretar historiales anteriores sin migración.
+- [x] Cerrar el caso del PIN Bluetooth: sin citas ni ilustraciones del autoradio original; pedir documentación del equipo y aceptar la respuesta de marca/modelo sin repetir esa pregunta.
+- [x] Mantener consulta de procedimientos originales pese a modificaciones, prioridad de seguridad, citas actuales y validación de imágenes.
+- [x] Mejorar vocabulario de cantidades en portugués y separación de componentes de freno; conservar los fallos de las primeras rondas.
+- [x] Ocultar a Gemini áreas ajenas al tema en cada página: vista PNG con píxeles originales, geometría verificada y hash persistido; originales y enlaces completos conservados. Instalar secciones v6 con 1.259 regiones.
+- [x] Ejecutar 159 pruebas, build/formato frontend, Ruff de archivos cambiados y comprobación documental.
+- [x] Ejecutar seis conversaciones de 17 turnos y auditar consultas, persistencia, aislamiento y modificaciones. La tercera ronda pasó controles de IDs pero falló en texto de correa; la cuarta se repitió tras enfocar las imágenes y se revisó en navegador.
+- [x] Recuperar Docker Desktop tras el fallo de sockets temporales, conservando directorios de respaldo, contenedores y volúmenes.
+- [ ] Ampliar casos independientes, expresiones coloquiales y variantes; ejecutar los veinte escenarios completos y configurar CI.
+
+Detalle, límites y evidencia: [CONVERSATION_RETRIEVAL.md](docs/CONVERSATION_RETRIEVAL.md).
+**Próximo bloque:** evaluación ampliada de los veinte escenarios y CI con GitHub Actions. Después, búsqueda web complementaria y demo. Las entregas inferiores conservan el historial.
+
 ## Entrega vigente — referencias válidas y figuras en procedimientos, 2026-10-25
 
 - [x] Limitar `figure_id` en el esquema de Gemini a los recortes realmente adjuntados; eliminar la alternativa de imagen cuando no hay candidatos.
@@ -153,9 +171,11 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [x] Ingesta administrativa transaccional con aprobación explícita y comprobación SHA-256.
 - [x] Recuperación textual en PostgreSQL, filtrado de compatibilidad y consulta de fuentes sin Gemini.
 - [x] Citas de varias páginas en ingesta, recuperación, contexto, respuestas persistentes e interfaz; lectura compatible con citas antiguas de una página.
-- [x] Habilitar el lote real de cinco fragmentos revisados y la biblioteca de 532 páginas como referencia de fábrica; comprobar el circuito por HTTP conservando modificaciones. La fidelidad de generación y el recorrido visual siguen en el próximo bloque.
+- [x] Habilitar el lote real de cinco fragmentos revisados y la biblioteca de 532 páginas como referencia de fábrica; comprobar el circuito por HTTP y navegador conservando modificaciones. La evaluación mecánica completa sigue pendiente.
 - [x] Embeddings y recuperación híbrida BM25/pgvector: 546 vectores, índice versionado, caché y fallback léxico.
 - [x] Recuperación multilingüe con vocabulario español/portugués y embeddings; primera calibración de diez consultas documentada en `docs/VECTOR_RETRIEVAL.md`.
+- [x] Recuperación por secciones e ilustraciones, seguida de resolución conversacional persistente y aclaraciones ante ambigüedad; ver entregas vigentes.
+- [x] Evitar fuentes del autoradio original para el PIN/configuración de una radio instalada sin documentación específica.
 - [ ] Evaluar relevancia y respuestas con consultas nuevas, sin reutilizar la calibración como prueba independiente.
 - [ ] Búsqueda web complementaria con fuentes explícitas cuando falte evidencia documental.
 
@@ -164,11 +184,11 @@ Estado contrastado con código, migraciones, pruebas y servicios locales. `[x]` 
 - [x] Registro y edición del auto, tareas, resolución y respuestas del asistente.
 - [x] Presentación de fuentes citadas y estados de error/falta de evidencia. Las mediciones se retiraron de la interfaz a pedido del propietario; permanecen en API e historial.
 - [x] Recorridos manuales de navegador documentados en `docs/FRONTEND.md`.
-- [ ] Comprobar desde navegador respuestas con fragmentos revisados y páginas originales de lectura automática, incluyendo apertura de citas y recarga. La búsqueda web se comprobará al implementarla.
+- [x] Comprobar desde navegador respuestas con fragmentos revisados y páginas originales de lectura automática, incluyendo apertura de citas, figuras y recarga. La búsqueda web se comprobará al implementarla.
 
 ### D — Pruebas y evaluación (parcial)
 - [x] Definir 20 escenarios y sus criterios en `docs/MVP_CASES.md`.
-- [x] Suite automatizada de backend con proveedor simulado y PostgreSQL real: última ejecución de 95 pruebas correctas en el bloque de respuestas ilustradas.
+- [x] Suite automatizada de backend con proveedor simulado y PostgreSQL real: última ejecución de 159 pruebas correctas en el bloque conversacional.
 - [x] Herramientas documentales: 24 pruebas pasan en esta revisión.
 - [x] Compilación TypeScript/Vite y formato del frontend correctos.
 - [ ] Ejecutar los 20 escenarios de extremo a extremo; evaluar por separado citas, abstención, seguridad y recuperación.

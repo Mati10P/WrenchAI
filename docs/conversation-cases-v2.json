@@ -1,0 +1,214 @@
+[
+  {
+    "id": "oil-topic-switch",
+    "turns": [
+      {
+        "question": "¿Cómo agrego aceite al motor según el manual?",
+        "expected_any": [
+          "gol-owner-candidate-0090"
+        ]
+      },
+      {
+        "question": "¿Cuánto lleva?",
+        "expected_any": [
+          "gol-owner-candidate-0090",
+          "gol-repair-candidate-0010"
+        ],
+        "clarification_allowed": true,
+        "query_contains": [
+          "aceite"
+        ],
+        "query_excludes": [
+          "refrigerante"
+        ]
+      },
+      {
+        "question": "Ahora, ¿qué indica el manual sobre revisar el refrigerante?",
+        "expected_any": [
+          "gol-owner-candidate-0091"
+        ],
+        "query_excludes": [
+          "aceite"
+        ]
+      },
+      {
+        "question": "¿Y con el motor caliente?",
+        "expected_any": [
+          "gol-owner-candidate-0091"
+        ],
+        "query_contains": [
+          "refrigerante"
+        ],
+        "query_excludes": [
+          "aceite"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "belt-check",
+    "turns": [
+      {
+        "question": "¿Cómo ajusto la tensión de la correa dentada?",
+        "expected_any": [
+          "gol-repair-candidate-0059"
+        ]
+      },
+      {
+        "question": "¿Cómo compruebo la tensión?",
+        "expected_any": [
+          "gol-repair-candidate-0059",
+          "gol-repair-candidate-0060"
+        ],
+        "figure_expected": true,
+        "allowed_figures": [
+          "gol-repair-candidate-0059-region-001",
+          "gol-repair-candidate-0060-region-002"
+        ],
+        "query_contains": [
+          "correa dentada"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "front-rear-brakes",
+    "turns": [
+      {
+        "question": "¿Cómo se cambian las pastillas de freno delanteras?",
+        "expected_any": [
+          "gol-repair-candidate-0198"
+        ]
+      },
+      {
+        "question": "¿Y atrás?",
+        "expected_any": [
+          "gol-repair-candidate-0199",
+          "gol-repair-candidate-0200",
+          "gol-repair-candidate-0204",
+          "gol-repair-candidate-0205",
+          "gol-repair-candidate-0211",
+          "gol-repair-candidate-0212"
+        ],
+        "clarification_allowed": true,
+        "forbidden_sources": [
+          "gol-repair-candidate-0198",
+          "gol-repair-candidate-0210"
+        ],
+        "query_contains": [
+          "frenos traseros"
+        ],
+        "query_excludes": [
+          "delanteras",
+          "pastillas"
+        ],
+        "expected_model": "conversation-clarification-v1"
+      },
+      {
+        "question": "Las zapatas, las cintas",
+        "expected_any": [
+          "gol-repair-candidate-0199",
+          "gol-repair-candidate-0200",
+          "gol-repair-candidate-0204",
+          "gol-repair-candidate-0205"
+        ],
+        "forbidden_sources": [
+          "gol-repair-candidate-0198",
+          "gol-repair-candidate-0210",
+          "gol-repair-candidate-0211",
+          "gol-repair-candidate-0212"
+        ],
+        "query_contains": [
+          "zapatas",
+          "traseros"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "equipment-specific",
+    "turns": [
+      {
+        "question": "¿Cuál es el PIN exacto de emparejamiento de la radio Bluetooth que instalé?",
+        "expected_any": [],
+        "expected_model": "document-scope-v1"
+      },
+      {
+        "question": "La radio es Sony DSX-A410BT",
+        "expected_any": [],
+        "expected_model": "document-scope-v1",
+        "question_contains": "referencia"
+      },
+      {
+        "question": "Ahora, ¿qué precaución indica el manual al agregar aceite al motor?",
+        "expected_any": [
+          "gol-owner-candidate-0090"
+        ],
+        "query_excludes": [
+          "PIN",
+          "Bluetooth",
+          "Sony"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "orphan-reference",
+    "turns": [
+      {
+        "question": "¿Y atrás?",
+        "expected_any": [],
+        "expected_model": "conversation-clarification-v1"
+      },
+      {
+        "question": "Me refiero a los frenos",
+        "expected_any": [
+          "gol-repair-candidate-0199",
+          "gol-repair-candidate-0200",
+          "gol-repair-candidate-0204",
+          "gol-repair-candidate-0205",
+          "gol-repair-candidate-0211",
+          "gol-repair-candidate-0212"
+        ],
+        "clarification_allowed": true,
+        "query_contains": [
+          "atrás",
+          "frenos"
+        ],
+        "expected_model": "conversation-clarification-v1"
+      }
+    ]
+  },
+  {
+    "id": "ambiguous-quantity",
+    "turns": [
+      {
+        "question": "Quiero revisar el aceite del motor y el refrigerante. ¿Qué dice el manual?",
+        "expected_any": [
+          "gol-owner-candidate-0089",
+          "gol-owner-candidate-0090",
+          "gol-owner-candidate-0091"
+        ]
+      },
+      {
+        "question": "¿Cuánto lleva?",
+        "expected_any": [],
+        "expected_model": "conversation-clarification-v1"
+      },
+      {
+        "question": "El aceite del motor",
+        "expected_any": [
+          "gol-owner-candidate-0090",
+          "gol-repair-candidate-0010"
+        ],
+        "clarification_allowed": true,
+        "query_contains": [
+          "aceite del motor"
+        ],
+        "query_excludes": [
+          "refrigerante"
+        ]
+      }
+    ]
+  }
+]

@@ -15,10 +15,14 @@ def heading_height(region):
     return median(heights) if heights else region["bbox"][3] - region["bbox"][1]
 
 
-def append_span(stack, page_id, start, left, right, end):
+def append_span(stack, page_id, start, left, right, end, page_size):
     if stack and end > start:
         stack[-1]["spans"].append(
-            {"page_id": page_id, "bbox": [left, start, right, end]}
+            {
+                "page_id": page_id,
+                "bbox": [left, start, right, end],
+                "page_size": page_size,
+            }
         )
 
 
@@ -93,7 +97,15 @@ def compile_sections(pages, layouts, figures, overrides=None):
                         or not left <= (r["bbox"][0] + r["bbox"][2]) / 2 < right
                     ):
                         continue
-                    append_span(stack, p["id"], start, left, right, r["bbox"][1])
+                    append_span(
+                        stack,
+                        p["id"],
+                        start,
+                        left,
+                        right,
+                        r["bbox"][1],
+                        [layout["width"], height],
+                    )
                     key = p["id"] + "-" + r["id"]
                     annotation = overrides.get(key, {})
                     ratio = heading_height(r) / typical
@@ -120,7 +132,15 @@ def compile_sections(pages, layouts, figures, overrides=None):
                     sections.append(section)
                     stack.append(section)
                     start = r["bbox"][1]
-                append_span(stack, p["id"], start, left, right, height)
+                append_span(
+                    stack,
+                    p["id"],
+                    start,
+                    left,
+                    right,
+                    height,
+                    [layout["width"], height],
+                )
 
     for s in sections:
         for i, extent in enumerate(s["spans"]):
@@ -219,6 +239,10 @@ def compile_sections(pages, layouts, figures, overrides=None):
                 "page_id": f["page_id"],
                 "bbox": region["bbox"],
                 "role": "reviewed_figure_context",
+                "page_size": [
+                    layouts[f["page_id"]]["width"],
+                    layouts[f["page_id"]]["height"],
+                ],
             }
         )
         assignments = [a for a in assignments if a["id"] != f["id"]]

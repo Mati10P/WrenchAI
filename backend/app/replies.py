@@ -6,7 +6,14 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import OperationalError
 
-from . import assistant, corpus, manual_figures, manual_library
+from . import (
+    assistant,
+    conversation,
+    corpus,
+    document_scope,
+    manual_figures,
+    manual_library,
+)
 from .models import AssistantReply, Incident, Message, Vehicle
 from .references import retrieval_reference
 
@@ -64,28 +71,42 @@ def reply_to(db, message_id, requested_model=None):
         "notes",
     )
     facts = {name: getattr(vehicle, name) for name in fields}
-    # Search the current question: a new topic must not inherit unrelated sources.
-    warning = assistant.safety_warning(
-        incident.description + " " + " ".join(m.content for m in history)
-    )
-    retrieval = {}
-    try:
-        sources = [] if warning else corpus.search(db, vehicle, message.content)
-        if not warning:
-            sources += manual_library.search(
-                vehicle, message.content, db=db, diagnostics=retrieval
-            )
-            sources = manual_figures.attach(manual_library.identify_sources(sources))
-    except assistant.AssistantError as exc:
-        raise HTTPException(exc.status, exc.message) from None
-    previous = {
-        r.message_id: r.content
-        for r in db.scalars(
+    prior_replies = list(
+        db.scalars(
             select(AssistantReply).where(
                 AssistantReply.message_id.in_([m.id for m in history])
             )
         )
+    )
+    previous = {r.message_id: r.content for r in prior_replies}
+    saved_navigation = {
+        str(r.message_id): r.context_snapshot.get("retrieval", {}).get("conversation")
+        for r in prior_replies
     }
+    resolution = conversation.resolve(
+        [{"id": str(m.id), "user": m.content} for m in history],
+        saved_navigation,
+        modifications=vehicle.modifications or "",
+    )
+    warning = assistant.safety_warning(
+        incident.description + " " + " ".join(m.content for m in history)
+    )
+    retrieval = {"conversation": resolution}
+    equipment_scope = document_scope.requires_equipment_document(resolution)
+    needs_clarification = bool(resolution["clarification"])
+    try:
+        sources = (
+            []
+            if warning or equipment_scope or needs_clarification
+            else corpus.search(db, vehicle, resolution["query"])
+        )
+        if not warning and not equipment_scope and not needs_clarification:
+            sources += manual_library.search(
+                vehicle, resolution["query"], db=db, diagnostics=retrieval
+            )
+            sources = manual_figures.attach(manual_library.identify_sources(sources))
+    except assistant.AssistantError as exc:
+        raise HTTPException(exc.status, exc.message) from None
     tasks = db.scalars(
         select(Incident)
         .where(Incident.vehicle_id == vehicle.id, Incident.id != incident.id)
@@ -132,6 +153,19 @@ def reply_to(db, message_id, requested_model=None):
             citation_ids=[],
         )
         model = "safety-rules-v1"
+    elif needs_clarification:
+        answer = assistant.Answer(
+            summary="Necesito precisar a qué te referís para buscar el procedimiento correspondiente.",
+            hypotheses=[],
+            checks=[],
+            questions=[resolution["clarification"]],
+            citation_ids=[],
+        )
+        model = "conversation-clarification-v1"
+    elif equipment_scope:
+        answer = document_scope.equipment_answer(resolution)
+        retrieval["scope"] = "equipment_specific_document_required"
+        model = "document-scope-v1"
     elif not sources and context["retrieval_reference"]["mode"] == "factory_reference":
         answer = assistant.Answer(
             summary="No encontré páginas relevantes en los manuales disponibles para esta consulta. Esto no demuestra que el tema esté ausente del manual: la búsqueda puede fallar por vocabulario u OCR.",
@@ -155,10 +189,13 @@ def reply_to(db, message_id, requested_model=None):
             ):
                 context["retrieval"]["generation_model"] = model
                 answer = assistant.Answer(
-                    summary="No encontré respaldo suficiente para responder esa consulta en las páginas consultadas. Esto no permite concluir que el tema esté ausente del manual completo.",
+                    summary="Necesito precisar la consulta antes de respaldar la respuesta con los manuales."
+                    if answer.questions
+                    else "No encontré respaldo suficiente para responder esa consulta en las páginas consultadas. Esto no permite concluir que el tema esté ausente del manual completo.",
                     hypotheses=[],
                     checks=[],
-                    questions=[
+                    questions=answer.questions
+                    or [
                         "¿Podés aportar la referencia exacta del componente o su documentación específica?"
                     ],
                     citation_ids=[],

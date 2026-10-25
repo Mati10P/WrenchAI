@@ -25,7 +25,9 @@ def test_url():
     if base.drivername != "postgresql+psycopg":
         pytest.fail("Tests require PostgreSQL with psycopg")
     name = "wrenchai_test_" + uuid4().hex
-    admin = create_engine(base, isolation_level="AUTOCOMMIT")
+    admin = create_engine(
+        base, isolation_level="AUTOCOMMIT", connect_args={"connect_timeout": 5}
+    )
     with admin.connect() as conn:
         conn.execute(text(f'CREATE DATABASE "{name}"'))
     url = base.set(database=name).render_as_string(hide_password=False)

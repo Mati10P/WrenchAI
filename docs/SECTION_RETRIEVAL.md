@@ -1,6 +1,6 @@
 # Recuperación por temas y correspondencia de ilustraciones
 
-Actualización posterior: [referencias válidas y procedimientos ilustrados](FIGURE_RELIABILITY.md).
+Actualizaciones posteriores: [referencias válidas y procedimientos ilustrados](FIGURE_RELIABILITY.md) y [contexto conversacional con lectura visual limitada al tema](CONVERSATION_RETRIEVAL.md).
 
 Entrega local del 25 de octubre de 2026. Reemplaza la selección de figuras por
 tamaño de página cuando está instalado el bundle de secciones.
@@ -69,7 +69,7 @@ Desde la raíz del proyecto, con el entorno Python local y los layouts existente
 
 ```powershell
 .venv/Scripts/python.exe scripts/prepare_manual_figures.py --library data/private/manuals/library-v1 --output data/private/manuals/figures-v5
-.venv/Scripts/python.exe scripts/prepare_manual_sections.py --library data/private/manuals/library-v1 --figures data/private/manuals/figures-v5 --layouts data/private/manuals/reviewed --output data/private/manuals/sections-v5
+.venv/Scripts/python.exe scripts/prepare_manual_sections.py --library data/private/manuals/library-v1 --figures data/private/manuals/figures-v5 --layouts data/private/manuals/reviewed --output data/private/manuals/sections-v6
 ```
 
 Los destinos deben ser nuevos. Nunca se sobrescribe un bundle instalado. La
@@ -82,7 +82,7 @@ Configuración local Docker (rutas privadas excluidas de Git):
 MANUAL_FIGURES_PATH=/manual-figures
 MANUAL_FIGURES_DIRECTORY=./data/private/manuals/figures-v5
 MANUAL_SECTIONS_PATH=/manual-sections
-MANUAL_SECTIONS_DIRECTORY=./data/private/manuals/sections-v5
+MANUAL_SECTIONS_DIRECTORY=./data/private/manuals/sections-v6
 ```
 
 Después: `docker compose up -d --build api frontend`.
@@ -95,11 +95,17 @@ y diez identidades tienen revisión visual, cinco con enlace explícito al tema.
 
 - Figuras v5 SHA-256:
   `145f08781556d8f9ed09a98ec764adf46e17039b8780151c7ce898ef30016bd6`.
-- Secciones v5 SHA-256:
-  `4245947470bf7b949b3077ab670a1da1115d4cfc26fd8239027d7108c8b672ff`.
+- Secciones v6 (geometría original por región, esquema 2) SHA-256:
+  `eec0a026cb7d0254f8d7e7c9ba9cdb59c5955e5fecd0f851f3889cfea3cab892`.
 - La biblioteca original y su índice vectorial conservan sus versiones previas.
 
-## Validación y límites
+La versión v6 conserva los temas y figuras de v5 e incorpora las dimensiones
+originales en 1.259 regiones para preparar la vista de Gemini. Requiere Pillow
+en el backend. Los bundles anteriores sin geometría deben prepararse de nuevo;
+no se reutilizan silenciosamente con lectura de página completa. Ver
+[lectura visual enfocada](CONVERSATION_RETRIEVAL.md).
+
+## Validación de la entrega original y límites
 
 Se agregaron once casos automatizados con un manual sintético: continuación a la
 página anterior, cierre en el título siguiente, temas vecinos, jerarquía,
