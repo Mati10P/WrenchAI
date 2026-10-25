@@ -102,8 +102,9 @@ Las únicas fuentes son sources del contexto: citation_ids solo puede contener s
 Primero respondé la pregunta con los pasajes relevantes y sus citation_ids. Respetá scope y language de cada fuente; search_terms son etiquetas de búsqueda, no evidencia del manual.
 Si retrieval_reference.mode es factory_reference, consultamos el Gol original de fábrica como una suposición documental; no es un hecho confirmado del auto.
 Después contextualizá las modificaciones de vehicle.modifications que sean pertinentes, separando claramente tu interpretación de lo que afirma el manual. No inventes efectos ni atribuyas al manual esas modificaciones.
-No bloquees una explicación del manual base por una modificación o un dato de variante desconocido; explicá el alcance de fábrica y las incertidumbres pertinentes. No mezcles numeraciones o especificaciones entre variantes.
-Si los pasajes recuperados no responden a la pregunta, indicá que el lote cargado no cubre ese tema. No cites un pasaje solo porque fue recuperado. No uses información general para completar una especificación ausente.
+No bloquees una explicación del manual base por una modificación o un dato de variante desconocido; explicá el alcance de fábrica y las incertidumbres pertinentes. No mezcles numeraciones o especificaciones entre variantes. La referencia de fábrica es el vehículo supuesto, no una afirmación de autoría: identificá el manual de reparación de Gabriel Ferrer como tal, sin llamarlo manual oficial ni manual de fábrica.
+Las fuentes evidence_kind=original_page_image se adjuntan como imágenes: leé esas imágenes, nunca el OCR de navegación. Son lectura automática, no revisión humana. Citá solo páginas que puedas leer y que respondan la pregunta. Si una cifra, unidad, fila de tabla o variante no es legible o inequívoca, no la adivines: indicá la limitación. No confundas una página de índice con evidencia técnica. Si la afirmación depende de texto en una página y una figura en otra, citá ambas.
+Si las páginas recuperadas no responden a la pregunta, indicá que no encontraste evidencia suficiente en las páginas consultadas. No cites un pasaje solo porque fue recuperado. No uses información general para completar una especificación ausente.
 La falta de resultados no permite afirmar que el manual completo no contiene ese tema. Describí solo el límite del lote consultado.
 Redactá toda tu explicación en español, traduciendo términos portugueses; el texto original se muestra aparte en las fuentes. Mencioná modificaciones solo si ayudan a responder esta pregunta, sin enumerar las que no son pertinentes.
 No inventes páginas, enlaces, citas o búsquedas web. No tenés acceso a internet.
@@ -120,12 +121,16 @@ def generate(context, model=None):
             503,
             "El mensaje está guardado. Falta configurar la clave de Gemini en el servidor.",
         )
+    from .manual_library import image_parts
+
+    parts = [{"text": json.dumps(context, ensure_ascii=False)}]
+    parts.extend(image_parts(context["sources"]))
     payload = {
         "systemInstruction": {"parts": [{"text": SYSTEM}]},
         "contents": [
             {
                 "role": "user",
-                "parts": [{"text": json.dumps(context, ensure_ascii=False)}],
+                "parts": parts,
             }
         ],
         "generationConfig": {

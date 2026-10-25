@@ -46,6 +46,15 @@ export function AssistantMessage({ reply }: { reply: Reply }) {
             {(source.pages ?? [source.page]).join(", ")}
           </summary>
           <p>{source.text}</p>
+          {source.evidence_kind === "original_page_image" && (
+            <a
+              href={`/api/manual-pages/${encodeURIComponent(source.id)}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Ver página original
+            </a>
+          )}
           {source.language === "pt" && (
             <small>Texto original en portugués.</small>
           )}

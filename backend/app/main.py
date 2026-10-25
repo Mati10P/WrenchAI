@@ -8,7 +8,7 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from . import assistant, corpus
+from . import assistant, corpus, manual_library
 from .database import database_url, session_factory
 from .models import AssistantReply, Incident, Measurement, Message, Vehicle
 from .references import retrieval_reference
@@ -317,12 +317,14 @@ def create_app(url=None):
     @app.get("/assistant/status")
     def assistant_status(db: DB):
         count = corpus.count_passages(db)
-        corpus_valid = True
+        library_status = manual_library.status()
+        corpus_valid = not library_status.get("error", False)
         return {
             "configured": assistant.configured(),
             "models": assistant.MODEL_OPTIONS,
             "default_model": assistant.model_name(),
             "approved_passages": count,
+            "manual_library": library_status,
             "corpus_valid": corpus_valid,
             "web_search": False,
         }
@@ -332,11 +334,28 @@ def create_app(url=None):
         vehicle_id: UUID, db: DB, q: str = Query(min_length=1, max_length=2000)
     ):
         vehicle = get(db, Vehicle, vehicle_id)
+        try:
+            candidates = manual_library.search(vehicle, q)
+        except assistant.AssistantError as exc:
+            raise HTTPException(exc.status, exc.message) from None
         return {
             "method": "postgresql_full_text",
+            "page_candidate_method": "bm25_ocr_navigation_visual_grounding",
             "reference": retrieval_reference(vehicle),
             "sources": corpus.search(db, vehicle, q),
+            "page_candidates": candidates,
         }
+
+    @app.get("/manual-pages/{page_id}")
+    def manual_page(page_id: str):
+        try:
+            return Response(
+                manual_library.image_bytes(page_id),
+                media_type="image/jpeg",
+                headers={"Cache-Control": "private, no-store"},
+            )
+        except assistant.AssistantError as exc:
+            raise HTTPException(exc.status, exc.message) from None
 
     @app.post("/messages/{message_id}/reply", response_model=ReplyOut)
     def create_reply(message_id: UUID, db: DB, payload: ReplyInput | None = None):

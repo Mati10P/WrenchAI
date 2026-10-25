@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import OperationalError
 
-from . import assistant, corpus
+from . import assistant, corpus, manual_library
 from .models import AssistantReply, Incident, Message, Vehicle
 from .references import retrieval_reference
 
@@ -65,7 +65,15 @@ def reply_to(db, message_id, requested_model=None):
     )
     facts = {name: getattr(vehicle, name) for name in fields}
     # Search the current question: a new topic must not inherit unrelated sources.
-    sources = corpus.search(db, vehicle, message.content)
+    warning = assistant.safety_warning(
+        incident.description + " " + " ".join(m.content for m in history)
+    )
+    try:
+        sources = [] if warning else corpus.search(db, vehicle, message.content)
+        if not warning:
+            sources += manual_library.search(vehicle, message.content)
+    except assistant.AssistantError as exc:
+        raise HTTPException(exc.status, exc.message) from None
     previous = {
         r.message_id: r.content
         for r in db.scalars(
@@ -102,7 +110,7 @@ def reply_to(db, message_id, requested_model=None):
             for t in tasks
         ],
         "sources": sources,
-        "limits": "Últimos 20 mensajes y 12 tareas; fuentes revisadas bajo retrieval_reference, con alcance indicado en scope. Sin búsqueda web.",
+        "limits": "Últimos 20 mensajes y 12 tareas; fuentes revisadas y páginas originales de lectura automática bajo retrieval_reference, con alcance indicado en scope. OCR solo para localizar páginas; nunca evidencia validada. Sin búsqueda web.",
     }
     # Bound context size and avoid silently clipping away safety-critical text.
     if len(json.dumps(context, ensure_ascii=False)) > 80000:
@@ -110,9 +118,6 @@ def reply_to(db, message_id, requested_model=None):
             422,
             "Esta conversación es demasiado larga para responder de forma completa. Iniciá un nuevo chat con un resumen del problema.",
         )
-    warning = assistant.safety_warning(
-        incident.description + " " + " ".join(m.content for m in history)
-    )
     if warning:
         answer = assistant.Answer(
             summary=warning,
@@ -124,10 +129,10 @@ def reply_to(db, message_id, requested_model=None):
         model = "safety-rules-v1"
     elif not sources and context["retrieval_reference"]["mode"] == "factory_reference":
         answer = assistant.Answer(
-            summary="No encontré información relevante en los fragmentos del manual cargados para esta consulta. Esto no determina qué contiene el manual completo; el lote del MVP cubre aceite, refrigerante, líquido de frenos y componentes de refrigeración.",
+            summary="No encontré páginas relevantes en los manuales disponibles para esta consulta. Esto no demuestra que el tema esté ausente del manual: la búsqueda puede fallar por vocabulario u OCR.",
             hypotheses=[],
             checks=[],
-            questions=["¿Querés reformular la consulta sobre alguno de esos temas?"],
+            questions=["¿Podés indicar el componente o reformular la pregunta?"],
             citation_ids=[],
         )
         model = "document-coverage-v1"

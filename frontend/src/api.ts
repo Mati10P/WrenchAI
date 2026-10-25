@@ -66,6 +66,8 @@ export type Reply = {
     page: number;
     pages?: number[];
     text: string;
+    image_url?: string;
+    evidence_kind?: string;
     scope?: string | null;
     reference_profile?: string | null;
     language?: "es" | "pt";
@@ -76,6 +78,7 @@ export type AssistantStatus = {
   default_model: string;
   configured: boolean;
   approved_passages: number;
+  manual_library?: { available: boolean; pages: number; manuals: number };
   corpus_valid: boolean;
   web_search: boolean;
 };

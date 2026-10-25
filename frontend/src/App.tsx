@@ -553,11 +553,14 @@ export default function App() {
                 ? "Falta configurar Gemini. Tus mensajes se guardan; podrás generar las respuestas cuando esté conectado."
                 : !assistantStatus.corpus_valid
                   ? "La configuración documental necesita revisión."
-                  : assistantStatus.approved_passages === 0
-                    ? "Gemini configurado. Aún no hay manuales habilitados: las respuestas serán orientación general, sin búsqueda web."
-                    : active?.manual_reference
-                      ? "Consultamos los manuales del Gol de fábrica. Gemini tiene en cuenta tus modificaciones; las fuentes utilizadas aparecen en cada respuesta."
-                      : "Gemini configurado. Las fuentes compatibles utilizadas aparecen junto a cada respuesta."}
+                  : assistantStatus.manual_library?.available &&
+                      active?.manual_reference
+                    ? `Consultamos ${assistantStatus.manual_library.pages} páginas de ${assistantStatus.manual_library.manuals} manuales. Gemini lee las páginas originales y considera tus modificaciones.`
+                    : assistantStatus.approved_passages === 0
+                      ? "Gemini configurado. Aún no hay manuales habilitados: las respuestas serán orientación general, sin búsqueda web."
+                      : active?.manual_reference
+                        ? "Consultamos los manuales del Gol de fábrica. Gemini tiene en cuenta tus modificaciones; las fuentes utilizadas aparecen en cada respuesta."
+                        : "Gemini configurado. Las fuentes compatibles utilizadas aparecen junto a cada respuesta."}
           </p>
           {notice && (
             <p className="form-error" role="alert">

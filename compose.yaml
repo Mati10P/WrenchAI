@@ -18,9 +18,12 @@ services:
   api:
     build: ./backend
     environment:
+      MANUAL_LIBRARY_PATH: ${MANUAL_LIBRARY_PATH:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-wrenchai}:${POSTGRES_PASSWORD:-wrenchai_local}@db:5432/${POSTGRES_DB:-wrenchai}
+    volumes:
+      - ./data/private/manuals/library-v1:/manual-library:ro
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:

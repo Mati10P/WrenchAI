@@ -1,5 +1,20 @@
 # Plan de implementación
 
+## Ampliación vigente — manuales completos, 2026-10-24
+
+Por pedido del propietario se amplía la cobertura a los dos PDF completos: 532 páginas. El OCR sin revisar solo localiza páginas; Gemini lee las imágenes originales recuperadas y sus continuaciones. Esto amplía el acceso documental sin aprobar las transcripciones pendientes. Los cinco fragmentos revisados siguen activos y las modificaciones reales se conservan.
+
+- [x] Exportar 144 páginas del propietario y 388 de reparación, con hashes y correspondencia al PDF.
+- [x] Implementar navegación bilingüe y lectura visual de páginas originales con Gemini.
+- [x] Distinguir las páginas de lectura automática de los pasajes revisados y permitir abrir la imagen citada.
+- [x] Mantener referencia de fábrica, modificaciones y reglas de seguridad incluso si la biblioteca falla.
+- [x] Probar respuestas reales sobre neumáticos, embrague y fusibles. La primera consulta de fusibles agotó el timeout; el reintento respondió con cita. Registro privado conservado.
+- [ ] Revisar técnicamente todo el OCR y las tablas; disponer de los PDF completos no equivale a validar todo su contenido.
+- [ ] Añadir recuperación semántica y evaluar más preguntas y variantes.
+- [ ] Completar recorrido visual de la interfaz en navegador.
+
+Detalle reproducible, pruebas y límites: [FULL_MANUAL_LIBRARY.md](docs/FULL_MANUAL_LIBRARY.md). La sección siguiente conserva el alcance del MVP anterior.
+
 ## Decisión vigente del MVP — referencia de fábrica, 2026-10-24
 
 Por indicación del propietario, la búsqueda documental usará el Gol G2 1.6 MI 1998 en configuración original de fábrica como referencia de trabajo. Las modificaciones no bloquearán la recuperación de los manuales base. Esta referencia es una suposición explícita de búsqueda: los datos reales y las modificaciones del auto se conservan y se entregan a Gemini para contextualizar la respuesta.

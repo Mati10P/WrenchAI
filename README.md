@@ -1,5 +1,7 @@
 # WrenchAI
 
+La biblioteca local ahora permite consultar **532 páginas de dos manuales completos**, mediante búsqueda de páginas y lectura visual de Gemini. Conserva aparte cinco fragmentos revisados; el OCR restante no se presenta como evidencia validada. Instalación, estado y límites: [biblioteca completa](docs/FULL_MANUAL_LIBRARY.md).
+
 Proyecto de portfolio para conseguir una primera experiencia laboral: una aplicación de mantenimiento mecánico con persistencia, diagnóstico asistido por IA y fuentes documentales verificables.
 
 ## Estado actual
