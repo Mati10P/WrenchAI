@@ -27,11 +27,19 @@ def enabled():
 
 
 def bundle_hash():
+    from . import manual_navigation
+
     folder = manual_library.root()
-    return (
+    original = (
         hashlib.sha256((folder / "library.json").read_bytes()).hexdigest()
         if folder
         else None
+    )
+    overlay = manual_navigation.fingerprint()
+    return (
+        hashlib.sha256((original + overlay).encode()).hexdigest()
+        if original and overlay
+        else original
     )
 
 

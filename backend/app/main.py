@@ -13,6 +13,7 @@ from . import (
     corpus,
     manual_figures,
     manual_library,
+    manual_navigation,
     manual_sections,
     vector_search,
 )
@@ -342,6 +343,7 @@ def create_app(url=None):
             "default_model": assistant.model_name(),
             "approved_passages": count,
             "manual_library": library_status,
+            "manual_navigation": manual_navigation.status(),
             "manual_sections": section_status,
             "vector_search": vector_status,
             "corpus_valid": corpus_valid,

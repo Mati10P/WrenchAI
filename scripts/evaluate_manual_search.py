@@ -25,7 +25,14 @@ def owner(*pages):
 
 CASES = [
     ("fusibles", "¿Dónde están los fusibles?", owner(118)),
-    ("presion", "¿Cómo comprobar la presión de los neumáticos?", owner(129)),
+    # Page 109 explicitly documents checking cold and locating the sticker;
+    # page 129 contains the numerical table. Both were checked against images.
+    ("presion", "¿Cómo comprobar la presión de los neumáticos?", owner(109, 129)),
+    (
+        "tabla_presion",
+        "¿Qué presión indica la tabla para neumáticos 175/70 R13 con media carga?",
+        owner(129),
+    ),
     ("aceite", "¿Cómo se comprueba el nivel de aceite?", owner(89)),
     ("refrigerante", "¿Dónde miro el nivel de refrigerante?", owner(91)),
     (
@@ -50,6 +57,17 @@ CASES = [
     ),
     ("negativo_bluetooth", "¿Cómo emparejo mi teléfono por Bluetooth?", []),
     ("negativo_cocina", "¿Cómo preparo una torta de chocolate?", []),
+    (
+        "torque_ruedas",
+        "cuanto torque llevan las ruedas?",
+        [f"gol-repair-candidate-{p:04d}" for p in (198, 204, 218, 247)],
+    ),
+    (
+        "torque_ruedas_seguimiento",
+        "¿Y atrás?\nTema de la consulta: par de apriete neumáticos traseros",
+        [f"gol-repair-candidate-{p:04d}" for p in (198, 204, 218, 247)],
+    ),
+    ("purgar", "como purgar los frenos?", ["gol-repair-candidate-0214"]),
 ]
 
 
@@ -87,6 +105,12 @@ def evaluate(db):
                 bool(set(expected) & set(item[method]))
                 if expected
                 else not item[method]
+            )
+        if name.startswith("torque_ruedas"):
+            # Recall alone would count a correct page buried in irrelevant results.
+            item["only_relevant_specification_pages"] = all(
+                set(item[method]) <= set(expected) and item[method]
+                for method in ("lexical", "hybrid")
             )
         result.append(item)
         print(json.dumps(item, ensure_ascii=False), flush=True)

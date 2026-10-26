@@ -91,13 +91,52 @@ def test_general_sequence_does_not_need_named_annotations(monkeypatch):
     ] == ["picture-z", "picture-a"]
     assert [b.text for b in answer.blocks if isinstance(b, assistant.Paragraph)] == [
         result["overview"],
-        "Acción de la región a",
-        "Acción de la región b",
+        "Paso 1. Acción de la región a",
+        "Paso 2. Acción de la región b",
     ]
     assert all(
         f["visual_assessment"]["status"] == "model_checked"
         for f in value["sources"][0]["figures"]
     )
+
+
+def test_overview_cannot_cite_rejected_page():
+    c = context()
+    slots = evidence_review.document_slots(c["sources"])
+    result = review_result(slots)
+    for item in result["texts"].values():
+        item.update(relevant=False, explanation="", reason="Otro componente")
+    for item in result["figures"].values():
+        item.update(include=False, reason="Otro componente")
+    with pytest.raises(ValueError, match="irrelevant"):
+        evidence_review.validate_review(result, slots, c["sources"])
+    result["overview_sources"] = []
+    evidence_review.validate_review(result, slots, c["sources"])
+
+
+@pytest.mark.parametrize("intent", ["information", "location"])
+def test_specification_does_not_repeat_surrounding_procedure(monkeypatch, intent):
+    value = context()
+    value["history"] = [
+        {
+            "user": "torque de las ruedas"
+            if intent == "information"
+            else "Dónde está el adhesivo?"
+        }
+    ]
+    value["retrieval"]["conversation"]["intent"] = intent
+    slots = evidence_review.document_slots(value["sources"])
+    result = review_result(slots)
+    result["overview"] = (
+        "La fijación del conjunto sintético lleva 99 Nm según esta página."
+    )
+    for item in result["figures"].values():
+        item.update(include=False, reason="Muestra otra reparación")
+    monkeypatch.setattr(evidence_review, "review", lambda *a: (result, slots))
+    answer = evidence_review.generate(value, "synthetic")
+    assert len(answer.blocks) == 1
+    assert answer.blocks[0].text == result["overview"]
+    assert answer.citation_ids == ["page"]
 
 
 @pytest.mark.parametrize(
@@ -211,6 +250,148 @@ def test_web_failure_keeps_documentary_answer(monkeypatch):
         == []
     )
     assert c["retrieval"]["web"]["status"] == "unavailable"
+
+
+def test_search_read_and_integrate_before_step_with_citations(monkeypatch):
+    monkeypatch.setenv("WEB_SEARCH_ENABLED", "true")
+    c = context()
+    slots = evidence_review.document_slots(c["sources"])
+    result = review_result(slots)
+    result.update(gaps=["Compatibilidad sin confirmar"], web_queries=["herramienta"])
+    result["coverage"]["applicability"] = "missing"
+    monkeypatch.setattr(evidence_review, "review", lambda *a: (result, slots))
+    url = "https://www.innova.com/pages/manuals"
+    calls = []
+
+    def call(model, payload, deadline):
+        calls.append(payload)
+        if len(calls) == 1:
+            return {
+                "groundingMetadata": {
+                    "webSearchQueries": ["herramienta"],
+                    "groundingChunks": [{"web": {"uri": url}}],
+                    "groundingSupports": [{"groundingChunkIndices": [0]}],
+                }
+            }
+        return {
+            "content": {
+                "parts": [
+                    {
+                        "text": json.dumps(
+                            {
+                                "sources": [
+                                    {
+                                        "url": url,
+                                        "title": "Herramienta",
+                                        "text": "Cómo interpretar la lectura.",
+                                        "useful": True,
+                                        "scope": "general_explanation",
+                                        "before_manual_block": slots[2]["id"],
+                                    }
+                                ]
+                            }
+                        )
+                    }
+                ]
+            },
+            "urlContextMetadata": {
+                "urlMetadata": [
+                    {
+                        "retrievedUrl": url,
+                        "urlRetrievalStatus": "URL_RETRIEVAL_STATUS_SUCCESS",
+                    }
+                ]
+            },
+        }
+
+    monkeypatch.setattr(provider, "call", call)
+    answer = evidence_review.generate(c, "synthetic")
+    assert len(calls) == 2
+    assert calls[0]["tools"] == [{"google_search": {}}]
+    assert calls[1]["tools"] == [{"url_context": {}}]
+    assert "Acción de la región" not in json.dumps(calls[0])
+    assert answer.blocks[2].figure_id == "picture-z"
+    assert answer.blocks[3].source_ids == [c["sources"][-1]["id"]]
+    assert answer.blocks[4].text.startswith("Paso 2.")
+    assert answer.blocks[5].figure_id == "picture-a"
+    assert c["sources"][-1]["id"] in answer.citation_ids
+    assert c["retrieval"]["web"]["status"] == "verified"
+    assert answer.evidence_status == "partial"
+    assert "Compatibilidad sin confirmar" in answer.blocks[-1].text
+
+
+@pytest.mark.parametrize(
+    "failure", ["unsupported", "failed_read", "unknown_anchor", "wrong_type"]
+)
+def test_web_rejects_unverifiable_results(monkeypatch, failure):
+    monkeypatch.setenv("WEB_SEARCH_ENABLED", "true")
+    url = "https://www.innova.com/pages/manuals"
+    search = {
+        "groundingMetadata": {
+            "groundingChunks": [{"web": {"uri": url}}],
+            "groundingSupports": []
+            if failure == "unsupported"
+            else [{"groundingChunkIndices": [0]}],
+        }
+    }
+    item = {
+        "url": url,
+        "title": "Title",
+        "text": "Explanation",
+        "scope": "general_explanation",
+        "useful": "true" if failure == "wrong_type" else True,
+        "before_manual_block": "invented" if failure == "unknown_anchor" else "",
+    }
+    read = {
+        "content": {"parts": [{"text": json.dumps({"sources": [item]})}]},
+        "urlContextMetadata": {
+            "urlMetadata": [
+                {
+                    "retrievedUrl": url,
+                    "urlRetrievalStatus": "FAILED"
+                    if failure == "failed_read"
+                    else "URL_RETRIEVAL_STATUS_SUCCESS",
+                }
+            ]
+        },
+    }
+    responses = iter([search, read])
+    monkeypatch.setattr(provider, "call", lambda *a: next(responses))
+    assert (
+        web_evidence.supplement(
+            context(), {"web_queries": ["tool"]}, "synthetic", monotonic() + 60
+        )
+        == []
+    )
+
+
+def test_search_quota_failure_preserves_steps_and_explains_limit(monkeypatch):
+    monkeypatch.setenv("WEB_SEARCH_ENABLED", "true")
+    c = context()
+    slots = evidence_review.document_slots(c["sources"])
+    result = review_result(slots)
+    result.update(gaps=["Falta comprobar la variante"], web_queries=["instrumento"])
+    monkeypatch.setattr(evidence_review, "review", lambda *a: (result, slots))
+
+    def fail(*args):
+        raise assistant.AssistantError(429, "quota")
+
+    monkeypatch.setattr(provider, "call", fail)
+    answer = evidence_review.generate(c, "synthetic")
+    assert answer.evidence_status == "partial"
+    assert answer.citation_ids == ["page"]
+    assert answer.blocks[1].text.startswith("Paso 1.")
+    assert "cuota" in answer.blocks[-1].text
+
+
+def test_explanation_followup_is_not_numbered_as_procedure(monkeypatch):
+    c = context()
+    c["retrieval"]["conversation"]["intent"] = "explanation"
+    slots = evidence_review.document_slots(c["sources"])
+    result = review_result(slots)
+    monkeypatch.setattr(evidence_review, "review", lambda *a: (result, slots))
+    answer = evidence_review.generate(c, "synthetic")
+    assert answer.blocks[1].text == "Acción de la región a"
 
 
 def test_text_images_keep_interleaved_regions_separate(monkeypatch):

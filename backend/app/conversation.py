@@ -120,6 +120,7 @@ def operation(text):
     value = normalize(text)
     for label, pattern in [
         ("presión", r"presion|inflad"),
+        ("par de apriete", r"\bnm\b|torque|apriete|apretar"),
         ("medida", r"\b(?:mm|cm|nm|bar|psi)\b|torque|apriete|holgura"),
         (
             "cantidad",
@@ -419,7 +420,8 @@ def advance(previous, identifier, text, modifications=""):
         if (
             re.search(r"\bcuant[oa]s?\b", value)
             and op is None
-            and frame.get("operation") not in {"cantidad", "presión", "medida"}
+            and frame.get("operation")
+            not in {"cantidad", "presión", "medida", "par de apriete"}
         ):
             state.update(
                 mode="clarification",

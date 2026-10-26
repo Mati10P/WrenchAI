@@ -19,7 +19,7 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def prepare(library, output, reuse=None):
+def prepare(library, output, reuse=None, include_all=False):
     data = json.loads((library / "library.json").read_text(encoding="utf-8"))
     library_digest = sha(library / "library.json")
     prior_figures = {}
@@ -54,12 +54,15 @@ def prepare(library, output, reuse=None):
             pictures = [
                 r
                 for r in meta["regions"]
-                if r["type"] == "picture" and r["confidence"] >= 0.8
+                if r["type"] == "picture" and (include_all or r["confidence"] >= 0.8)
             ]
             for r in pictures:
                 x1, y1, x2, y2 = r["bbox"]
                 # Avoid tiny decorations; include a narrow margin around labels.
-                if (x2 - x1) * (y2 - y1) < meta["width"] * meta["height"] * 0.015:
+                if (
+                    not include_all
+                    and (x2 - x1) * (y2 - y1) < meta["width"] * meta["height"] * 0.015
+                ):
                     continue
                 box = [
                     max(0, int((x1 - 10) * sx)),
@@ -71,7 +74,7 @@ def prepare(library, output, reuse=None):
                     raise ValueError("Invalid illustration bounds")
                 identifier = p["id"] + "-" + r["id"]
                 destination = output / (identifier + ".jpg")
-                if reuse:
+                if reuse and identifier in prior_figures:
                     prior = prior_figures[identifier]
                     if (
                         prior["page_image_sha256"] != p["image_sha256"]
@@ -83,7 +86,8 @@ def prepare(library, output, reuse=None):
                 else:
                     image.crop(box).save(destination, quality=95, subsampling=0)
                 figures.append(
-                    {
+                    prior_figures.get(identifier, {})
+                    | {
                         "id": identifier,
                         "page_id": p["id"],
                         "page_image_sha256": p["image_sha256"],
@@ -134,5 +138,10 @@ if __name__ == "__main__":
     parser.add_argument("--library", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--reuse", type=Path)
+    parser.add_argument(
+        "--include-all",
+        action="store_true",
+        help="Include small symbols and low-confidence picture regions for visual assessment",
+    )
     args = parser.parse_args()
-    prepare(args.library, args.output)
+    prepare(args.library, args.output, args.reuse, args.include_all)

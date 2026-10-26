@@ -1,6 +1,18 @@
 # Plan de implementación
 
-## Entrega actual — revisión visual general y complemento web, 2026-10-25
+## Integración del complemento web en el paso a paso — 2026-10-25
+
+- [x] Numerar los tramos documentales de las consultas de procedimiento, conservando figuras y orden. Las preguntas de explicación no se numeran como procedimientos.
+- [x] Ubicar cada explicación web antes del tramo que complementa, con citas independientes; validar el identificador del tramo, tipos estrictos y URLs duplicadas. Conservar los límites de aplicabilidad y cobertura del manual.
+- [x] Probar búsqueda y lectura simuladas de extremo a extremo, inserción, referencias, rechazo de resultados sin respaldo o lectura, ubicaciones inexistentes, tipos inválidos y conservación del manual ante cuota agotada.
+- [x] Verificación: suite backend de 260 pruebas aprobadas; tras añadir dos regresiones, archivo específico con 23 pruebas aprobadas. Ruff aprobado. API reconstruida y reiniciada con Docker Compose.
+- [ ] Validación exitosa con proveedor real: se intentó una consulta técnica pública sin historial ni datos personales; Gemini devolvió HTTP 429. El flujo informó `unavailable` sin fuentes. La calidad de las respuestas web reales sigue pendiente hasta disponer de cuota.
+
+Configuración, alcance y contrato: [WEB_SEARCH.md](docs/WEB_SEARCH.md). No se promete un procedimiento completo cuando faltan condiciones o compatibilidad verificadas; las fuentes web admitidas aportan contexto general del fabricante. La búsqueda sigue limitada al flujo de revisión visual con manual recuperado.
+
+Commit sugerido: `feat: integrar fuentes web verificables en los pasos del manual`.
+
+## Entrega anterior — revisión visual general y complemento web, 2026-10-25
 
 Este bloque reemplaza la secuencia especial del filtro por una revisión general de temas. Detalle y límites en [GENERAL_EVIDENCE.md](docs/GENERAL_EVIDENCE.md). Los bloques inferiores conservan el historial.
 
@@ -414,3 +426,29 @@ Apariencia permite Claro, Oscuro y Sistema. La elección se conserva en `wrencha
 Verificación ejecutada: `npm run build`, `npm run format:check`, `git diff --check` y construcción del contenedor frontend. Se inspeccionaron en navegador a 1280×720 el inicio en claro y oscuro, la persistencia del tema tras recargar y el diálogo Mi auto. Se ajustó el espacio vertical del inicio a partir de esa revisión. No se enviaron consultas a Gemini ni se modificaron registros del vehículo para esta revisión. La adaptación móvil y el seguimiento de cambios del tema del sistema están implementados; su revisión manual específica queda pendiente.
 
 Commit sugerido: `feat(ui): rediseñar WrenchAI con shadcn y temas claro y oscuro`.
+
+
+## Recuperación de especificaciones y pasada visual — 25 de octubre de 2026
+
+Se reprodujo la recuperación irrelevante para el torque de ruedas y se verificó visualmente la especificación en la página PDF 198. Se incorporan coincidencias por componente/fijación/unidad dentro del cuerpo del texto, límites de expansión, validación de relevancia de las citas y respuestas puntuales. La variante conversacional también se incluye en regresión. Detalles: docs/VISUAL_NAVIGATION.md.
+
+La pasada de 532 páginas con descripciones de cada figura está en ejecución, con caché privada reanudable; no se habilita una salida parcial. La prueba real inicial recuperó 100 Nm con fuentes 198/204; las iteraciones posteriores ajustan el contexto y la extensión de la respuesta. Pasaron 277 pruebas del backend antes de los últimos ajustes y 61 pruebas específicas después, además de seis pruebas del validador de ingesta. El estado final se completará al terminar procesamiento y evaluación.
+
+Docker Desktop fallaba al iniciar por sockets de runtime inaccesibles. Se detuvo con el comando oficial y se conservaron con otro nombre únicamente las carpetas de runtime `Docker/run` y `docker-secrets-engine`, comprobadas como archivos de cero bytes. Se regeneraron al iniciar; motor y contenedores volvieron a funcionar, sin reset ni eliminación de volúmenes.
+
+Commit sugerido: `fix(rag): recuperar especificaciones por componente y agregar navegación visual trazable`.
+
+
+## Cierre de procesamiento y validación de fuentes — 26 de octubre de 2026
+
+Completadas y activadas las 532 páginas de los dos manuales: 4.369 pasajes de navegación y 685 descripciones de figuras. Se preservaron los 598 recortes anteriores y se añadieron 87 regiones pequeñas o de baja confianza. La pasada final terminó sin pendientes; los estados de legibilidad y de navegación automática se conservan. Figuras v7, secciones v14 y navegación v1 están activos en Docker.
+
+Se reconstruyeron e importaron atómicamente 720 vectores de 768 dimensiones para las 532 páginas. `/assistant/status` confirma biblioteca, navegación, secciones e índice disponibles y consistentes. El corpus de cinco fragmentos aprobados permanece separado.
+
+La evaluación completa pasó 14/14 consultas con búsqueda híbrida y 12/14 con búsqueda léxica. La primera versión del ranking había perdido coincidencias semánticas de cinturón y escobillas; se corrigieron el peso semántico y las equivalencias de vocabulario. Se conservaron todos los informes. Se corrigieron dos expectativas incompletas tras inspeccionar imágenes originales: presión en la página 109 y filtro de combustible en 137–139; la tabla numérica de presión tiene además un caso propio con objetivo 129.
+
+Se ejecutaron seis respuestas reales con Gemini Flash-Lite 3.5 en un vehículo sintético independiente. Torque de ruedas, purgado, escobillas, filtro de combustible y tabla de presión citaron las fuentes comprobadas; Bluetooth quedó sin citas. Las tarjetas de fuentes visibles coincidieron exactamente con las citas. El torque respondió 100 Nm y no incluyó otros pares ni ilustraciones de reparación ajena. Esta muestra no sustituye una validación mecánica exhaustiva.
+
+Verificación final: 284 tests backend, 38 tests de herramientas, Ruff de aplicación y scripts modificados, construcción del contenedor API y `git diff --check`. Evidencia consolidada privada: `data/private/manuals/navigation-final-verification.json`. Detalles y límites en docs/VISUAL_NAVIGATION.md.
+
+Commit sugerido: `fix(rag): completar índice visual de manuales y validar fuentes por componente`. No se realizaron commits ni pushes.

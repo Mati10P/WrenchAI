@@ -16,6 +16,22 @@ def enabled(context):
     )
 
 
+def specification_request(context):
+    from .specification_search import is_torque_query
+
+    conversation = context.get("retrieval", {}).get("conversation", {})
+    return conversation.get("intent") != "procedure" and is_torque_query(
+        conversation.get("query", "")
+        or context.get("history", [{}])[-1].get("user", "")
+    )
+
+
+def location_request(context):
+    return (
+        context.get("retrieval", {}).get("conversation", {}).get("intent") == "location"
+    )
+
+
 def document_slots(sources):
     """Group consecutive text regions, retaining every offered figure in order."""
     slots, seen = [], set()
@@ -149,6 +165,7 @@ La referencia de fábrica identifica modelo/año, pero el manual abarca sistemas
 Para cada slot de texto, escribí una explicación clara de TODAS sus acciones relevantes, conservando advertencias. Explicá cómo se relaciona con la figura siguiente y qué muestra, sin añadir herramientas, conexiones, orientación ni cifras no documentadas. No cambies una acción por otra ni la muevas a otro slot. La aplicación intercala estas explicaciones e imágenes siguiendo el manual. Si un slot no responde a la consulta, relevant=false, explanation vacío y reason concreto.
 Evaluá CADA figura visualmente, incluso si carece de epígrafe. Incluí TODAS las que explican el tema solicitado, en particular las que muestran ubicación, preparación, conexiones, comprobación o pasos distintos. Para excluir una figura exigí una razón específica: otro componente/variante/tema, ilegibilidad o duplicado exacto. «Hay otra figura más útil» o «no tiene epígrafe» no justifican excluirla. Nunca agregues imágenes de un tema vecino solo porque comparten página. Los títulos, límites de secciones y epígrafes son candidatos automáticos: comprobá la imagen. Caption debe describir lo visible sin inventar una identidad.
 No conviertas preguntas al usuario en instrucciones mecánicas supuestas (por ejemplo preguntar si ya conectó un cable no documentado). Preguntá solo datos de identificación imprescindibles que aún falten. Si falta explicación de una herramienta, incluí una búsqueda web sobre su funcionamiento general en documentación del fabricante, además de la búsqueda sobre el vehículo.
+No describas capítulos irrelevantes ni los cites para justificar que falta información. overview_sources solo puede incluir páginas con al menos un texto relevante o figura incluida. Para una especificación puntual, respondé el valor documentado con su componente, unidad y alcance; no exijas herramientas ni comprobaciones de un procedimiento que no fue solicitado. No preguntes si «torque de las ruedas» significa el apriete de sus fijaciones: esa interpretación es suficientemente clara.
 overview debe responder primero con claridad: qué se puede explicar y hasta dónde llega lo encontrado. No repitas todos los pasos de texts. Si falta cómo ejecutar el procedimiento, decilo concretamente; no presentes dos frases como solución completa. Para una duda puntual de ubicación o significado, respondé esa duda, sin repetir todo el procedimiento; los aspectos innecesarios van not_required. Evitá preguntas que el usuario ya respondió y modificaciones irrelevantes. Conservá el componente de las aclaraciones del usuario. No copies respuestas previas como evidencia.
 manual_queries y web_queries contienen solo términos técnicos y modelo/sistema necesarios, nunca datos personales, notas, matrícula, kilometraje ni modificaciones privadas. Buscá lo que realmente falta, no el mismo texto ya disponible. Las webs se consultarán después; no afirmes que las leíste. Devolvé solo JSON del esquema."""
 
@@ -214,9 +231,31 @@ def review(context, model, deadline):
     compact.pop("tasks", None)
     compact["document_slots"] = slots
     compact.pop("response_plan", None)
+    instruction = REVIEW
+    if location_request(context):
+        instruction += """\nALCANCE: ubicación puntual. overview debe responder por completo
+dónde se encuentra lo consultado y qué referencias visibles permiten localizarlo,
+con sus fuentes. Los textos relevantes deben aportar esa ubicación o identificación
+concreta. Los consejos generales de mantenimiento del componente no responden dónde
+está: marcá esos slots como irrelevantes. Incluí solo figuras que permitan ubicarlo
+o reconocerlo. No agregues procedimientos, valores ni cuidados no solicitados."""
+    if specification_request(context):
+        instruction += """\nALCANCE DE ESTA RESPUESTA: especificación puntual de apriete.
+La prioridad es responder únicamente el par solicitado, la fijación exacta y las
+condiciones/variante documentadas que lo limitan. Si un slot mezcla ese dato con
+un procedimiento de frenos, suspensión u otro sistema, su explanation debe extraer
+SOLO la especificación pertinente: no resumas el procedimiento ni otros pares.
+No incluyas figuras de frenos u otras reparaciones por compartir página con el dato.
+Incluí una figura únicamente si identifica la fijación consultada o su secuencia
+de apriete. overview debe contener la respuesta completa a la especificación:
+valor, unidad, componente y condiciones o límites documentados, con sus fuentes.
+Los IDs de fuentes van solo en overview_sources, nunca escritos en la prosa.
+No incluyas otros pares de componentes ajenos. Herramientas y procedimientos
+no solicitados son not_required; su ausencia no crea gaps. El alcance documental
+no certifica que las fijaciones instaladas coincidan con las originales."""
     parts = [{"text": json.dumps(compact, ensure_ascii=False)}, *images]
     payload = {
-        "systemInstruction": {"parts": [{"text": REVIEW}]},
+        "systemInstruction": {"parts": [{"text": instruction}]},
         "contents": [{"role": "user", "parts": parts}],
         "generationConfig": {
             "responseMimeType": "application/json",
@@ -225,6 +264,8 @@ def review(context, model, deadline):
         },
     }
     for attempt in range(2):
+        if model in {"gemini-3.8-flash", "gemini-3.5-flash"}:
+            payload["generationConfig"]["thinkingConfig"] = {"thinkingLevel": "low"}
         candidate = provider.call(model, payload, deadline)
         try:
             result = json.loads(provider.text(candidate))
@@ -256,6 +297,16 @@ def validate_review(result, slots, sources):
             figure["include"] and not figure["caption"].strip()
         ):
             raise ValueError("Every figure needs a visual rationale")
+    relevant_pages = {
+        s["page_id"]
+        for s in slots
+        if (s["kind"] == "text" and result["texts"][s["id"]]["relevant"])
+        or (s["kind"] == "illustration" and result["figures"][s["id"]]["include"])
+    }
+    if not set(result["overview_sources"]) <= relevant_pages:
+        raise ValueError(
+            "Overview cites pages whose text and figures were all irrelevant"
+        )
     if any(v == "missing" for v in result["coverage"].values()) and not result["gaps"]:
         raise ValueError("Missing coverage must identify the gap")
 
@@ -311,14 +362,41 @@ def generate(context, model):
         )
     ]
     is_procedure = context["retrieval"]["conversation"].get("intent") == "procedure"
+
+    def web_blocks(anchor):
+        return [
+            assistant.Paragraph(
+                type="paragraph",
+                text="Complemento web — explicación general del fabricante: "
+                + source["text"],
+                source_ids=[source["id"]],
+            )
+            for source in extra
+            if source.get("before_manual_block", "") == anchor
+        ]
+
+    blocks.extend(web_blocks(""))
+    step = 0
     for slot in slots:
         if slot["kind"] == "text":
             item = result["texts"][slot["id"]]
             if item["relevant"]:
+                if location_request(context):
+                    continue  # complete location answer is already in the overview
+                # A focused specification is already fully stated in the overview.
+                # Do not append the surrounding repair procedure a second time.
+                if (
+                    specification_request(context)
+                    and slot["page_id"] in result["overview_sources"]
+                ):
+                    continue
+                blocks.extend(web_blocks(slot["id"]))
+                step += 1
                 blocks.append(
                     assistant.Paragraph(
                         type="paragraph",
-                        text=item["explanation"],
+                        text=(f"Paso {step}. " if is_procedure else "")
+                        + item["explanation"],
                         source_ids=[slot["page_id"]],
                         manual_block_ids=[slot["id"]],
                     )
@@ -357,15 +435,8 @@ def generate(context, model):
                 source_ids=[],
             )
         )
-    for source in extra:
-        blocks.append(
-            assistant.Paragraph(
-                type="paragraph",
-                text="Como complemento de la documentación del fabricante: "
-                + source["text"],
-                source_ids=[source["id"]],
-            )
-        )
+    # General web explanations cannot certify vehicle-specific completeness.
+    # Keep the documentary gaps and applicability limits visible after the steps.
     if result["gaps"] and context["retrieval"].get("web", {}).get("status") in {
         "no_verified_sources",
         "unavailable",

@@ -244,6 +244,27 @@ def retrieve(query, ranked_pages, diagnostics):
     data = catalog()
     if data is None:
         return None
+    from . import manual_navigation
+
+    navigation = manual_navigation.catalog()
+    if navigation:
+        data = data | {
+            "sections": [
+                s
+                | {
+                    "chunks": s["chunks"]
+                    + manual_navigation.section_chunks(s, navigation)
+                }
+                for s in data["sections"]
+            ]
+        }
+        diagnostics["visual_navigation"] = "model_navigation_only"
+    from .specification_search import section_hits
+
+    specifications = section_hits(query, data["sections"])
+    diagnostics["specification_pages"] = list(
+        dict.fromkeys(p for pages in specifications.values() for p in pages)
+    )
     target = (
         (diagnostics.get("conversation", {}).get("frame") or {})
         .get("subjects", {})
@@ -266,6 +287,8 @@ def retrieve(query, ranked_pages, diagnostics):
     frequencies = Counter(w for _, c, _ in rows for w in words(c["text"]))
     ranked = []
     for s in data["sections"]:
+        if specifications and s["id"] not in specifications:
+            continue
         title_terms = words(s["title"])
         # Query/title specificity outweighs a generic brake match on another page.
         title_score = sum(
@@ -289,13 +312,26 @@ def retrieve(query, ranked_pages, diagnostics):
             "multiple" in manual_library.normalize(title) for title in s["heading_path"]
         ):
             continue
-        if not compatible(query, s["title"]):
+        if not specifications and not compatible(query, s["title"]):
             continue
         vector_score = max(
             (
                 1 / (1 + ranked_pages.index(e["page_id"]))
                 for e in s["spans"]
                 if e["page_id"] in ranked_pages
+            ),
+            default=0,
+        )
+        # Preserve strong semantic matches through section ranking. A literal
+        # filler word in an unrelated chapter must not erase conceptual recall.
+        semantic_bonus = max(
+            (
+                20 / (1 + rank)
+                for rank, candidate in enumerate(
+                    diagnostics.get("semantic_ranking", [])
+                )
+                if candidate["similarity"] >= 0.66
+                and any(e["page_id"] == candidate["page_id"] for e in s["spans"])
             ),
             default=0,
         )
@@ -331,6 +367,7 @@ def retrieve(query, ranked_pages, diagnostics):
             + vector_score * 6
             + label_score * 6
             + topic_bonus
+            + semantic_bonus
         )
         ranked.append((score, s))
     ranked.sort(key=lambda item: (-item[0], item[1]["id"]))
@@ -341,10 +378,14 @@ def retrieve(query, ranked_pages, diagnostics):
         return []
     # A clear topic identity must not be diluted by unrelated runner-up topics.
     top = ranked[0][0]
-    chosen = [s for score, s in ranked[:3] if score >= top * 0.82 and s["spans"]]
+    chosen = [s for score, s in ranked[:3] if score >= top * 0.78 and s["spans"]]
+    if specifications:
+        chosen = [s for _, s in ranked[:2]]
     by_id = {s["id"]: s for s in data["sections"]}
     descendants = {s["id"] for s in chosen}
     for s in data["sections"]:
+        if specifications:
+            break
         parent, seen = s["parent_id"], set()
         while parent and parent not in seen:
             seen.add(parent)
@@ -356,7 +397,7 @@ def retrieve(query, ranked_pages, diagnostics):
         s
         for s in data["sections"]
         if s["id"] in descendants
-        and compatible(query, s["title"])
+        and (specifications or compatible(query, s["title"]))
         and not (
             downstream_joint
             and any(
@@ -365,6 +406,22 @@ def retrieve(query, ranked_pages, diagnostics):
             )
         )
     ]
+    if specifications:
+        active = [
+            s
+            | {
+                "spans": [
+                    e for e in s["spans"] if e["page_id"] in specifications[s["id"]]
+                ],
+                "reading_order": [
+                    r
+                    for r in s.get("reading_order", [])
+                    if r["page_id"] in specifications[s["id"]]
+                ],
+                "response_sequence": [],
+            }
+            for s in active
+        ]
     # Up to eight original pages, including the topic beginning and figure pages.
     pages = manual_library.library()[0]
     by_page = {p["id"]: p for p in pages}

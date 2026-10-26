@@ -97,11 +97,11 @@ GROUPS = [
     "bateria acumulador",
     "antiniebla antinieblas neblina",
     "faro faros farol farois",
-    "limpiaparabrisas limpador parabrisas para-brisa",
+    "limpiaparabrisas limpador parabrisas para-brisa escobilla escobillas palheta palhetas",
     "lampara lampada bombilla",
     "cinturon cintos cinturon cinto seguridad seguranca",
     "puerta portas porta puertas",
-    "ventana ventanas vidro vidros",
+    "ventana ventanas vidrio vidrios vidro vidros",
     "asiento asientos banco bancos",
     "capot capo",
     "combustible combustivel nafta gasolina",
@@ -115,6 +115,7 @@ GROUPS = [
     "apoyacabezas encosto encostos cabeca",
     "tablero painel instrumentos",
     "estacionamiento estacionamento",
+    "purgado purgar purga sangrar sangria",
 ]
 
 
@@ -151,13 +152,36 @@ def load(folder, stamp):
     return pages, counts, frequencies
 
 
+@lru_cache(maxsize=2)
+def enriched_library(folder, stamp, navigation_path, navigation_stamp, figure_stamp):
+    from . import manual_navigation
+
+    pages = manual_navigation.enrich_pages(load(folder, stamp)[0])
+    counts = [Counter(tokens(p["navigation_text"])) for p in pages]
+    return pages, counts, Counter(w for count in counts for w in count)
+
+
 def library():
     folder = root()
     if folder is None:
         return [], [], Counter()
     try:
         path = folder / "library.json"
-        return load(str(folder), path.stat().st_mtime_ns)
+        from . import manual_navigation
+
+        original = load(str(folder), path.stat().st_mtime_ns)
+        navigation_path = manual_navigation.manifest_path()
+        if navigation_path is None:
+            return original
+        figure_root = os.getenv("MANUAL_FIGURES_PATH", "").strip()
+        figure_path = Path(figure_root) / "figures.json" if figure_root else None
+        return enriched_library(
+            str(folder),
+            path.stat().st_mtime_ns,
+            str(navigation_path),
+            navigation_path.stat().st_mtime_ns,
+            (str(figure_path), figure_path.stat().st_mtime_ns) if figure_path else None,
+        )
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise AssistantError(
             503, "La biblioteca de manuales no está disponible; revisá su instalación."
@@ -277,6 +301,10 @@ def search(vehicle, query, db=None, diagnostics=None):
                 diagnostics.update(
                     method="hybrid_bm25_pgvector",
                     semantic_candidates=len(semantic),
+                    semantic_ranking=[
+                        {"page_id": identifier, "similarity": round(score, 6)}
+                        for identifier, score in semantic
+                    ],
                     embedding_model=embeddings.MODEL,
                     bundle_sha256=vector_search.bundle_hash(),
                     minimum_similarity=vector_search.MIN_SIMILARITY,
@@ -288,6 +316,14 @@ def search(vehicle, query, db=None, diagnostics=None):
     structured = manual_sections.retrieve(query, identifiers, diagnostics)
     if structured is not None:
         return structured
+    from .specification_search import matching_windows
+
+    specification_pages = [
+        p for p in pages if matching_windows(query, p["navigation_text"])
+    ]
+    if specification_pages:
+        diagnostics["specification_pages"] = [p["id"] for p in specification_pages]
+        return [source(p) for p in specification_pages[:2]]
     by_id = {p["id"]: p for p in pages}
     best = [by_id[identifier] for identifier in identifiers if identifier in by_id][:4]
     # Include continuations without allowing neighbors to displace ranked pages.

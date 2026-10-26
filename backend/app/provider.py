@@ -37,11 +37,20 @@ def call(model, payload, deadline):
             raise ValueError("Incomplete response")
         return candidate
     except HTTPError as exc:
-        raise AssistantError(
+        failure = AssistantError(
             429 if exc.code == 429 else 502,
             "No se pudo completar la consulta al proveedor. Tu mensaje está guardado; podés reintentar.",
-        ) from None
-    except (TimeoutError, URLError):
+        )
+        failure.provider_status = exc.code
+        # Offline jobs need to distinguish an invalid request from overload.
+        # Keep the response out of public error messages and never include keys.
+        try:
+            error = json.loads(exc.read(16000)).get("error", {})
+            failure.provider_reason = str(error.get("message", ""))[:600]
+        except (ValueError, OSError):
+            failure.provider_reason = ""
+        raise failure from None
+    except (TimeoutError, URLError, OSError):
         raise AssistantError(
             504,
             "La consulta al proveedor no terminó a tiempo. Tu mensaje está guardado.",

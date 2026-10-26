@@ -1,5 +1,6 @@
 """Synthetic manual structure: caliper -> rear cylinder -> servo across pages."""
 
+import copy
 import hashlib
 import json
 from io import BytesIO
@@ -167,6 +168,36 @@ def test_retrieval_expands_backwards_to_correct_figure_and_excludes_neighbors(
 def test_other_topics_keep_their_own_figures(section_bundle, query, figure):
     sources = manual_figures.attach(manual_sections.retrieve(query, [], {}))
     assert [f["id"] for s in sources for f in s["figures"]] == [figure]
+
+
+@pytest.mark.parametrize(
+    "similarity,expected", [(0.72, "test-page-3"), (0.4, "test-page-1")]
+)
+def test_section_ranking_preserves_strong_semantic_candidate(
+    section_bundle, monkeypatch, similarity, expected
+):
+    data = copy.deepcopy(manual_sections.catalog())
+    first, _, last = data["sections"]
+    first["spans"] = [first["spans"][0]]
+    first["chunks"] = [{"page_id": "test-page-1", "text": "banda ocupante"}]
+    first["reading_order"] = []
+    last["chunks"] = [
+        {
+            "page_id": "test-page-3",
+            "text": "Identidad sintética sin coincidencia literal",
+        }
+    ]
+    data["sections"] = [first, last]
+    monkeypatch.setattr(manual_sections, "catalog", lambda: data)
+    sources = manual_sections.retrieve(
+        "banda ocupante",
+        ["test-page-1", "test-page-3"],
+        {
+            "semantic_candidates": 1,
+            "semantic_ranking": [{"page_id": "test-page-3", "similarity": similarity}],
+        },
+    )
+    assert sources[0]["id"] == expected
 
 
 def test_caption_cannot_rename_wrong_component_and_topic_is_checked(section_bundle):

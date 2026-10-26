@@ -1,6 +1,12 @@
 # WrenchAI
 
-La biblioteca local permite consultar **532 páginas de dos manuales completos**, mediante búsqueda de páginas y lectura visual de Gemini. Incorpora [búsqueda híbrida con pgvector](docs/VECTOR_RETRIEVAL.md), [recuperación por temas con figuras correspondientes](docs/SECTION_RETRIEVAL.md) y [respuestas con ilustraciones intercaladas](docs/ILLUSTRATED_ANSWERS.md), con acceso a la página original. Conserva aparte cinco fragmentos revisados; el OCR restante no se presenta como evidencia validada. Instalación, estado y límites: [biblioteca completa](docs/FULL_MANUAL_LIBRARY.md).
+La recuperación de pares de apriete busca ahora el componente y su fijación dentro
+del texto, aunque el dato esté en otro capítulo. La [navegación visual persistente](docs/VISUAL_NAVIGATION.md)
+agrega descripciones de ilustraciones y vínculos con regiones originales; está activa con 532 páginas, 685 figuras descritas y 720 vectores compatibles.
+La evaluación final pasó 14/14 consultas de recuperación y seis respuestas reales con
+fuentes comprobadas; son pruebas de regresión, no validación mecánica exhaustiva. Detalles en el plan.
+
+La biblioteca local permite consultar **532 páginas de dos manuales completos**, mediante búsqueda de páginas y lectura visual de Gemini. Incorpora [búsqueda híbrida con pgvector](docs/VECTOR_RETRIEVAL.md), [recuperación por temas con figuras correspondientes](docs/SECTION_RETRIEVAL.md) y [respuestas con ilustraciones intercaladas](docs/ILLUSTRATED_ANSWERS.md), con acceso a la página original. La [búsqueda web complementaria](docs/WEB_SEARCH.md) integra explicaciones de fabricantes con citas junto a los pasos del manual. Conserva aparte cinco fragmentos revisados; el OCR restante no se presenta como evidencia validada. Instalación, estado y límites: [biblioteca completa](docs/FULL_MANUAL_LIBRARY.md).
 
 Proyecto de portfolio para conseguir una primera experiencia laboral: una aplicación de mantenimiento mecánico con persistencia, diagnóstico asistido por IA y fuentes documentales verificables.
 
@@ -8,7 +14,7 @@ Proyecto de portfolio para conseguir una primera experiencia laboral: una aplica
 
 La pantalla principal es un chat por problema. Al escribir, se guarda la conversación y se registra un pendiente en PostgreSQL. **Mi auto** reúne los datos del vehículo, modificaciones, trabajos y costos. Gemini responde con citas y figuras de los manuales, usando el Gol original como referencia documental y considerando las modificaciones pertinentes. La recuperación combina BM25, pgvector y secciones del manual; conserva el tema en preguntas de seguimiento y pide aclaración si la referencia es ambigua. Ver [contexto conversacional y límites de equipos instalados](docs/CONVERSATION_RETRIEVAL.md).
 
-Se ejecutaron los veinte escenarios y dos comparaciones: la revisión encontró 11 casos que cumplen, 5 parciales y 4 fallidos. La CI está preparada y verificada localmente en Linux con 208 pruebas backend, 30 de herramientas y build/formato frontend; su primera ejecución remota queda pendiente del push. Ver [resultados y límites de la evaluación](docs/MVP_EVALUATION.md). La prioridad es corregir esos fallos; revisión mecánica profesional, búsqueda web y demo siguen pendientes. El avance está en la [checklist del plan](IMPLEMENTATION_PLAN.md).
+Se ejecutaron los veinte escenarios y dos comparaciones: la revisión encontró 11 casos que cumplen, 5 parciales y 4 fallidos. La CI está preparada y verificada localmente en Linux con 208 pruebas backend, 30 de herramientas y build/formato frontend; su primera ejecución remota queda pendiente del push. Ver [resultados y límites de la evaluación](docs/MVP_EVALUATION.md). La prioridad es corregir esos fallos; revisión mecánica profesional, validación web real con cuota disponible y demo siguen pendientes. El avance está en la [checklist del plan](IMPLEMENTATION_PLAN.md).
 
 El prototipo de consola `maintenance_demo.py` se conserva como antecedente educativo con SQLite. Sus datos no se migran automáticamente a la API.
 
@@ -36,7 +42,7 @@ El circuito inicial con cinco fragmentos revisados se amplió a los dos manuales
 - Reglas determinísticas de seguridad que el modelo no puede reducir.
 - Evaluación reproducible sobre 20 casos, separando tests simulados de pruebas con Gemini real.
 
-El chat recupera pasajes revisados de PostgreSQL y secciones de las páginas originales. El OCR se usa para navegación; las imágenes son la evidencia de lectura automática. La búsqueda híbrida con pgvector ya funciona. La búsqueda web complementaria sigue pendiente. Se usa recuperación documental (RAG), sin entrenar un modelo con los PDF.
+El chat recupera pasajes revisados de PostgreSQL y secciones de las páginas originales. El OCR se usa para navegación; las imágenes son la evidencia de lectura automática. La búsqueda híbrida con pgvector ya funciona. La búsqueda web complementaria está implementada en el flujo de revisión visual; su disponibilidad real depende del modelo y la cuota del proveedor. Se usa recuperación documental (RAG), sin entrenar un modelo con los PDF.
 
 ## Stack previsto
 
